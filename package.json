@@ -1,0 +1,20 @@
+{
+  "name": "boxesandarrows",
+  "version": "1.0.0",
+  "description": "draw diagrams in graphviz by describing the boxes and arrows in a text file",
+  "main": "draw.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "csv-parse": "^5.0.3",
+    "handlebars": "^4.7.7",
+    "minimalist": "^1.0.0",
+    "node-cmd": "^5.0.0",
+    "string-pixel-width": "^1.10.0",
+    "uuid": "^8.3.2",
+    "victor": "^1.1.0"
+  }
+}

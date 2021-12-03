@@ -1,0 +1,3 @@
+name,label,x,y,h,w,origin,style,special,noLabel,tags,fillcolor,color,"#notes"
+a,START,2,2,4,3,,,,,,#ff9999,pink,
+b,FINISH,7,7,2,3,,,,,,#9999ff,blue,

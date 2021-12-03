@@ -1,0 +1,37 @@
+{{> start}}
+bgcolor="white"
+
+
+
+{{{nodes}}}
+{{{edges}}}
+
+
+
+{{{proof 'gray'}}}
+{{> end}}
+
+
+
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 

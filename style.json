@@ -1,0 +1,94 @@
+{
+    "pointScale" : 72.0,
+
+    "yScale" : 3.0,
+    "xScale" : 3.0,
+
+
+    "doc":{
+        "w" : 10.0,
+        "h" : 10.0,
+        "pixelsperinch" : 208
+    },
+
+    "font": {
+        "edge" :{
+            "name" : "Arial",
+            "size" : 20
+        }
+
+
+    },
+    
+    "label":
+    {
+        "justify" :
+        {
+            "margin" :
+            {
+                "x" : 0.15
+            }
+        }
+    },
+
+    "shape": {
+
+        "size":{
+            "height" : 1.0,
+            "width"  : 1.0
+        },
+
+        "edge":{
+            "offset": {
+
+                "x": 0.55,
+                "y": 0.55,
+
+                "tail":{
+                    "symbol" : 0.11,
+                    "point" : 0.1
+                },
+    
+                "head": {
+
+                    "symbol" : 0.11,
+                    "point" : 0.1
+                }
+            },
+            
+            "ratio":{
+
+                "control":{
+                    "start" : 0.4,
+                    "end": 0.4
+                }
+            },
+
+            "scale" : {
+
+                "top" : 1.0,
+                "side" : 1.0,
+                "corner" : 1.0,
+
+                "round" : 0.7
+
+
+
+            }
+        }
+    },
+
+    "layers":{
+        "Messages" : " edge  [color=\"lightblue\"] ", 
+        "Gets" : "edge [arrowtail=\"inv\" dir=\"both\" color=\"#99cc99\"] "
+    },
+
+
+
+    "styles":{
+        "message" : " edge  [color=\"0.55 0.80 0.90\"]  ", 
+        "get" : "edge [arrowtail=\"inv\" dir=\"both\" color=\"#99cc99\"] "
+    }
+
+
+}
