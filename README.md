@@ -15,5 +15,5 @@ if you have this set up the follwing will produce the image ```my-test.png```
 that will match ```draw-test.png```
 
 ```
-node ./draw.js -v1 -n test-nodes.csv -e test-edges.csv -o my-test ./test.dot 
+node ./draw.js -v1 -n ./data/nodes.csv -e ./data/edges.csv -o my-test ./views/test.dot 
 ```

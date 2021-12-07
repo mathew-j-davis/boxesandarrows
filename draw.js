@@ -96,13 +96,15 @@ const data = (()=>{
     if(undefined != argv.d && typeof(argv.d) == 'string' && argv.d.length > 0 ){
         const datapath = argv.d;
         const datatext = fs.readFileSync(datapath).toString();
-        if (verbose > 1){
-            console.log(`data = ${JSON.stringify(data, null, 2)}`);
-        }
+
         return JSON.parse(datatext);
     }
     return {};
 })();
+
+if (verbose > 1){
+    console.log(`data = ${JSON.stringify(data, null, 2)}`);
+}
 
 // style
 const style = (()=>{
@@ -113,11 +115,13 @@ const style = (()=>{
         return'./style.json'
     })();
     const styletext = fs.readFileSync(stylepath).toString();
-    if (verbose > 1){
-        console.log(`style = ${JSON.stringify(style, null, 2)}`);
-    }
+
     return JSON.parse(styletext);
 })();
+
+if (verbose > 1){
+    console.log(`style = ${JSON.stringify(style, null, 2)}`);
+}
 
 //partials
 (()=>{
@@ -331,6 +335,16 @@ function drawEdges(edgesToDraw){
         var to = nodes.get(e.to_name);
 
         var s = drawEdgeConnector(from, to, e);
+
+        if (from == null)
+        {
+            console.log(`ERROR : Edge From Node not found :  ${e.from_name}`)
+        }
+
+        if (to == null)
+        {
+            console.log(`ERROR : Edge To Node not found ${e.to_name}`)
+        }
 
         if (verbose>1){
             console.log(s);
@@ -1251,13 +1265,18 @@ var pngs =[];
 var temp_dot =[];
 var temp_png =[];
 
+var folio = {
+    "data" : data,
+    "style" : style,
+}
+
 if (docs.length == 1){
     var doc = docs[0];
 
     var text = fs.readFileSync(doc.full).toString();
     usePointScale = true;
     var template = hb.compile(text);
-    var DotCompiledPointScale = template({});
+    var DotCompiledPointScale = template(folio);
     var DotCompiledPointScaleFilePath = doc.base +  `.compiled.point.dot`;
     temp_dot.push(DotCompiledPointScaleFilePath);
     fs.writeFileSync(DotCompiledPointScaleFilePath, DotCompiledPointScale) ;
@@ -1312,16 +1331,13 @@ else if (docs.length > 1){
 if (!keepTemp){
     
     for ( var dot of temp_dot){
-        var command = `rm ${dot}`;
-
+        var command = `rm "${dot}"`;
         runner(command, `remove temp dot`)
-
     }
     for ( var png of temp_png){
-        var command = `rm ${png}`;
+        var command = `rm "${png}"`;
         runner(command, `remove temp png`)
     }
-    
 }
 
 

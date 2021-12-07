@@ -1,0 +1,4 @@
+from,to,type,start_direction,start_control,start_adjust_x,start_adjust_y,start_label,end_direction,end_control,end_adjust_x,end_adjust_y,end_label,label,label_balance,label_adjust_x,label_adjust_y,label_justify,isHtml,style,special,tags,waypoints,label_segment,,,//
+a,b,c,,,,,S,,,,,E,L,,,,,,,,,"5,2,w,e 5,7,w,e ",1,,,
+a,b,l,s,,-0.4,,,w,,,0.4,,,,,,,,,,,"1.6,7.4",,,,
+b,b,c,e,4.18,,,,n,4.18,,,,,,,,,,,,,,,,,

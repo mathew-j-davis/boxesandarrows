@@ -1,0 +1,42 @@
+digraph G {
+
+graph [compound=true, labelloc="b"];
+node [shape=box];
+edge [dir=none];
+
+Label2[
+    label="Label2"
+    height="8"
+    imagepos="tc"
+    labelloc="b"
+    image="./views/images/circle.png"
+	fillcolor="red" 
+	color="blue"
+];
+
+
+}
+
+
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
