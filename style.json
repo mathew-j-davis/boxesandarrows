@@ -1,8 +1,11 @@
 {
-    "pointScale" : 72.0,
-
-    "yScale" : 1.0,
-    "xScale" : 1.0,
+    "scale" : {
+        "point" : 72,
+        "x": 2,
+        "y": 2,
+        "h": 1.0,
+        "w": 1.0
+    },
 
 
     "doc":{
@@ -56,6 +59,14 @@
                 }
             },
             
+            "size":{
+                "control":{
+                    "start" : 1,
+                    "end": 1
+                }
+            },
+
+
             "ratio":{
 
                 "control":{

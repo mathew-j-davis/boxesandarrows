@@ -186,7 +186,7 @@ const importedEdges = (()=>{
 })();
 
 
-function scale(){ return usePointScale? style.pointScale : 1.0 }
+function scale(){ return usePointScale? style.scale.point : 1.0 }
 
 function drawImportedNodes(){
     return drawNodes(importedNodes);
@@ -574,10 +574,14 @@ function SetPositions(e, from, to, prepoints) {
 
 function SetEdgePointPositions(e, from, to, a, b) {
 
+    if (e.type == 'p'){
+
+        return SetEdgePointPositionsCurveProportional(e, from, to, a, b);
+    }
+    
     if (e.type == 'c'){
         return SetEdgePointPositionsCurve(e, from, to, a, b);
     }
-    
     return SetEdgePointPositionsLinear(e, from, to, a, b);
 }
 
@@ -618,6 +622,67 @@ function SetEdgePointPositionsLinear(e, from, to, a, b) {
 
 
 function SetEdgePointPositionsCurve(e, from, to, a, b) {
+
+    const start_control_length = cleanNumberInput(e.start_control, style.shape.edge.size.control.start);
+    const end_control_length = cleanNumberInput(e.end_control, style.shape.edge.size.control.end);
+
+    a.control_out_x =
+        RoundTo(
+        X(
+            a.pre_x  +
+
+            DirectionRoundedX(a.control_out_direction) *
+            start_control_length 
+        ),4);
+
+    a.control_out_y =
+        RoundTo(
+            InvertedY(
+                a.pre_y +
+                DirectionRoundedY(a.control_out_direction) *
+                start_control_length 
+            ),
+        4);
+
+
+    b.control_in_x = RoundTo(
+        X(
+            b.pre_x +
+
+            DirectionRoundedX(b.control_in_direction) *
+            end_control_length 
+        ),4);
+    
+    b.control_in_y =  
+        RoundTo(
+        InvertedY(
+            b.pre_y  +
+            DirectionRoundedY(b.control_in_direction) *
+            end_control_length 
+        ),4);
+
+        if ( a instanceof TailPrePoint ){
+            a.x_symbol = RoundTo (X( a.pre_x_symbol ),4);
+            a.y_symbol = RoundTo(InvertedY(a.pre_y_symbol),4);
+        }
+
+        if ( b instanceof HeadPrePoint ){
+    
+            b.x_symbol = RoundTo(X(  b.pre_x_symbol ),4);
+            b.y_symbol =  RoundTo(InvertedY(b.pre_y_symbol ),4);
+        }
+
+        a.x = RoundTo(X( a.pre_x) ,4);
+        a.y = RoundTo(InvertedY(a.pre_y),4);
+
+        b.x = RoundTo(X( b.pre_x),4);
+        b.y = RoundTo(InvertedY(b.pre_y),4);
+
+    return [a,b]
+}   
+
+
+function SetEdgePointPositionsCurveProportional(e, from, to, a, b) {
 
     var distance = Math.sqrt(
         Math.pow( a.pre_x - b.pre_x, 2) +
@@ -687,12 +752,8 @@ function SetEdgePointPositionsCurve(e, from, to, a, b) {
         b.x = RoundTo(X( b.pre_x),4);
         b.y = RoundTo(InvertedY(b.pre_y),4);
 
-        distance
-
     return [a,b]
 }   
-
-
 
 
 function SetDirectionSmooth(e, from, to, before,point,after){
@@ -1070,11 +1131,11 @@ function edge (from_name, to_name) {
 
 
 function InvertedY(n){
-    return (scale() * (style.doc.h - n) * style.yScale)
+    return (scale() * (style.doc.h - n) * style.scale.y)
 }
 
 function Y(n){
-    return (scale() * n * style.yScale);
+    return (scale() * n * style.scale.y);
 }
  
 hb.registerHelper('y', function(n) {
@@ -1094,17 +1155,17 @@ function W (n) {
 }
 
 function CalcW (n) {
-    return (n * style.xScale).toString();
+    return (n * style.scale.w).toString();
 }
 
 function CalcH(n) {
-    return (n * style.yScale).toString();
+    return (n * style.scale.h).toString();
 }
 
 hb.registerHelper('w', CalcW );
 
 function X(n){
-    return (scale() * n * style.xScale);
+    return (scale() * n * style.scale.x);
 }
 
 hb.registerHelper('x', function(x) {
@@ -1266,6 +1327,7 @@ var temp_dot =[];
 var temp_png =[];
 
 var folio = {
+    "good" : "happy",
     "data" : data,
     "style" : style,
 }
@@ -1354,12 +1416,12 @@ function SetOffsets(e, from, to, prepoints) {
     var end_width  = cleanNumberInput( to.w , style.shape.size.width);
     var end_height = cleanNumberInput( to.h, style.shape.size.height );
 
-    var start_x_offset = (( start_width / 2.0 ) + style.shape.edge.offset.tail.point) * DirectionShapedX(start.offset_out_direction);
-    var start_x_offset_symbol = (( start_width / 2.0 ) + style.shape.edge.offset.tail.symbol) * DirectionShapedX(start.offset_out_direction);
+    //clumsy but this is what happens if you add a feature too late
+    var start_x_offset = (( start_width / 2.0 ) * + style.shape.edge.offset.tail.point) * (style.scale.w/style.scale.x) * DirectionShapedX(start.offset_out_direction);
+    var start_x_offset_symbol = (( start_width / 2.0 ) + style.shape.edge.offset.tail.symbol) * (style.scale.w/style.scale.x) *  DirectionShapedX(start.offset_out_direction);
 
-
-    var start_y_offset = ((start_height / 2) + style.shape.edge.offset.tail.point ) * DirectionShapedY(start.offset_out_direction);
-    var start_y_offset_symbol = ((start_height / 2) + style.shape.edge.offset.tail.symbol ) * DirectionShapedY(start.offset_out_direction);
+    var start_y_offset = ((start_height / 2) + style.shape.edge.offset.tail.point ) * (style.scale.h/style.scale.y) * DirectionShapedY(start.offset_out_direction);
+    var start_y_offset_symbol = ((start_height / 2) + style.shape.edge.offset.tail.symbol ) * (style.scale.h/style.scale.y) * DirectionShapedY(start.offset_out_direction);
 
     start.pre_x_symbol = start.pre_x + start_x_offset_symbol;
     start.pre_y_symbol = start.pre_y + start_y_offset_symbol;
@@ -1372,12 +1434,12 @@ function SetOffsets(e, from, to, prepoints) {
     var end = prepoints[prepoints.length-1]
 
 
-    var end_x_offset = ((end_width/2) + style.shape.edge.offset.head.point) * DirectionShapedX(end.offset_in_direction);
-    var end_x_offset_symbol = ((end_width/2) + style.shape.edge.offset.head.symbol) * DirectionShapedX(end.offset_in_direction);
+    var end_x_offset = ((end_width/2) + style.shape.edge.offset.head.point) * (style.scale.w/style.scale.x) * DirectionShapedX(end.offset_in_direction);
+    var end_x_offset_symbol = ((end_width/2) + style.shape.edge.offset.head.symbol) * (style.scale.w/style.scale.x) * DirectionShapedX(end.offset_in_direction);
 
 
-    var end_y_offset = ( (end_height/2) + style.shape.edge.offset.head.point) * DirectionShapedY(end.offset_in_direction);
-    var end_y_offset_symbol = ( (end_height/2) + style.shape.edge.offset.head.symbol) * DirectionShapedY(end.offset_in_direction);
+    var end_y_offset = ( (end_height/2) + style.shape.edge.offset.head.point) * (style.scale.h/style.scale.y) * DirectionShapedY(end.offset_in_direction);
+    var end_y_offset_symbol = ( (end_height/2) + style.shape.edge.offset.head.symbol) * (style.scale.h/style.scale.y) * DirectionShapedY(end.offset_in_direction);
 
     end.pre_x_symbol = end.pre_x + end_x_offset_symbol;
     end.pre_y_symbol = end.pre_y + end_y_offset_symbol;
