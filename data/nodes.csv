@@ -1,4 +1,4 @@
 name,label,x,y,h,w,image,style,special,noLabel,tags,fillcolor,color,#notes
 a,START,2,2,4,3,,,,,,#ff9999,pink,
 b,FINISH,7,7,2,3,,,,,,#9999ff,#7777ee,
-c,,11,3,5.5,6,./views/images/circle.png,,"[shape=box]    [ labelloc=""b"" ]",,,red,blue,
+c,,11,3,5.5,6,./views/images/circle.png,,"[shape=box]    [ labelloc=""b"" ]",,,#ff999933,#ff999999,
