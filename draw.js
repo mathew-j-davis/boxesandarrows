@@ -304,7 +304,7 @@ hb.registerHelper('taggednodes', drawTaggedNodes);
 
 
 hb.registerHelper('layer', Layer);
-hb.registerHelper('style', Style);
+hb.registerHelper('namedStyle', NamedStyle);
 
 
 function drawTaggedEdges(tag){
@@ -979,8 +979,8 @@ function Layer(layer){
 
 }
 
-function Style(s){
-    return style.styles[s];
+function NamedStyle(s){
+    return style.namedStyles[s];
 }
 
 function DirectionShapedX (direction){

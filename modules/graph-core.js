@@ -14,7 +14,7 @@ class Node {
         h,
         w,
         origin,
-        style,
+        namedStyle,
         special,
         hideLabel,
         tags,
@@ -27,7 +27,7 @@ class Node {
         this.h = cleanNumberInput(h, null);  
         this.w = cleanNumberInput(w, null);  
         this.origin = cleanStringInput(origin, null); 
-        this.style = cleanStringInput(style, null); 
+        this.namedStyle = cleanStringInput(namedStyle, null); 
         this.special = cleanStringInput(special, null); 
         this.hideLabel = cleanBooleanInput(hideLabel, false);
         this.tags = cleanStringInput(tags, null); 
@@ -68,12 +68,13 @@ class Edge{
         label_justify,
         
         isHtml,
-        style,
+        namedStyle,
         special,
         tags,
         label_balance_x, 
         label_balance_y, 
         waypoints,
+        radius,
         attributes
     ){
         this.from_name = from_name || null;
@@ -110,7 +111,7 @@ class Edge{
         this.label_adjust_y = label_adjust_y || 0;
         this.label_justify = label_justify || 0;
         this.isHtml = isHtml || false;
-        this.style = style || null;
+        this.namedStyle = namedStyle || null;
         this.special = special || null;
         this.tags = tags || null;
 
@@ -248,7 +249,7 @@ function readNodes(Json){
         var h = null;  
         var w = null;  
         var origin = null;  
-        var style = null; 
+        var namedStyle = null; 
         var hideLabel = false;
         var special = null;
         var tags = null;
@@ -280,8 +281,8 @@ function readNodes(Json){
                 case 'origin':
                     origin = currentNode[prop];
                     break;    
-                case 'style':
-                    style = currentNode[prop];
+                case 'namedStyle':
+                    namedStyle = currentNode[prop];
                     break;
                 case 'noLabel':
                 case 'hideLabel':
@@ -313,7 +314,7 @@ function readNodes(Json){
                 h,
                 w,
                 origin,
-                style,
+                namedStyle,
                 special,
                 hideLabel,
                 tags,
@@ -354,7 +355,7 @@ function readEdges(Json){
         var label_adjust_y = 0;
         var label_justify = 0;
         var isHtml = false;
-        var style = null;
+        var namedStyle = null;
         var special = null;
         var tags = null;
         var label_balance_x = 0;
@@ -402,7 +403,7 @@ function readEdges(Json){
 
                 case 'label_justify':   label_justify = currentEdge[prop]; break;
                 case 'isHtml':          isHtml = currentEdge[prop]; break;
-                case 'style':           style = currentEdge[prop]; break;
+                case 'namedStyle':           namedStyle = currentEdge[prop]; break;
                 case 'special':         special = currentEdge[prop]; break;
                 case 'tags':            tags = currentEdge[prop]; break;
 
@@ -445,7 +446,7 @@ function readEdges(Json){
                 label_adjust_y,
                 label_justify,
                 isHtml,
-                style,
+                namedStyle,
                 special,
                 tags,
                 label_balance_x, 
