@@ -3,6 +3,7 @@ var fs = require('fs');
 var path = require( 'path');
 const hb = require('handlebars');
 const cmd = require('node-cmd');
+const { v4 : uuid } = require('uuid');
 
 const { exit, ppid } = require('process');
 const Vector = require('victor');
@@ -25,6 +26,7 @@ const {
     cleanBooleanInput,
     readdirrSync,
     readNodes,
+    readPositions,
     readEdges,
     readJsonFromCsvFile,
     RoundTo,
@@ -150,9 +152,12 @@ const keepTemp = (()=>{
     return (undefined != argv.k && argv.k );
 })();
 
-
-
-// nodes
+// two nodes collections exist to handle graphviz behaviour of allowing same node to be overridden
+// this is only important within this code for position
+// the position may change depending on which nodes from the imported list have been included through tags
+// imported is the full list
+// nodes is a map of only the most recent used version of the node
+// the behaviour isn't perfect as it replaced the whole node instead of overriding attributtes, if this evermatters, i'll change the behaviour
 
 var nodes = new Map();
 
@@ -173,9 +178,53 @@ const importedNodes = (()=>{
     return readNodes(readJsonFromCsvFile(argv.n));
 })();
 
-for (n of importedNodes){
+
+// position map overrides node positions
+
+const importedNodePositions = (()=>{
+    if(!(undefined != argv.p && typeof(argv.p) == 'string' && argv.p.length > 0 )){
+        return [];
+    }
+    return readPositions(readJsonFromCsvFile(argv.p)); //readNodes(readJsonFromCsvFile(argv.n));
+})();
+
+for (i in importedNodes){
+
+    var xy = importedNodePositions.get(importedNodes[i].name)
+
+    if (undefined != xy){
+
+        importedNodes[i].x = xy[0]
+        importedNodes[i].y = xy[1]
+    }
+}
+
+for (var n of importedNodes){
     nodes.set(n.name, n)
 }
+
+
+// push nodes that exist only in position map into nodes collections
+
+for (const [name, xy] of importedNodePositions.entries()) {
+
+    var n = nodes.get(name)
+
+    if (undefined == n){
+
+        var node = new Node(
+            name,
+            xy[0],
+            xy[1]
+        )
+
+        importedNodes.push(node);
+        nodes.set(name, node)
+
+    }
+}
+
+
 
 const importedEdges = (()=>{
     if(!(undefined != argv.e && typeof(argv.e) == 'string' && argv.e.length > 0 )){
@@ -202,7 +251,17 @@ function drawTaggedNodes(tag){
 
         return  ss.includes(tag);
 
-      });
+    });
+
+    // if multiple versions of the same node exist in data set, ensure it is the last one used that is on top
+    // to be consistent with graphviz behaviour, this really only matters for position when not overuled by values in position map
+
+
+
+    for (n of tagged){
+        nodes.set(n.name, n)
+    }
+    
     return drawNodes(tagged)
 }
 
@@ -333,6 +392,9 @@ function drawEdges(edgesToDraw){
 
         var from = nodes.get(e.from_name);
         var to = nodes.get(e.to_name);
+
+
+
 
         var s = drawEdgeConnector(from, to, e);
 
@@ -1219,11 +1281,12 @@ function freeLabel (text, x,y) {
 
 function date (x,y,prefix){
     prefix = cleanStringInput(prefix,"");
+    const d = new Date();
     const text = `${prefix} ${d.getDate()}/${(d.getMonth() + 1)}/${d.getFullYear()} `;
-    var pixels = pixelWidth(label, { font: style.font.edge.name, size: style.font.edge.size});
+    var pixels = pixelWidth(text, { font: style.font.edge.name, size: style.font.edge.size});
     var text_shift = -( pixels / ( 2 * style.doc.pixelsperinch) )
     var id = uuid().toString().replace(/\-/g, '');
-    const d = new Date();
+
     
     return `date_${id} [shape=none margin=0 border=0 label="${text}"] ${writePos (x, y, text_shift)} `;
 }

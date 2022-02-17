@@ -236,6 +236,70 @@ function readdirrSync (dir){
 }
 
 
+
+function readPositions(rows){
+
+    var positions = new Map();
+
+    var y = 0;
+
+
+    for (var row of rows){
+
+        y +=1
+
+        var rowPositions = new Map();
+
+        for (var prop in row){
+
+            
+
+            switch(prop){
+
+            case 'r':
+
+                y = cleanNumberInput(row[prop],y); 
+                break; 
+
+            //prop is column x position
+            default:
+                
+                if (isNaN(+prop)){
+                    break;
+                }
+
+                let nss = row[prop];
+                let ns = []
+
+                if (isBlank(nss)){
+                    break;   
+                }
+                
+                ns = nss.split(' ');
+                
+                for (n of ns){
+
+                    if (isBlank(n)){
+                        continue;
+                    }
+
+                    rowPositions.set(n, +prop)
+                }
+                break;
+                // if has value, put in positions
+            }
+        }
+
+        for (const [name, x] of rowPositions.entries()) {
+            positions.set(name, [x,y])
+        }
+    }
+
+
+    return positions;
+
+}
+
 function readNodes(Json){
 
     const readNodesArray = [];
@@ -470,6 +534,11 @@ function readJsonFromCsvFile(csvpath){
         skip_empty_lines: true
       });
 }
+
+
+
+
+
 
 const EdgeType = {
     Linear: 'Linear',
@@ -736,8 +805,10 @@ module.exports={
     cleanBooleanInput,
     readdirrSync,
     readNodes,
+    readPositions,
     readEdges,
     readJsonFromCsvFile,
+    
     RoundTo,
     PrePoint,
     TailPrePoint,
@@ -749,7 +820,7 @@ module.exports={
     RoundedPoint,
     PreassembleStartPoint,
     PreassembleEndPoint,
-    PreassembleMidPoint//,
+    PreassembleMidPoint
     //PreassembleMidPoints
 
 

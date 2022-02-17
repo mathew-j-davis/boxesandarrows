@@ -1,0 +1,61 @@
+'this is the macro I use to export csv files from excel worksheets
+Sub toCSV()
+
+
+    'Set to False to not be warned when saving over existing file
+    Application.DisplayAlerts = False
+    
+    'Set to True is you want to warned when saving over an existing file
+    'Application.DisplayAlerts = True
+    On Error GoTo err
+
+
+    Dim N As Integer
+    N = ActiveSheet.UsedRange.SpecialCells(xlCellTypeLastCell).Column
+        
+    Dim LastColumn As Integer
+    LastColumn = 0
+    
+    
+    
+    'If a cell in the top row has the value starting with '//' then stop including columns\
+    
+    Dim j As Integer
+    For j = 1 To N
+        If (Cells(1, j).Value Like "//*") Then
+            'MsgBox Cells(1, j).Value
+            Exit For
+        End If
+        LastColumn = j
+    Next j
+
+    If (LastColumn = 0) Then
+        MsgBox "No valid data to export"
+        Exit Sub
+    End If
+    
+        
+    Dim myCSVFileName As String
+    
+    myCSVFileName = ThisWorkbook.Path & "\" & ActiveSheet.Name & ".csv"
+    
+
+    Dim r As Range
+    
+    Set r = ActiveSheet.Columns(1).Resize(, 1 + LastColumn - 1).EntireColumn
+    
+    Dim myWB As Workbook
+    Dim tempWB As Workbook
+    Set myWB = ThisWorkbook
+
+    r.Copy
+
+    Set tempWB = Application.Workbooks.Add(1)
+    With tempWB
+        .Sheets(1).Range("A1").PasteSpecial xlPasteValues
+        .SaveAs Filename:=myCSVFileName, FileFormat:=xlCSV, CreateBackup:=False
+        .Close
+    End With
+err:
+    Application.DisplayAlerts = True
+End Sub
