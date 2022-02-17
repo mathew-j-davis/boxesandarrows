@@ -182,10 +182,10 @@ const importedNodes = (()=>{
 // position map overrides node positions
 
 const importedNodePositions = (()=>{
-    if(!(undefined != argv.p && typeof(argv.p) == 'string' && argv.p.length > 0 )){
+    if(!(undefined != argv.m && typeof(argv.m) == 'string' && argv.m.length > 0 )){
         return [];
     }
-    return readPositions(readJsonFromCsvFile(argv.p)); //readNodes(readJsonFromCsvFile(argv.n));
+    return readPositions(readJsonFromCsvFile(argv.m)); //readNodes(readJsonFromCsvFile(argv.n));
 })();
 
 for (i in importedNodes){
