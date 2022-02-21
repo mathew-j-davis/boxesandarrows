@@ -136,7 +136,7 @@ class Edge{
         else{
             this.waypoints = waypoints;
         }
-
+           
 
         if(undefined == attributes || attributes == null || !(attributes instanceof Map)){
             this.attributes = new Map();
@@ -428,6 +428,9 @@ function readEdges(Json){
         var attributes = new Map();
 
 
+        //add auto curves later on
+        var radius = null;
+
         var currentEdge = Json[i];
 
         for(var prop in currentEdge){
@@ -516,7 +519,9 @@ function readEdges(Json){
                 label_balance_x, 
                 label_balance_y, 
                 waypoints,
+                radius,
                 attributes
+
             )
             readEdgesArray.push(e);
         }
@@ -535,18 +540,11 @@ function readJsonFromCsvFile(csvpath){
       });
 }
 
-
-
-
-
-
 const EdgeType = {
     Linear: 'Linear',
     Curve: 'Curve',
     Rounded: 'Rounded'
   };
-
-
 
   function cleanWaypointStringInput(s, defaultValue){
 
@@ -576,10 +574,7 @@ const EdgeType = {
         var in_direction = cleanStringInput(ps[2], null);
         var out_direction = cleanStringInput(ps[3], null);
 
-
- 
         var wp = PreassembleMidPoint(+ps[0], +ps[1], in_direction, out_direction)
-        //var v = new Vector (+ps[0], +ps[1])
 
         points.push(wp);
 
