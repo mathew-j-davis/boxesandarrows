@@ -45,10 +45,6 @@ const {
 
 
 
-
-
-
-//var tools = require('./tools');
 /*
 
 TODO, move tag split to read
@@ -64,14 +60,11 @@ plot curve
 
 position text
 
-
 direction and offset may not be the same?
 
 */
 
-// (()=>{
-//     console.log("D");
-// })();
+
 
 hb.registerHelper('proof', Proof);
 
@@ -183,21 +176,27 @@ const importedNodes = (()=>{
 
 const importedNodePositions = (()=>{
     if(!(undefined != argv.m && typeof(argv.m) == 'string' && argv.m.length > 0 )){
-        return [];
+        return new Map();
     }
-    return readPositions(readJsonFromCsvFile(argv.m)); //readNodes(readJsonFromCsvFile(argv.n));
+    var m = readPositions(readJsonFromCsvFile(argv.m)); //readNodes(readJsonFromCsvFile(argv.n));
+
+    for (i in importedNodes){
+
+        var xy = m.get(importedNodes[i].name)
+    
+        if (undefined != xy){
+    
+            importedNodes[i].x = xy[0]
+            importedNodes[i].y = xy[1]
+        }
+    }
+
+    return m;
+
+
 })();
 
-for (i in importedNodes){
 
-    var xy = importedNodePositions.get(importedNodes[i].name)
-
-    if (undefined != xy){
-
-        importedNodes[i].x = xy[0]
-        importedNodes[i].y = xy[1]
-    }
-}
 
 for (var n of importedNodes){
     nodes.set(n.name, n)
@@ -255,8 +254,6 @@ function drawTaggedNodes(tag){
 
     // if multiple versions of the same node exist in data set, ensure it is the last one used that is on top
     // to be consistent with graphviz behaviour, this really only matters for position when not overuled by values in position map
-
-
 
     for (n of tagged){
         nodes.set(n.name, n)
@@ -396,8 +393,7 @@ function drawEdges(edgesToDraw){
 
 
 
-        var s = drawEdgeConnector(from, to, e);
-
+ 
         if (from == null)
         {
             console.log(`ERROR : Edge From Node not found :  ${e.from_name}`)
@@ -407,6 +403,8 @@ function drawEdges(edgesToDraw){
         {
             console.log(`ERROR : Edge To Node not found ${e.to_name}`)
         }
+
+        var s = drawEdgeConnector(from, to, e);
 
         if (verbose>1){
             console.log(s);
@@ -1206,7 +1204,16 @@ hb.registerHelper('y', function(n) {
 
 hb.registerHelper('h', CalcH);
  
+hb.registerHelper('nodeHeightDefault', NodeHeightDefault);
+hb.registerHelper('nodeWidthDefault', NodeWidthDefault);
 
+function NodeHeightDefault () {
+    return CalcH(style.shape.size.height);
+}
+
+function NodeWidthDefault () {
+    return CalcH(style.shape.size.height);
+}
 
 function H (n) {
     return `[ height=${CalcH(n) }] `;
@@ -1385,6 +1392,8 @@ function runner(command, name){
 }
 
 var png_output = (result + '.png');
+var svg_output = (result + '.svg');
+
 var pngs =[];
 var temp_dot =[];
 var temp_png =[];
@@ -1480,7 +1489,7 @@ function SetOffsets(e, from, to, prepoints) {
     var end_height = cleanNumberInput( to.h, style.shape.size.height );
 
     //clumsy but this is what happens if you add a feature too late
-    var start_x_offset = (( start_width / 2.0 ) * + style.shape.edge.offset.tail.point) * (style.scale.w/style.scale.x) * DirectionShapedX(start.offset_out_direction);
+    var start_x_offset = (( start_width / 2.0 ) + style.shape.edge.offset.tail.point) * (style.scale.w/style.scale.x) * DirectionShapedX(start.offset_out_direction);
     var start_x_offset_symbol = (( start_width / 2.0 ) + style.shape.edge.offset.tail.symbol) * (style.scale.w/style.scale.x) *  DirectionShapedX(start.offset_out_direction);
 
     var start_y_offset = ((start_height / 2) + style.shape.edge.offset.tail.point ) * (style.scale.h/style.scale.y) * DirectionShapedY(start.offset_out_direction);
