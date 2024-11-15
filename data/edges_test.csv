@@ -1,0 +1,4 @@
+from,to,type,start_direction,start_control,start_adjust_x,start_adjust_y,start_label,start_label_segment,start_label_position,end_direction,end_control,end_adjust_x,end_adjust_y,end_label,end_label_segment,end_label_position,label,label_position,label_adjust_x,label_adjust_y,label_justify,isHtml,style,special,tags,,waypoints,label_segment,color
+a,b,c,n,,,,S,,,w,,,,E,,,L,,,,,,,,,,"(4,7) ",,blue
+a,b,l,n,,-0.4,,,,,w,,,0.4,,,,,,,,,,,,,,"(1.6,7.4)",,red
+b,b,c,e,4.18,,,,,,s,4.18,,,,,,,,,,,,,,,,,,green

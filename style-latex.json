@@ -1,0 +1,26 @@
+{
+  "scale": {
+    "point": 72,
+    "x": 2,
+    "y": 2,
+    "h": 1.0,
+    "w": 1.0
+  },
+  "node_styles": {
+    "default": {
+      "shape": "rectangle",
+      "fill": "white",
+      "draw": "black",
+      "minimum width": "2cm",
+      "minimum height": "1cm",
+      "rounded corners": "0.25cm"
+    }
+  },
+  "edge_styles": {
+    "default": {
+      "draw": "black",
+      "line width": "40pt",
+      "rounded corners": "0.5cm"
+    }
+  }
+} 

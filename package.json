@@ -1,20 +1,15 @@
 {
   "name": "boxesandarrows",
   "version": "1.0.0",
-  "description": "draw diagrams in graphviz by describing the boxes and arrows in a text file",
-  "main": "draw.js",
+  "description": "A diagram builder using LaTeX and TikZ.",
+  "main": "src/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node src/index.js -n data/nodes.csv -e data/edges.csv -m data/map.csv -o output/test-diagram"
   },
-  "author": "",
-  "license": "ISC",
   "dependencies": {
-    "csv-parse": "^5.0.3",
-    "handlebars": "^4.7.7",
-    "minimalist": "^1.0.0",
-    "node-cmd": "^5.0.0",
-    "string-pixel-width": "^1.10.0",
-    "uuid": "^8.3.2",
-    "victor": "^1.1.0"
-  }
+    "csv-parser": "^3.0.0",
+    "minimist": "^1.2.5"
+  },
+  "author": "Your Name",
+  "license": "MIT"
 }
