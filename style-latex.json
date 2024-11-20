@@ -13,13 +13,14 @@
       "draw": "black",
       "minimum width": "2cm",
       "minimum height": "1cm",
-      "rounded corners": "0.25cm"
+      "rounded corners": "0.25cm",
+      "line width": "0.05cm"
     }
   },
   "edge_styles": {
     "default": {
       "draw": "black",
-      "line width": "40pt",
+      "line width": "0.05cm",
       "rounded corners": "0.5cm"
     }
   }

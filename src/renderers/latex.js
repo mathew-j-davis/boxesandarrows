@@ -1,5 +1,5 @@
 const Renderer = require('./base');
-const { Point2D, Direction, Box } = require('../geometry/basic-coordinates');
+const { Point2D, Direction, Box } = require('../geometry/basic-points');
 const { exec } = require('child_process');
 const fs = require('fs');
 const path = require('path');
@@ -10,8 +10,13 @@ class LatexRenderer extends Renderer {
         this.style = style || {};
         this.scale = options.scale || 1;
         this.useColor = options.useColor ?? true;
+
         this.content = [];
         this.usedColors = new Map(); // Keep track of used colors and their names
+
+            // Load the default edge style
+            this.defaultEdgeStyle = style.edge?.default || {};
+            
         this.verbose = options.verbose || false;
         this.log = this.verbose ? console.log.bind(console) : () => {};
     }
@@ -50,98 +55,91 @@ class LatexRenderer extends Renderer {
         const fromNodeId = `node_${fromNode.name.replace(/\W/g, '_')}`;
         const toNodeId = `node_${toNode.name.replace(/\W/g, '_')}`;
 
-        let options = [];
-
-        // Edge style
-        if (edge.style) {
-            options.push(edge.style);
-        }
-
-        // Edge color
-        if (edge.color) {
-            const edgeColor = this.getColor(edge.color);
-            options.push(`draw=${edgeColor}`);
-        }
-
-        // Arrow head (Reverting back to '->')
-        options.push('->');
-
-        // Rounded corners for 'c' type edges
-        if (edge.type === 'c') {
-            const defaultRoundedCorners = this.style.edge_styles?.default?.['rounded corners'];
-            if (defaultRoundedCorners) {
-                options.push(`rounded corners=${defaultRoundedCorners}`);
-            } else {
-                options.push('rounded corners');
-            }
-        }
-
-        // Edge style from style file
+        // Build style options dynamically from default edge styles
+        const styleOptions = new Map();
+        
+        // 1. Start with default edge styles from style-latex.json
         const defaultEdgeStyle = this.style.edge_styles?.default || {};
+        Object.entries(defaultEdgeStyle).forEach(([key, value]) => {
+            styleOptions.set(key, value);
+        });
 
-        // Include default edge styles
-        for (const [key, value] of Object.entries(defaultEdgeStyle)) {
-            if (
-                ['draw', 'line width', 'rounded corners'].includes(key) &&
-                !options.find(opt => opt.startsWith(key))
-            ) {
-                options.push(`${key}=${value}`);
-            }
-        }
-
-        // Filter out any empty strings in options
-        const optionsStr = options.filter(opt => opt).join(',');
-
-        // Determine start and end anchor points
-        const startPoint = this.getNodeAnchor(fromNodeId, edge.start_direction);
-        const endPoint = this.getNodeAnchor(toNodeId, edge.end_direction);
-
-        // Build the path including waypoints
-        const pathPoints = [startPoint];
-
-        // Include waypoints if any
-        if (edge.waypoints && edge.waypoints.length > 0) {
-            edge.waypoints.forEach((wp) => {
-                const waypoint = `(${wp.x},${wp.y})`;
-                pathPoints.push(waypoint);
-            });
-        }
-
-        pathPoints.push(endPoint);
-
-        const numSegments = pathPoints.length - 1;
-
-        // Build the draw command
-        let drawCommand = `\\draw[${optionsStr}] `;
-
-        // Initialize the path with the starting point
-        drawCommand += pathPoints[0];
-
-        // Build the path with labels
-        for (let i = 1; i < pathPoints.length; i++) {
-            const from = pathPoints[i - 1];
-            const to = pathPoints[i];
-
-            drawCommand += ' -- ' + to;
-
-            // Check for labels on this segment
-            const labels = this.getLabelsForSegment(edge, i, numSegments);
-
-            if (labels.length > 0) {
-                // Sort labels by position
-                labels.sort((a, b) => a.position - b.position);
-
-                labels.forEach(label => {
-                    drawCommand += ` node[${label.justify}, pos=${label.position}] {${this.escapeLaTeX(label.text)}}`;
+        // 2. Add any edge-specific styles from edge.style
+        if (edge.style) {
+            if (typeof edge.style === 'string') {
+                // Handle simple string styles like 'dotted'
+                if (['dotted', 'dashed', 'solid'].includes(edge.style)) {
+                    styleOptions.set(edge.style, true);
+                } else {
+                    // Parse semicolon-separated styles
+                    edge.style.split(';').forEach(stylePair => {
+                        const [key, value] = stylePair.split('=').map(s => s.trim());
+                        if (key) {
+                            styleOptions.set(key, value || true);
+                        }
+                    });
+                }
+            } else if (typeof edge.style === 'object') {
+                // Handle object-style definitions
+                Object.entries(edge.style).forEach(([key, value]) => {
+                    styleOptions.set(key, value);
                 });
             }
         }
 
-        drawCommand += ';';
+        // 3. Add edge color if specified
+        if (edge.color) {
+            styleOptions.set('draw', this.getColor(edge.color));
+        }
 
+        // 4. Convert style options to TikZ format
+        const styleStr = Array.from(styleOptions.entries())
+            .map(([key, value]) => value === true ? key : `${key}=${value}`)
+            .join(',');
+
+        // Build the path including waypoints
+        const pathPoints = [this.getNodeAnchor(fromNodeId, edge.start_direction)];
+
+        // Include waypoints if any
+        if (edge.waypoints && edge.waypoints.length > 0) {
+            edge.waypoints.forEach((wp) => {
+                pathPoints.push(`(${wp.x},${wp.y})`);
+            });
+        }
+
+        pathPoints.push(this.getNodeAnchor(toNodeId, edge.end_direction));
+
+        // Build the draw command
+        let drawCommand = `\\draw[${styleStr}] ${pathPoints[0]}`;
+
+        // Build the path with labels
+        for (let i = 1; i < pathPoints.length; i++) {
+            drawCommand += ` -- ${pathPoints[i]}`;
+        }
+
+        // Add labels if present
+        const labels = this.getLabelsForSegment(edge, 1, pathPoints.length);
+        if (labels.length > 0) {
+            labels.forEach(label => {
+                drawCommand += ` node[${label.justify}, pos=${label.position}] {${this.escapeLaTeX(label.text)}}`;
+            });
+        }
+
+        drawCommand += ';';
         this.content.push(drawCommand);
     }
 
+    generateTikzOptions(styleObj) {
+        const options = [];
+ 
+        for (const [key, value] of Object.entries(styleObj)) {
+            // Direct mapping of style keys to TikZ options
+            options.push(`${key}=${value}`);
+        }
+ 
+        return options.join(', ');
+    }
+    
     calculateControlPoint(node, direction, controlLength) {
         if (!direction || !controlLength) {
             return new Point2D(node.x, node.y);

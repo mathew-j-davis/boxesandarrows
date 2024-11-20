@@ -82,6 +82,30 @@ const verbose = (()=>{
     return argv.v;
 })();
 
+// format
+
+const format = (()=>{ 
+
+    if(
+            undefined != argv.f && 
+            typeof(argv.f) == 'string' && 
+            argv.f.length > 0 &&
+            (
+                argv.f == 'png' ||
+                argv.f == 'svg' 
+            )
+        ){
+        return argv.f;
+    }
+    else{
+        return 'png'
+    }
+
+})();
+
+
+
+
 if (verbose > 1){
     console.log(`verbose level = ${verbose}`);
 }
@@ -1332,26 +1356,22 @@ for (var arg of argv._){
     docs.push(doc)
 }
 
-var outputFilePath = '';
-
-
+var outputPathBase = '';
 
 if(undefined != argv.o && typeof(argv.o) == 'string' && argv.o.length > 0 ){
-    outputFilePath = argv.o;
+    outputPathBase = argv.o;
 }
 else{
-    outputFilePath = './result'
+    outputPathBase = './output'
 }
 
-var result = path.resolve(outputFilePath);
+var outputFilePathBase = path.resolve(outputPathBase);
 
 var proof = false; 
 
 if(undefined != argv.p && argv.p == true){
     proof = true
 }
-
-
 
 function Proof(color){
     return ProofAt (style.doc.h, style.doc.w, color)
@@ -1369,10 +1389,10 @@ function ProofAt (h, w, color) {
         ` down_right_${uid} [pos="${X( w - 0.5).toString()},${InvertedY(h - 0.5).toString()}!"] [label="" height=1 width=1 fillcolor="${color}" penwidth=0 color="${color}"]`;
 }
 
-function nDraw(input, output, format, n){
-    var command = `dot -T ${format} -n${n} ${verbose>1?"-v ":""}-Goverlap-true -Gsplines=false -Kneato -o "${ output }" "${ input }"`;
+function nDraw(input, outputPath, outputFormat, n){
+    var command = `dot -T ${outputFormat} -n${n} ${verbose>1?"-v ":""}-Goverlap-true -Gsplines=false -Kneato -o "${ outputPath }" "${ input }"`;
 
-    runner(command, `to ${format}`)
+    runner(command, `to ${outputFormat}`)
 
 }
 
@@ -1391,15 +1411,12 @@ function runner(command, name){
     );
 }
 
-var png_output = (result + '.png');
-var svg_output = (result + '.svg');
+var output = (outputFilePathBase + '.' + format);
 
-var pngs =[];
 var temp_dot =[];
-var temp_png =[];
+var temp_result =[];
 
 var folio = {
-    "good" : "happy",
     "data" : data,
     "style" : style,
 }
@@ -1414,9 +1431,15 @@ if (docs.length == 1){
     var DotCompiledPointScaleFilePath = doc.base +  `.compiled.point.dot`;
     temp_dot.push(DotCompiledPointScaleFilePath);
     fs.writeFileSync(DotCompiledPointScaleFilePath, DotCompiledPointScale) ;
-    nDraw(DotCompiledPointScaleFilePath, png_output, 'png', 2);
+    nDraw(DotCompiledPointScaleFilePath, output, format, 2);
 }
 else if (docs.length > 1){
+
+    if(format != 'png'){
+        console.log('multi document compositing is intended for PNG only, results may be unpredicatable' )
+    }
+    
+
     for ( var doc of docs){
 
         var text = fs.readFileSync(doc.full).toString();
@@ -1424,24 +1447,22 @@ else if (docs.length > 1){
         var template = hb.compile(text);
         var DotCompiledPointScale = template({});
         var DotCompiledPointScaleFilePath = doc.base +  `.compiled.point.dot`;
-        var DotCompiledPointScalePngFilePath = doc.base + `.compiled.point.png`;
+        var DotCompiledPointScaleResultFilePath = doc.base + `.compiled.point.` + format;
     
         temp_dot.push(DotCompiledPointScaleFilePath);
-        temp_png.push(DotCompiledPointScalePngFilePath);
+        temp_result.push(DotCompiledPointScaleResultFilePath);
     
-        //var DotCompiledPointScaleSvgFilePath = doc.outputBase + `.compiled.point.svg`;
-        //nDraw(DotCompi ledPointScaleFilePath,DotCompiledPointScaleSvgFilePath, 'svg', 2
         fs.writeFileSync(DotCompiledPointScaleFilePath, DotCompiledPointScale) ;
     
-        nDraw(DotCompiledPointScaleFilePath, DotCompiledPointScalePngFilePath, 'png', 2);
+        nDraw(DotCompiledPointScaleFilePath, DotCompiledPointScaleResultFilePath, 'png', 2);
     }
 
-    if (temp_png.length >= 2){
+    if (temp_result.length >= 2){
         
-        var a = temp_png[temp_png.length - 2];
-        var b = temp_png[temp_png.length - 1];
+        var a = temp_result[temp_result.length - 2];
+        var b = temp_result[temp_result.length - 1];
     
-        var command = `magick composite ${verbose>1?"-verbose ":""}-gravity NorthWest "${a}" "${b}" "${png_output}"`;
+        var command = `magick composite ${verbose>1?"-verbose ":""}-gravity NorthWest "${a}" "${b}" "${output}"`;
     
         runner(command, `magick`)
 
@@ -1468,7 +1489,7 @@ if (!keepTemp){
         var command = `rm "${dot}"`;
         runner(command, `remove temp dot`)
     }
-    for ( var png of temp_png){
+    for ( var png of temp_result){
         var command = `rm "${png}"`;
         runner(command, `remove temp png`)
     }
