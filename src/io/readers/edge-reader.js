@@ -1,7 +1,7 @@
 const { parse } = require('csv-parse/sync');
 const fs = require('fs');
 const { NodeDirection } = require('../../geometry/node-direction');
-const { PointParser } = require('../../geometry/point-parser');
+const { parseWaypoints } = require('../../geometry/waypoint-parser');
 
 class EdgeReader {
     /**
@@ -37,8 +37,9 @@ class EdgeReader {
                         record.to_direction,
                         record.to_offset
                     ),
-                    // Other properties remain the same
-                    waypoints: record.waypoints ? PointParser.parseWaypoints(record.waypoints) : [],
+                    
+                    
+                    waypoints: record.waypoints ? parseWaypoints(record.waypoints, startPoint, endPoint) : [],
                     label: record.label || '',
                     style: record.style || '',
                     color: record.color,
