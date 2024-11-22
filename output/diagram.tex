@@ -1,6 +1,9 @@
 
 \documentclass{standalone}
 \usepackage{tikz}
+\usepackage{helvet}  
+\usepackage{sansmathfonts}  
+\renewcommand{\familydefault}{\sfdefault}  
 \usetikzlibrary{arrows.meta,calc,decorations.pathmorphing}
 \usepackage{xcolor}
 \definecolor{colorff6633}{HTML}{ff6633}
@@ -9,14 +12,15 @@
     [>={Stealth[scale=1.0]},  % Uniform arrow style
     ]
     
-\node[rectangle, fill=orange, draw=pink, minimum width=3cm, minimum height=4cm, rounded corners=0.25cm, line width=0.05cm] (node_a) at (4,4) {\textcolor{red}{START}};
-\node[rectangle, fill=blue, draw=pink, minimum width=3cm, minimum height=2cm, rounded corners=0.25cm, line width=0.05cm] (node_b) at (14,14) {\textcolor{white}{FINISH}};
-\node[rectangle, fill=red, draw=blue, minimum width=6cm, minimum height=5.5cm, rounded corners=0.25cm, line width=0.05cm] (node_c) at (22,6) {\textcolor{gray}{c}};
-\node[rectangle, fill=colorff6633, draw=gray, minimum width=3cm, minimum height=3cm, rounded corners=0.25cm, line width=0.05cm] (node_alpha) at (4,10) {ALPHA};
-\node[rectangle, fill=gray, draw=gray, minimum width=3cm, minimum height=3cm, rounded corners=0.25cm, line width=0.05cm] (node_beta) at (8,14) {BETA};
-\node[rectangle, fill=white, draw=black, minimum width=2cm, minimum height=1cm, rounded corners=0.25cm, line width=0.05cm] (node_delta) at (10,18) {delta};
-\draw[draw=blue,line width=0.05cm,rounded corners=0.5cm] (node_a.north) -- (4,7) -- (node_b.west) node[above, pos=0.1] {S};
-\draw[draw=red,line width=0.05cm,rounded corners=0.5cm] (node_a.north) -- (1.6,7.4) -- (node_b.west);
+\node[shape=rectangle, fill=orange, draw=pink, minimum width=1cm, minimum height=1cm, rounded corners=0.025cm, line width=0.1cm, text opacity=1, font=\tiny] (node_a) at (2,2) {\textcolor{red}{START}};
+\node[shape=rectangle, fill=blue, draw=pink, minimum width=1cm, minimum height=1cm, rounded corners=0.025cm, line width=0.1cm, text opacity=1, font=\tiny] (node_b) at (7,7) {\textcolor{white}{FINISH}};
+\node[shape=rectangle, fill=red, draw=blue, minimum width=1cm, minimum height=1cm, rounded corners=0.025cm, line width=0.1cm, text opacity=1, font=\tiny] (node_c) at (11,3) {\textcolor{gray}{c}};
+\node[shape=rectangle, fill=colorff6633, draw=gray, minimum width=1cm, minimum height=1cm, rounded corners=0.025cm, line width=0.1cm, text opacity=1, font=\tiny] (node_alpha) at (2,5) {ALPHA};
+\node[shape=rectangle, fill=gray, draw=gray, minimum width=1cm, minimum height=1cm, rounded corners=0.025cm, line width=0.1cm, text opacity=1, font=\tiny] (node_beta) at (4,7) {BETA};
+\node[shape=rectangle, fill=white, draw=black, minimum width=1cm, minimum height=1cm, rounded corners=0.025cm, line width=0.1cm, text opacity=1, font=\tiny] (node_delta) at (5,9) {delta};
+\draw[draw=blue,line width=0.1cm,rounded corners=0.5cm] (2,2.5) -- (4,7) -- (6.5,7);
+\draw[draw=red,line width=0.1cm,rounded corners=0.5cm] (1.6,2.5) -- (1.6,7.4) -- (6.5,7.4);
+\draw[draw=green,line width=0.1cm,rounded corners=0.5cm] (7.5,7) -- (7,6.5);
 
 \end{tikzpicture}
 \end{document}

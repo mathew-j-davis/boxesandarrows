@@ -1,7 +1,7 @@
 name,label,x,y,h,w,image,style,special,noLabel,tags,fillcolor,color,textcolor,#notes
-a,START,2,2,4,3,,,,,,orange,pink,red,
-b,FINISH,7,7,2,3,,,,,,blue,pink,white,
-c,,11,3,5.5,6,./views/images/circle.png,,"[shape=box]    [ labelloc=""b"" ]",,,red,blue,gray,
+a,START,2,2,1,1,,,,,,orange,pink,red,
+b,FINISH,7,7,1,1,,,,,,blue,pink,white,
+c,,11,3,1,1,./views/images/circle.png,,"[shape=box]    [ labelloc=""b"" ]",,,red,blue,gray,
 ,,,,,,,,,,,,,,
-alpha,ALPHA,,,3,3,,,,,,#ff6633,gray,,
-beta,BETA,,,3,3,,,,,,gray,gray,,
+alpha,ALPHA,,,1,1,,,,,,#ff6633,gray,,
+beta,BETA,,,1,1,,,,,,gray,gray,,

@@ -36,79 +36,31 @@ class DiagramBuilder {
         }
     }
 
-    async loadData(nodeFile, positionFile, edgeFile) {
+    async loadData(nodeFile, edgeFile, positionFile = null) {
         try {
-            const [nodes, edges] = await Promise.all([
-                NodeReader.readFromCsv(nodeFile),
-                EdgeReader.readFromCsv(edgeFile)
-            ]);
-
-            this.importedNodes = nodes;
-            this.importedEdges = edges;
-
-            // Collect all y-values to find maxY if needed
-            let allYValues = [];
-
-            // Initialize nodes
+            // Load nodes first
+            this.importedNodes = await NodeReader.readFromCsv(nodeFile);
+            
+            // Initialize nodes map
             this.importedNodes.forEach(node => {
                 node.name = node.name || `Node_${Math.random().toString(36).substr(2, 5)}`;
-
-                // Apply scaling to positions
-                node.x = (node.x !== undefined) ? node.x * this.scale.x : 0;
-                node.y = (node.y !== undefined) ? node.y * this.scale.y : 0;
-
-                // Collect y-values before potential inversion
-                allYValues.push(node.y);
-
-                // Apply scaling to dimensions
-                node.h = (node.h !== undefined) ? node.h * this.scale.h : undefined;
-                node.w = (node.w !== undefined) ? node.w * this.scale.w : undefined;
-
                 node.label = node.label || node.name;
                 this.nodes.set(node.name, node);
             });
 
-            // Read positions from the position file and process nodes
+            // Load positions if provided
             if (positionFile) {
-                this.log(`Loading positions from ${positionFile}`);
-                const positions = await PositionReader.readFromCsv(positionFile);
-                positions.forEach((pos, name) => {
-                    let node = this.nodes.get(name);
-                    let x = pos[0] * this.scale.x; // Apply scaling to positions
-                    let y = pos[1] * this.scale.y;
-                    allYValues.push(y);
-                    if (node) {
-                        node.x = x;
-                        node.y = y;
-                        this.log(`Updated position of node '${name}' to (${node.x}, ${node.y})`);
-                    } else {
-                        node = {
-                            name: name,
-                            label: name,
-                            x: x,
-                            y: y,
-                            h: undefined,
-                            w: undefined,
-                            type: 'default' // Assign a default type or adjust as needed
-                        };
-                        this.nodes.set(name, node);
-                        this.importedNodes.push(node);
-                        this.log(`Created new node '${name}' at position (${node.x}, ${node.y})`);
-                    }
-                });
+                await this.loadPositions(positionFile);
             } else {
                 this.log('No position file specified; using positions from node file or default (0,0).');
             }
 
-            // Invert y-coordinates if invertY is true
-            if (this.invertY) {
-                const maxY = Math.max(...allYValues);
-                this.importedNodes.forEach(node => {
-                    node.y = maxY - node.y;
-                    this.log(`Inverted y-position of node '${node.name}' to (${node.x}, ${node.y})`);
-                });
-            }
+            // Now load edges with access to node objects
+            this.importedEdges = await EdgeReader.readFromCsv(edgeFile, this.nodes);
 
+            if (this.verbose) {
+                console.log(`Successfully loaded ${this.importedNodes.length} nodes and ${this.importedEdges.length} edges with positions from ${positionFile}`);
+            }
         } catch (error) {
             console.error('Error loading data:', error);
             throw error;
@@ -135,6 +87,36 @@ class DiagramBuilder {
         // Compile the .tex file to a .pdf file
         await renderer.compileToPdf(texFilePath);
     }
+
+    async loadPositions(positionFile) {
+        this.log(`Loading positions from ${positionFile}`);
+        const positions = await PositionReader.readFromCsv(positionFile);
+        
+        positions.forEach((pos, name) => {
+            let node = this.nodes.get(name);
+            let x = pos[0];  // No scaling
+            let y = pos[1];  // No scaling
+            
+            if (node) {
+                node.x = x;
+                node.y = y;
+                this.log(`Updated position of node '${name}' to (${node.x}, ${node.y})`);
+            } else {
+                node = {
+                    name: name,
+                    label: name,
+                    x: x,
+                    y: y,
+                    height: 1,
+                    width: 1,
+                    type: 'default'
+                };
+                this.nodes.set(name, node);
+                this.importedNodes.push(node);
+                this.log(`Created new node '${name}' at position (${node.x}, ${node.y})`);
+            }
+        });
+    }
 }
 
 async function main() {
@@ -152,7 +134,7 @@ async function main() {
     });
 
     try {
-        await builder.loadData(argv.n, argv.m, argv.e);
+        await builder.loadData(argv.n,  argv.e, argv.m,);
         if (builder.verbose) {
             console.log(`Loaded ${builder.importedNodes.length} nodes and ${builder.importedEdges.length} edges`);
         }

@@ -21,8 +21,11 @@ class NodeReader {
                             type: data.type || '',
                             x: data.x !== undefined && data.x !== '' ? parseFloat(data.x) : undefined,
                             y: data.y !== undefined && data.y !== '' ? parseFloat(data.y) : undefined,
-                            h: data.h !== undefined && data.h !== '' ? parseFloat(data.h) : undefined,
-                            w: data.w !== undefined && data.w !== '' ? parseFloat(data.w) : undefined,
+
+                            //compatibility with old format
+                            height: data.height  !== undefined && data.height !== '' ? parseFloat(data.height) : (data.h !== undefined && data.h !== '' ? parseFloat(data.h) : undefined ),
+                            width: data.width !== undefined && data.width !== '' ? parseFloat(data.width) : (data.w !== undefined && data.w !== '' ? parseFloat(data.w) : undefined ),
+                            
                             fillcolor: data.fillcolor || undefined,
                             color: data.color || undefined,
                             textcolor: data.textcolor || undefined,

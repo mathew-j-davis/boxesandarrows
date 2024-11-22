@@ -1,22 +1,25 @@
 const { parse } = require('csv-parse/sync');
 const fs = require('fs');
-const { NodeDirection } = require('../../geometry/node-direction');
+const { getNodeConnectionPoint } = require('../../geometry/node-connection-point');
 const { parseWaypoints } = require('../../geometry/waypoint-parser');
 
 class EdgeReader {
     /**
      * Read edges from CSV file
      * @param {string} filePath - Path to edge CSV file
+     * @param {Map} nodesMap - Map of nodes
      * @returns {Array} Array of edge objects
      */
-    static readFromCsv(filePath) {
+    static readFromCsv(filePath, nodesMap) {
         const fileContent = fs.readFileSync(filePath, 'utf-8');
         const records = parse(fileContent, {
             columns: true,
             skip_empty_lines: true
         });
 
-        return records.map(record => {
+        return records.map(
+            record => {
+
             // Skip empty rows
             const values = Object.values(record).map(val => val?.trim() || '');
             if (values.every(val => val === '')) {
@@ -24,28 +27,57 @@ class EdgeReader {
             }
 
             try {
+                const fromNode = nodesMap.get(record.from);
+                const toNode = nodesMap.get(record.to);
+
+                if (!fromNode || !toNode) {
+                    console.error(`Edge references missing node: from='${record.from}' to='${record.to}'`);
+                    return null;
+                }
+
+                    // Handle start adjustments, defaulting to 0 if fields don't exist
+                const startAdjust = {
+                    x: record.hasOwnProperty('start_adjust_x') ? parseFloat(record.start_adjust_x) : 0,
+                    y: record.hasOwnProperty('start_adjust_y') ? parseFloat(record.start_adjust_y) : 0
+                };
+
+                // Handle end adjustments, defaulting to 0 if fields don't exist
+                const endAdjust = {
+                    x: record.hasOwnProperty('end_adjust_x') ? parseFloat(record.end_adjust_x) : 0,
+                    y: record.hasOwnProperty('end_adjust_y') ? parseFloat(record.end_adjust_y) : 0
+                };
+
+                let startPoint = getNodeConnectionPoint(
+                    fromNode,
+                    record.start_direction,
+                    startAdjust
+                );
+
+                let endPoint = getNodeConnectionPoint(
+                    toNode,
+                    record.end_direction,
+                    endAdjust
+                );
+
+                let waypoints = record.waypoints ? parseWaypoints(record.waypoints, record.start, record.end) : [];
+
                 return {
                     // Parse start point with three parameters
-                    start: NodeDirection.fromComponents(
-                        record.from,
-                        record.from_direction,
-                        record.from_offset
-                    ),
-                    // Parse end point with three parameters
-                    end: NodeDirection.fromComponents(
-                        record.to,
-                        record.to_direction,
-                        record.to_offset
-                    ),
-                    
-                    
-                    waypoints: record.waypoints ? parseWaypoints(record.waypoints, startPoint, endPoint) : [],
+                    from_name: record.from,
+                    to_name: record.to,
+                    start: startPoint,
+                    end: endPoint,
+                    waypoints: waypoints,
                     label: record.label || '',
                     style: record.style || '',
                     color: record.color,
                     type: record.type || '',
                     label_justify: record.label_justify,
                     isHtml: record.isHtml === 'true'
+
+
+
+
                 };
             } catch (error) {
                 console.error(`Error processing row: ${JSON.stringify(record)}`);
@@ -56,3 +88,7 @@ class EdgeReader {
 }
 
 module.exports = EdgeReader; 
+
+
+
+

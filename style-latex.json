@@ -6,22 +6,32 @@
     "h": 1.0,
     "w": 1.0
   },
-  "node_styles": {
+  "node": {
     "default": {
       "shape": "rectangle",
       "fill": "white",
       "draw": "black",
       "minimum width": "2cm",
       "minimum height": "1cm",
-      "rounded corners": "0.25cm",
-      "line width": "0.05cm"
+      "rounded corners": "0.025cm",
+      "line width": "0.1cm",
+      "text opacity": "1",
+      "font": "\\tiny"
     }
   },
-  "edge_styles": {
+  "edge": {
     "default": {
       "draw": "black",
-      "line width": "0.05cm",
+      "line width": "0.1cm",
       "rounded corners": "0.5cm"
+      
+    }
+  },
+  "node_text_flags": {
+    "default": {
+      "\\sffamily": true,
+      "\\small": true
+    
     }
   }
 } 

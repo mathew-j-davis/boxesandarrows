@@ -8,14 +8,15 @@ class LatexRenderer extends Renderer {
     constructor(style, options = {}) {
         super(style);
         this.style = style || {};
-        this.scale = options.scale || 1;
+        //this.scale = options.scale || 1;
         this.useColor = options.useColor ?? true;
 
         this.content = [];
         this.usedColors = new Map(); // Keep track of used colors and their names
 
-            // Load the default edge style
-            this.defaultEdgeStyle = style.edge?.default || {};
+        // Load the default edge style
+        this.defaultNodeStyle = style.node?.default || {};
+        this.defaultEdgeStyle = style.edge?.default || {};
             
         this.verbose = options.verbose || false;
         this.log = this.verbose ? console.log.bind(console) : () => {};
@@ -45,22 +46,12 @@ class LatexRenderer extends Renderer {
         this.content.push(output);
     }
 
-    renderEdge(edge, fromNode, toNode) {
-        if (!fromNode || !toNode) {
-            console.warn(`Edge from '${edge.from_name}' to '${edge.to_name}' cannot be rendered because one of the nodes is missing.`);
-            return;
-        }
-
-        // Generate unique node IDs
-        const fromNodeId = `node_${fromNode.name.replace(/\W/g, '_')}`;
-        const toNodeId = `node_${toNode.name.replace(/\W/g, '_')}`;
-
+    renderEdge(edge) {
         // Build style options dynamically from default edge styles
         const styleOptions = new Map();
         
-        // 1. Start with default edge styles from style-latex.json
-        const defaultEdgeStyle = this.style.edge_styles?.default || {};
-        Object.entries(defaultEdgeStyle).forEach(([key, value]) => {
+        // 1. Apply default edge styles
+        Object.entries(this.defaultEdgeStyle).forEach(([key, value]) => {
             styleOptions.set(key, value);
         });
 
@@ -79,11 +70,6 @@ class LatexRenderer extends Renderer {
                         }
                     });
                 }
-            } else if (typeof edge.style === 'object') {
-                // Handle object-style definitions
-                Object.entries(edge.style).forEach(([key, value]) => {
-                    styleOptions.set(key, value);
-                });
             }
         }
 
@@ -97,36 +83,140 @@ class LatexRenderer extends Renderer {
             .map(([key, value]) => value === true ? key : `${key}=${value}`)
             .join(',');
 
-        // Build the path including waypoints
-        const pathPoints = [this.getNodeAnchor(fromNodeId, edge.start_direction)];
+        // Track actual segments (excluding control points)
+        
+        let actualSegments = [];
+        let drawCommand = `\\draw[${styleStr}] (${edge.start.x},${edge.start.y})`;
+    
+        //const startAnchor = this.getNodeAnchor(fromNodeId, edge.start_direction);
+        
 
-        // Include waypoints if any
-        if (edge.waypoints && edge.waypoints.length > 0) {
-            edge.waypoints.forEach((wp) => {
-                pathPoints.push(`(${wp.x},${wp.y})`);
-            });
+
+        /*
+        if (!edge.waypoints || edge.waypoints.length === 0) {
+            const endAnchor = this.getNodeAnchor(toNodeId, edge.end_direction);
+            drawCommand = `\\draw[${styleStr}] ${startAnchor} -- ${endAnchor}`;
+            actualSegments.push({ start: startAnchor, end: endAnchor });
+        } 
+        */
+       
+        //const startAnchor = this.getNodeAnchor(fromNodeId, edge.start_direction);
+        //const endAnchor = this.getNodeAnchor(toNodeId, edge.end_direction);
+
+        // Replace with:
+        const startPoint = `(${edge.start.x},${edge.start.y})`;
+        const endPoint = `(${edge.end.x},${edge.end.y})`;
+
+        if (!edge.waypoints || edge.waypoints.length === 0) {
+            drawCommand += ` -- (${edge.end.x},${edge.end.y})`;
+            actualSegments.push({ start: edge.start, end: edge.end });
         }
-
-        pathPoints.push(this.getNodeAnchor(toNodeId, edge.end_direction));
-
-        // Build the draw command
-        let drawCommand = `\\draw[${styleStr}] ${pathPoints[0]}`;
-
-        // Build the path with labels
-        for (let i = 1; i < pathPoints.length; i++) {
-            drawCommand += ` -- ${pathPoints[i]}`;
+        else {
+            let lastRealPoint = edge.start;
+            let currentSegment = [];
+    
+            // Process all waypoints
+            for (const wp of edge.waypoints) {
+                if (wp.isControl) {
+                    currentSegment.push(wp);
+                } else {
+                    // We found a real point, draw the segment
+                    if (currentSegment.length === 0) {
+                        // Direct line
+                        drawCommand += ` -- (${wp.x},${wp.y})`;
+                    } else if (currentSegment.length === 1) {
+                        // Quadratic bezier - convert to cubic
+                        // const control = currentSegment[0];
+                        // const c1x = lastRealPoint.x + (2/3) * (control.x - lastRealPoint.x);
+                        // const c1y = lastRealPoint.y + (2/3) * (control.y - lastRealPoint.y);
+                        // const c2x = wp.x + (2/3) * (control.x - wp.x);
+                        // const c2y = wp.y + (2/3) * (control.y - wp.y);
+                        //drawCommand += ` .. controls (${c1x},${c1y}) and (${c2x},${c2y}) .. (${wp.x},${wp.y})`;
+                        drawCommand += ` .. controls (${c1x},${c1y}) .. (${wp.x},${wp.y})`;
+                    } else if (currentSegment.length === 2) {
+                        // Cubic bezier
+                        const [c1, c2] = currentSegment;
+                        drawCommand += ` .. controls (${c1.x},${c1.y}) and (${c2.x},${c2.y}) .. (${wp.x},${wp.y})`;
+                    }
+                    
+                    actualSegments.push({ start: lastRealPoint, end: wp });
+                    lastRealPoint = wp;
+                    currentSegment = []; // Reset for next segment
+                }
+            }
+    
+            // Draw final segment to end point
+            drawCommand += ` -- (${edge.end.x},${edge.end.y})`;
+            actualSegments.push({ start: lastRealPoint, end: edge.end });
         }
-
-        // Add labels if present
-        const labels = this.getLabelsForSegment(edge, 1, pathPoints.length);
+    
+        // Handle labels with correct segment counting
+        const labels = this.getLabelsForSegment(edge, 1, actualSegments.length);
         if (labels.length > 0) {
             labels.forEach(label => {
                 drawCommand += ` node[${label.justify}, pos=${label.position}] {${this.escapeLaTeX(label.text)}}`;
             });
         }
-
+    
         drawCommand += ';';
         this.content.push(drawCommand);
+    // }
+
+
+
+
+
+    //     if (!edge.waypoints || edge.waypoints.length === 0) {
+    //         drawCommand = `\\draw[${styleStr}] ${startPoint} -- ${endPoint}`;
+    //         actualSegments.push({ start: startPoint, end: endPoint });
+
+    //     } else {
+    //         drawCommand = `\\draw[${styleStr}] ${startPoint}`;
+    //         let lastRealPoint = edge.start;
+
+    //         for (let i = 0; i < edge.waypoints.length; i++) {
+
+
+    //             const wp = edge.waypoints[i];
+    //             const nextWp = edge.waypoints[i + 1];
+                
+    //             if (wp.isControl && nextWp && !nextWp.isControl) {
+    //                 // Bezier curve segment
+    //                 const point = `(${nextWp.x},${nextWp.y})`;
+    //                 drawCommand += ` .. controls (${wp.x},${wp.y}) .. ${point}`;
+    //                 actualSegments.push({ start: lastPoint, end: point });
+    //                 lastPoint = point;
+    //                 i++; // Skip the next point
+    //             } else if (!wp.isControl) {
+    //                 // Straight line segment
+    //                 const point = `(${wp.x},${wp.y})`;
+    //                 drawCommand += ` -- ${point}`;
+
+    //                 actualSegments.push({ start: lastRealPoint, end: wp });
+    //                 lastRealPoint = wp;
+    //             }
+    //         }
+            
+
+    //         const endPoint = `(${edge.end.x},${edge.end.y})`;
+    //         drawCommand += ` -- ${endPoint}`;
+    //         actualSegments.push({ start: lastPoint, end: endPoint });
+
+    //         // const endAnchor = this.getNodeAnchor(toNodeId, edge.end_direction);
+    //         // drawCommand += ` -- ${endAnchor}`;
+    //         // actualSegments.push({ start: lastPoint, end: endAnchor });
+    //     }
+
+    //     // Handle labels with correct segment counting
+    //     const labels = this.getLabelsForSegment(edge, 1, actualSegments.length);
+    //     if (labels.length > 0) {
+    //         labels.forEach(label => {
+    //             drawCommand += ` node[${label.justify}, pos=${label.position}] {${this.escapeLaTeX(label.text)}}`;
+    //         });
+    //     }
+
+    //     drawCommand += ';';
+    //     this.content.push(drawCommand);
     }
 
     generateTikzOptions(styleObj) {
@@ -182,17 +272,17 @@ class LatexRenderer extends Renderer {
     }
 
     getNodeStyle(node) {
-        const nodeStyles = this.style.node_styles || {};
-        const defaultStyle = nodeStyles.default || {};
-        const typeStyle = nodeStyles[node.type] || {};
+        // const nodeStyles = this.style.node || {};
+        // const defaultStyle = nodeStyles.default || {};
+        //const typeStyle = nodeStyles[node.type] || {};
         const sizeStyle = {};
 
         // If node has custom height and width, add them to the style
-        if (node.h !== undefined) {
-            sizeStyle['minimum height'] = `${node.h}cm`; // Adjust units if necessary
+        if (node.height !== undefined) {
+            sizeStyle['minimum height'] = `${node.height}cm`; // Adjust units if necessary
         }
-        if (node.w !== undefined) {
-            sizeStyle['minimum width'] = `${node.w}cm`;
+        if (node.width !== undefined) {
+            sizeStyle['minimum width'] = `${node.width}cm`;
         }
 
         // Apply custom colors
@@ -214,43 +304,22 @@ class LatexRenderer extends Renderer {
             }
         }
 
-        return { ...defaultStyle, ...typeStyle, ...sizeStyle, ...colorStyle, ...node.style };
+        return { ...this.defaultNodeStyle,  ...sizeStyle, ...colorStyle, ...node.style };
     }
 
     tikzifyStyle(style) {
         const styleProps = [];
         
-        // Convert style properties to TikZ format
         for (const [key, value] of Object.entries(style)) {
-            switch (key) {
-                case 'shape':
-                    styleProps.push(value);
-                    break;
-                case 'fill':
-                    if (this.useColor) styleProps.push(`fill=${value}`);
-                    break;
-                case 'draw':
-                    styleProps.push(`draw=${value}`);
-                    break;
-                case 'minimum width':
-                case 'minimum height':
-                case 'minimum size':
-                    styleProps.push(`${key}=${value}`);
-                    break;
-                case 'line width':
-                    styleProps.push(`line width=${value}`);
-                    break;
-                case 'rounded corners':
-                    if (value !== '0pt') styleProps.push(`rounded corners=${value}`);
-                    break;
-                case 'aspect':
-                    styleProps.push(`aspect=${value}`);
-                    break;
-                // Add more style conversions as needed
+            if (value === true) {
+                styleProps.push(key);
+            } else {
+                styleProps.push(`${key}=${value}`);
             }
         }
-
+    
         return styleProps.join(', ');
+    
     }
 
     getLatexContent() {
@@ -262,6 +331,9 @@ class LatexRenderer extends Renderer {
         const preamble = `
 \\documentclass{standalone}
 \\usepackage{tikz}
+\\usepackage{helvet}  
+\\usepackage{sansmathfonts}  
+\\renewcommand{\\familydefault}{\\sfdefault}  
 \\usetikzlibrary{arrows.meta,calc,decorations.pathmorphing}
 \\usepackage{xcolor}
 ${colorDefinitions}
@@ -374,142 +446,74 @@ ${colorDefinitions}
         return path;
     }
 
-    // Helper method to build labels along the edge
-    buildEdgeLabels(edge, pathPoints) {
-        let labelOutput = '';
-        const numSegments = pathPoints.length - 1;
+    getLabelsForSegment(edge, segmentNumber, totalSegments) {
+        const labels = [];
 
-        // Calculate segment lengths for accurate positioning
-        const segmentLengths = [];
-        let totalLength = 0;
-        for (let i = 0; i < numSegments; i++) {
-            const from = this.parsePoint(pathPoints[i]);
-            const to = this.parsePoint(pathPoints[i + 1]);
-            const length = this.calculateDistance(from, to);
-            segmentLengths.push(length);
-            totalLength += length;
-        }
-
-        // Helper function to calculate absolute position along the path
-        const getPositionAlongPath = (segmentIndex, positionInSegment) => {
-            const cumulativeLength = segmentLengths.slice(0, segmentIndex).reduce((acc, len) => acc + len, 0);
-            const segmentLength = segmentLengths[segmentIndex];
-            const pos = (cumulativeLength + positionInSegment * segmentLength) / totalLength;
-            return Math.min(Math.max(pos, 0), 1); // Clamp between 0 and 1
-        };
-
-        // Function to add a label node
-        const addLabelNode = (pos, labelText, justify) => {
-            return ` node[${justify}, pos=${pos}] {${this.escapeLaTeX(labelText)}}`;
+        // Helper function to calculate position along the path
+        const calculatePosition = (segmentIndex, defaultPosition) => {
+            if (segmentIndex < 0) {
+                segmentIndex = totalSegments + segmentIndex + 1; // Handle negative indices
+            }
+            if (segmentIndex === segmentNumber) {
+                return defaultPosition;
+            }
+            return null;
         };
 
         // Start Label
         if (edge.start_label) {
-            const segmentIndex = edge.start_label_segment !== undefined ? edge.start_label_segment - 1 : 0; // Default to first segment
-            const segmentPos = edge.start_label_position !== undefined ? parseFloat(edge.start_label_position) : 0.1; // Default to 0.1
-            const index = segmentIndex < 0 ? numSegments + segmentIndex : segmentIndex;
-
-            if (index >= 0 && index < numSegments) {
-                const pos = getPositionAlongPath(index, segmentPos);
-                labelOutput += addLabelNode(pos, edge.start_label, edge.label_justify || 'above');
-            } else {
-                console.warn(`Invalid start_label_segment for edge from '${edge.from_name}' to '${edge.to_name}'`);
-            }
-        }
-
-        // End Label
-        if (edge.end_label) {
-            const segmentIndex = edge.end_label_segment !== undefined ? edge.end_label_segment - 1 : numSegments - 1; // Default to last segment
-            const segmentPos = edge.end_label_position !== undefined ? parseFloat(edge.end_label_position) : 0.9; // Default to 0.9
-            const index = segmentIndex < 0 ? numSegments + segmentIndex : segmentIndex;
-
-            if (index >= 0 && index < numSegments) {
-                const pos = getPositionAlongPath(index, segmentPos);
-                labelOutput += addLabelNode(pos, edge.end_label, edge.label_justify || 'above');
-            } else {
-                console.warn(`Invalid end_label_segment for edge from '${edge.from_name}' to '${edge.to_name}'`);
-            }
-        }
-
-        // Main Label
-        if (edge.label) {
-            let defaultSegmentNumber;
-            if (numSegments % 2 === 1) {
-                // Odd number of segments, middle segment
-                defaultSegmentNumber = Math.ceil(numSegments / 2);
-            } else {
-                // Even number of segments, one after the middle
-                defaultSegmentNumber = (numSegments / 2) + 1;
-            }
-
-            const labelSegment = edge.label_segment !== undefined ? parseInt(edge.label_segment) : defaultSegmentNumber;
-
-            if (labelSegment === segmentNumber) {
-                const position = edge.label_position !== undefined ? parseFloat(edge.label_position) :
-                    (totalSegments % 2 === 1 ? 0.5 : 0.0);
+            const segmentIndex = edge.start_label_segment !== undefined ? 
+                parseInt(edge.start_label_segment) : 1;
+            const position = calculatePosition(segmentIndex, 
+                edge.start_label_position !== undefined ? 
+                    parseFloat(edge.start_label_position) : 0.1);
+            
+            if (position !== null) {
                 labels.push({
-                    text: edge.label,
+                    text: edge.start_label,
                     position: position,
                     justify: edge.label_justify || 'above'
                 });
             }
         }
 
-        return labelOutput;
-    }
-
-    getLabelsForSegment(edge, segmentNumber, totalSegments) {
-        const labels = [];
-
-        // Start Label
-        let startLabelSegment = edge.start_label_segment !== undefined ? parseInt(edge.start_label_segment) : 1; // Default to first segment
-        if (startLabelSegment < 0) {
-            startLabelSegment = totalSegments + startLabelSegment + 1; // Adjust for negative indices
-        }
-        if (edge.start_label && startLabelSegment === segmentNumber) {
-            const position = edge.start_label_position !== undefined ? parseFloat(edge.start_label_position) : 0.1;
-            labels.push({
-                text: edge.start_label,
-                position: position,
-                justify: edge.label_justify || 'above'
-            });
-        }
-
         // End Label
-        let endLabelSegment = edge.end_label_segment !== undefined ? parseInt(edge.end_label_segment) : totalSegments; // Default to last segment
-        if (endLabelSegment < 0) {
-            endLabelSegment = totalSegments + endLabelSegment + 1; // Adjust for negative indices
-        }
-        if (edge.end_label && endLabelSegment === segmentNumber) {
-            const position = edge.end_label_position !== undefined ? parseFloat(edge.end_label_position) : 0.9;
-            labels.push({
-                text: edge.end_label,
-                position: position,
-                justify: edge.label_justify || 'above'
-            });
+        if (edge.end_label) {
+            const segmentIndex = edge.end_label_segment !== undefined ? 
+                parseInt(edge.end_label_segment) : totalSegments;
+            const position = calculatePosition(segmentIndex,
+                edge.end_label_position !== undefined ? 
+                    parseFloat(edge.end_label_position) : 0.9);
+            
+            if (position !== null) {
+                labels.push({
+                    text: edge.end_label,
+                    position: position,
+                    justify: edge.label_justify || 'above'
+                });
+            }
         }
 
         // Main Label
-        let defaultLabelSegment;
-        if (totalSegments % 2 === 1) {
-            // Odd number of segments, middle segment
-            defaultLabelSegment = Math.ceil(totalSegments / 2);
-        } else {
-            // Even number of segments, one after the middle
-            defaultLabelSegment = Math.floor(totalSegments / 2) + 1;
-        }
-        let labelSegment = edge.label_segment !== undefined ? parseInt(edge.label_segment) : defaultLabelSegment;
-        if (labelSegment < 0) {
-            labelSegment = totalSegments + labelSegment + 1; // Adjust for negative indices
-        }
-        if (edge.label && labelSegment === segmentNumber) {
-            const position = edge.label_position !== undefined ? parseFloat(edge.label_position) :
-                (totalSegments % 2 === 1 ? 0.5 : 0.0);
-            labels.push({
-                text: edge.label,
-                position: position,
-                justify: edge.label_justify || 'above'
-            });
+        if (edge.label) {
+            const defaultSegment = totalSegments % 2 === 1 ? 
+                Math.ceil(totalSegments / 2) : 
+                Math.floor(totalSegments / 2) + 1;
+            
+            const segmentIndex = edge.label_segment !== undefined ? 
+                parseInt(edge.label_segment) : defaultSegment;
+            const position = calculatePosition(segmentIndex,
+                edge.label_position !== undefined ? 
+                    parseFloat(edge.label_position) : 
+                    (totalSegments % 2 === 1 ? 0.5 : 0.0));
+            
+            if (position !== null) {
+                labels.push({
+                    text: edge.label,
+                    position: position,
+                    justify: edge.label_justify || 'above'
+                });
+            }
         }
 
         return labels;

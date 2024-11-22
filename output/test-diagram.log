@@ -1,9 +1,9 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.9.8)  22 NOV 2024 23:35
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.9.8)  22 NOV 2024 16:43
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
-**diagram.tex
-(output/diagram.tex
+**test-diagram.tex
+(output/test-diagram.tex
 LaTeX2e <2024-06-01> patch level 2
 L3 programming layer <2024-08-16>
 (c:/texlive/2024/texmf-dist/tex/latex/standalone/standalone.cls
@@ -351,62 +351,6 @@ File: pgfmodulematrix.code.tex 2023-01-15 v3.1.10 (3.1.10)
 brarytopaths.code.tex
 File: tikzlibrarytopaths.code.tex 2023-01-15 v3.1.10 (3.1.10)
 )))
-(c:/texlive/2024/texmf-dist/tex/latex/psnfss/helvet.sty
-Package: helvet 2020/03/25 PSNFSS-v9.3 (WaS) 
-)
-(c:/texlive/2024/texmf-dist/tex/latex/sansmathfonts/sansmathfonts.sty
-Package: sansmathfonts 2022/10/09
-LaTeX Font Info:    Redeclaring symbol font `operators' on input line 81.
-LaTeX Font Info:    Overwriting symbol font `operators' in version `normal'
-(Font)                  OT1/cmr/m/n --> OT1/cmsmf/m/n on input line 81.
-LaTeX Font Info:    Overwriting symbol font `operators' in version `bold'
-(Font)                  OT1/cmr/bx/n --> OT1/cmsmf/m/n on input line 81.
-LaTeX Font Info:    Redeclaring symbol font `letters' on input line 82.
-LaTeX Font Info:    Overwriting symbol font `letters' in version `normal'
-(Font)                  OML/cmm/m/it --> OML/cmssm/m/it on input line 82.
-LaTeX Font Info:    Overwriting symbol font `letters' in version `bold'
-(Font)                  OML/cmm/b/it --> OML/cmssm/m/it on input line 82.
-LaTeX Font Info:    Redeclaring symbol font `symbols' on input line 83.
-LaTeX Font Info:    Overwriting symbol font `symbols' in version `normal'
-(Font)                  OMS/cmsy/m/n --> OMS/cmsssy/m/n on input line 83.
-LaTeX Font Info:    Overwriting symbol font `symbols' in version `bold'
-(Font)                  OMS/cmsy/b/n --> OMS/cmsssy/m/n on input line 83.
-LaTeX Font Info:    Redeclaring symbol font `largesymbols' on input line 84.
-LaTeX Font Info:    Overwriting symbol font `largesymbols' in version `normal'
-(Font)                  OMX/cmex/m/n --> OMX/cmssex/m/n on input line 84.
-LaTeX Font Info:    Overwriting symbol font `largesymbols' in version `bold'
-(Font)                  OMX/cmex/m/n --> OMX/cmssex/m/n on input line 84.
-LaTeX Font Info:    Overwriting symbol font `operators' in version `bold'
-(Font)                  OT1/cmsmf/m/n --> OT1/cmsmf/bx/n on input line 85.
-LaTeX Font Info:    Overwriting symbol font `letters' in version `bold'
-(Font)                  OML/cmssm/m/it --> OML/cmssm/b/it on input line 86.
-LaTeX Font Info:    Overwriting symbol font `symbols' in version `bold'
-(Font)                  OMS/cmsssy/m/n --> OMS/cmsssy/b/n on input line 87.
-LaTeX Font Info:    Redeclaring math alphabet \mathbf on input line 136.
-LaTeX Font Info:    Overwriting math alphabet `\mathbf' in version `normal'
-(Font)                  OT1/cmr/bx/n --> OT1/cmsmf/bx/n on input line 136.
-LaTeX Font Info:    Overwriting math alphabet `\mathbf' in version `bold'
-(Font)                  OT1/cmr/bx/n --> OT1/cmsmf/bx/n on input line 136.
-LaTeX Font Info:    Redeclaring math alphabet \mathit on input line 137.
-LaTeX Font Info:    Overwriting math alphabet `\mathit' in version `normal'
-(Font)                  OT1/cmr/m/it --> OT1/cmsmf/m/it on input line 137.
-LaTeX Font Info:    Overwriting math alphabet `\mathit' in version `bold'
-(Font)                  OT1/cmr/bx/it --> OT1/cmsmf/m/it on input line 137.
-LaTeX Font Info:    Redeclaring math alphabet \mathtt on input line 138.
-LaTeX Font Info:    Overwriting math alphabet `\mathtt' in version `normal'
-(Font)                  OT1/cmtt/m/n --> OT1/cmtt/m/n on input line 138.
-LaTeX Font Info:    Overwriting math alphabet `\mathtt' in version `bold'
-(Font)                  OT1/cmtt/m/n --> OT1/cmtt/m/n on input line 138.
-LaTeX Font Info:    Overwriting math alphabet `\mathsf' in version `bold'
-(Font)                  OT1/cmss/bx/n --> OT1/cmsmf/bx/n on input line 139.
-LaTeX Font Info:    Overwriting math alphabet `\mathit' in version `bold'
-(Font)                  OT1/cmsmf/m/it --> OT1/cmsmf/bx/it on input line 140.
-LaTeX Font Info:    Redeclaring math alphabet \mathsf on input line 145.
-LaTeX Font Info:    Overwriting math alphabet `\mathsf' in version `normal'
-(Font)                  OT1/cmss/m/n --> OT1/cmsmf/m/n on input line 145.
-LaTeX Font Info:    Overwriting math alphabet `\mathsf' in version `bold'
-(Font)                  OT1/cmsmf/bx/n --> OT1/cmsmf/m/n on input line 145.
-)
 (c:/texlive/2024/texmf-dist/tex/generic/pgf/libraries/pgflibraryarrows.meta.cod
 e.tex
 File: pgflibraryarrows.meta.code.tex 2023-01-15 v3.1.10 (3.1.10)
@@ -438,59 +382,28 @@ ex
 )
 (c:/texlive/2024/texmf-dist/tex/generic/pgf/libraries/decorations/pgflibrarydec
 orations.pathmorphing.code.tex))
-LaTeX Font Info:    Trying to load font information for OT1+xcmss on input line
- 10.
-
-(c:/texlive/2024/texmf-dist/tex/latex/sansmathfonts/ot1xcmss.fd
-File: ot1xcmss.fd 2021/06/22
-)
 (c:/texlive/2024/texmf-dist/tex/latex/l3backend/l3backend-pdftex.def
 File: l3backend-pdftex.def 2024-05-08 L3 backend support: PDF output (pdfTeX)
 \l__color_backend_stack_int=\count293
 \l__pdf_internal_box=\box65
 )
-(output/diagram.aux)
-\openout1 = `diagram.aux'.
+No file test-diagram.aux.
+\openout1 = `test-diagram.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmssm/m/it on input line 10.
-LaTeX Font Info:    Trying to load font information for OML+cmssm on input line
- 10.
-
-(c:/texlive/2024/texmf-dist/tex/latex/sansmathfonts/omlcmssm.fd
-File: omlcmssm.fd 2019/04/04
-)
-LaTeX Font Info:    ... okay on input line 10.
-LaTeX Font Info:    Checking defaults for OMS/cmsssy/m/n on input line 10.
-LaTeX Font Info:    Trying to load font information for OMS+cmsssy on input lin
-e 10.
-
-(c:/texlive/2024/texmf-dist/tex/latex/sansmathfonts/omscmsssy.fd
-File: omscmsssy.fd 2019/04/04
-)
-LaTeX Font Info:    ... okay on input line 10.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 10.
-LaTeX Font Info:    ... okay on input line 10.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 10.
-LaTeX Font Info:    ... okay on input line 10.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 10.
-LaTeX Font Info:    ... okay on input line 10.
-LaTeX Font Info:    Checking defaults for OMX/cmssex/m/n on input line 10.
-LaTeX Font Info:    Trying to load font information for OMX+cmssex on input lin
-e 10.
-
-(c:/texlive/2024/texmf-dist/tex/latex/sansmathfonts/omxcmssex.fd
-File: omxcmssex.fd 2021/06/22
-)
-LaTeX Font Info:    ... okay on input line 10.
-LaTeX Font Info:    Checking defaults for U/xcmss/m/n on input line 10.
-LaTeX Font Info:    Trying to load font information for U+xcmss on input line 1
-0.
-
-(c:/texlive/2024/texmf-dist/tex/latex/sansmathfonts/uxcmss.fd
-File: uxcmss.fd 2021/06/22
-)
-LaTeX Font Info:    ... okay on input line 10.
-
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 7.
+LaTeX Font Info:    ... okay on input line 7.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 7.
+LaTeX Font Info:    ... okay on input line 7.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 7.
+LaTeX Font Info:    ... okay on input line 7.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 7.
+LaTeX Font Info:    ... okay on input line 7.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 7.
+LaTeX Font Info:    ... okay on input line 7.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 7.
+LaTeX Font Info:    ... okay on input line 7.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 7.
+LaTeX Font Info:    ... okay on input line 7.
 (c:/texlive/2024/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
 \scratchcounter=\count294
@@ -517,22 +430,22 @@ e
 [1
 
 {c:/texlive/2024/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
-(output/diagram.aux)
+(output/test-diagram.aux)
  ***********
 LaTeX2e <2024-06-01> patch level 2
 L3 programming layer <2024-08-16>
  ***********
  ) 
 Here is how much of TeX's memory you used:
- 13398 strings out of 473579
- 287565 string characters out of 5732264
+ 13202 strings out of 473579
+ 283043 string characters out of 5732264
  1930960 words of memory out of 5000000
- 36059 multiletter control sequences out of 15000+600000
- 558674 words of font info for 38 fonts, out of 8000000 for 9000
+ 35890 multiletter control sequences out of 15000+600000
+ 558069 words of font info for 36 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 102i,7n,107p,407b,761s stack positions out of 10000i,1000n,20000p,200000b,200000s
-<c:/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmss8.pfb>
-Output written on output/diagram.pdf (1 page, 12211 bytes).
+ 102i,7n,107p,451b,760s stack positions out of 10000i,1000n,20000p,200000b,200000s
+<c:/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb>
+Output written on output/test-diagram.pdf (1 page, 15119 bytes).
 PDF statistics:
  16 PDF objects out of 1000 (max. 8388607)
  10 compressed objects within 1 object stream

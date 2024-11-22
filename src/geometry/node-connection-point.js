@@ -8,7 +8,7 @@ const { Point2D } = require('./basic-points');
  * @param {Object} [offset] - Optional {x, y} offset
  * @returns {Point2D} The calculated connection point
  */
-function getNodePoint(node, direction = null, offset = null) {
+function getNodeConnectionPoint(node, direction = null, offset = null) {
     if (!node) {
         throw new Error('Node is required');
     }
@@ -24,12 +24,17 @@ function getNodePoint(node, direction = null, offset = null) {
         node.y + (directionVector.y * node.height/2)
     );
 
-    // Apply offset if it exists
+
+    
+    // Apply offset if it exists, defaulting to 0 if component is undefined
     if (offset) {
-        return nodePoint.add(new Point2D(offset.x, offset.y));
+        return nodePoint.add(new Point2D(
+            offset.x || 0,
+            offset.y || 0
+        ));
     }
 
     return nodePoint;
 }
 
-module.exports = { getNodePoint };
+module.exports = { getNodeConnectionPoint: getNodeConnectionPoint };
