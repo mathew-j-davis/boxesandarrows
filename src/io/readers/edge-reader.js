@@ -4,13 +4,21 @@ const { getNodeConnectionPoint } = require('../../geometry/node-connection-point
 const { parseWaypoints } = require('../../geometry/waypoint-parser');
 
 class EdgeReader {
+
+    static scalePoint(point, scale) {
+        return {
+            x: point.x * scale.position.x,
+            y: point.y * scale.position.y
+        };
+    }
+
     /**
      * Read edges from CSV file
      * @param {string} filePath - Path to edge CSV file
      * @param {Map} nodesMap - Map of nodes
      * @returns {Array} Array of edge objects
      */
-    static readFromCsv(filePath, nodesMap) {
+    static readFromCsv(filePath, nodesMap, scale) {
         const fileContent = fs.readFileSync(filePath, 'utf-8');
         const records = parse(fileContent, {
             columns: true,
@@ -35,16 +43,16 @@ class EdgeReader {
                     return null;
                 }
 
-                    // Handle start adjustments, defaulting to 0 if fields don't exist
+                // Handle start adjustments, defaulting to 0 if fields don't exist
                 const startAdjust = {
-                    x: record.hasOwnProperty('start_adjust_x') ? parseFloat(record.start_adjust_x) : 0,
-                    y: record.hasOwnProperty('start_adjust_y') ? parseFloat(record.start_adjust_y) : 0
+                    x: (record.hasOwnProperty('start_adjust_x') ? parseFloat(record.start_adjust_x) : 0) * scale.position.x,
+                    y: (record.hasOwnProperty('start_adjust_y') ? parseFloat(record.start_adjust_y) : 0) * scale.position.y
                 };
 
                 // Handle end adjustments, defaulting to 0 if fields don't exist
                 const endAdjust = {
-                    x: record.hasOwnProperty('end_adjust_x') ? parseFloat(record.end_adjust_x) : 0,
-                    y: record.hasOwnProperty('end_adjust_y') ? parseFloat(record.end_adjust_y) : 0
+                    x: (record.hasOwnProperty('end_adjust_x') ? parseFloat(record.end_adjust_x) : 0) * scale.position.x,
+                    y: (record.hasOwnProperty('end_adjust_y') ? parseFloat(record.end_adjust_y) : 0) * scale.position.y
                 };
 
                 let startPoint = getNodeConnectionPoint(
@@ -59,7 +67,18 @@ class EdgeReader {
                     endAdjust
                 );
 
-                let waypoints = record.waypoints ? parseWaypoints(record.waypoints, record.start, record.end) : [];
+                 // Scale the points
+                //startPoint = this.scalePoint(startPoint, scale);
+                //endPoint = this.scalePoint(endPoint, scale);
+
+                const waypoints = record.waypoints ? 
+                parseWaypoints(
+                    record.waypoints, 
+                    record.start, 
+                    record.end
+                )
+                .map(wp => this.scalePoint(wp, scale)) : 
+                [];
 
                 return {
                     // Parse start point with three parameters

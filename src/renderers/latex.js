@@ -17,6 +17,7 @@ class LatexRenderer extends Renderer {
         // Load the default edge style
         this.defaultNodeStyle = style.node?.default || {};
         this.defaultEdgeStyle = style.edge?.default || {};
+        this.defaultNodeTextFlags = style.node_text_flags?.default || {};
             
         this.verbose = options.verbose || false;
         this.log = this.verbose ? console.log.bind(console) : () => {};

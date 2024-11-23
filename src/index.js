@@ -20,7 +20,17 @@ class DiagramBuilder {
         this.nodePositions = new Map();
         this.style = this.loadStyle(options.stylePath);
         this.invertY = options.invertY || false;
-        this.scale = this.style.scale || { x: 1, y: 1, h: 1, w: 1 };
+        // Extract scaling configurations
+        this.scale = {
+            position: {
+                x: this.style.scale?.position?.x || 1,
+                y: this.style.scale?.position?.y || 1
+            },
+            node: {
+                width: this.style.scale?.size?.node?.w || 1,
+                height: this.style.scale?.size?.node?.h || 1
+            }
+        };
     }
 
     loadStyle(stylePath) {
@@ -39,7 +49,7 @@ class DiagramBuilder {
     async loadData(nodeFile, edgeFile, positionFile = null) {
         try {
             // Load nodes first
-            this.importedNodes = await NodeReader.readFromCsv(nodeFile);
+            this.importedNodes = await NodeReader.readFromCsv(nodeFile, this.scale);
             
             // Initialize nodes map
             this.importedNodes.forEach(node => {
@@ -56,7 +66,7 @@ class DiagramBuilder {
             }
 
             // Now load edges with access to node objects
-            this.importedEdges = await EdgeReader.readFromCsv(edgeFile, this.nodes);
+            this.importedEdges = await EdgeReader.readFromCsv(edgeFile, this.nodes, this.scale);
 
             if (this.verbose) {
                 console.log(`Successfully loaded ${this.importedNodes.length} nodes and ${this.importedEdges.length} edges with positions from ${positionFile}`);
@@ -94,8 +104,8 @@ class DiagramBuilder {
         
         positions.forEach((pos, name) => {
             let node = this.nodes.get(name);
-            let x = pos[0];  // No scaling
-            let y = pos[1];  // No scaling
+            let x = pos[0] * this.scale.position.x;
+            let y = pos[1] * this.scale.position.y;
             
             if (node) {
                 node.x = x;
@@ -107,8 +117,8 @@ class DiagramBuilder {
                     label: name,
                     x: x,
                     y: y,
-                    height: 1,
-                    width: 1,
+                    height: 1 * this.scale.node.height,
+                    width: 1 * this.scale.node.width,
                     type: 'default'
                 };
                 this.nodes.set(name, node);

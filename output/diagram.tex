@@ -12,15 +12,15 @@
     [>={Stealth[scale=1.0]},  % Uniform arrow style
     ]
     
-\node[shape=rectangle, fill=orange, draw=pink, minimum width=1cm, minimum height=1cm, rounded corners=0.025cm, line width=0.1cm, text opacity=1, font=\tiny] (node_a) at (2,2) {\textcolor{red}{START}};
-\node[shape=rectangle, fill=blue, draw=pink, minimum width=1cm, minimum height=1cm, rounded corners=0.025cm, line width=0.1cm, text opacity=1, font=\tiny] (node_b) at (7,7) {\textcolor{white}{FINISH}};
-\node[shape=rectangle, fill=red, draw=blue, minimum width=1cm, minimum height=1cm, rounded corners=0.025cm, line width=0.1cm, text opacity=1, font=\tiny] (node_c) at (11,3) {\textcolor{gray}{c}};
-\node[shape=rectangle, fill=colorff6633, draw=gray, minimum width=1cm, minimum height=1cm, rounded corners=0.025cm, line width=0.1cm, text opacity=1, font=\tiny] (node_alpha) at (2,5) {ALPHA};
-\node[shape=rectangle, fill=gray, draw=gray, minimum width=1cm, minimum height=1cm, rounded corners=0.025cm, line width=0.1cm, text opacity=1, font=\tiny] (node_beta) at (4,7) {BETA};
-\node[shape=rectangle, fill=white, draw=black, minimum width=1cm, minimum height=1cm, rounded corners=0.025cm, line width=0.1cm, text opacity=1, font=\tiny] (node_delta) at (5,9) {delta};
-\draw[draw=blue,line width=0.1cm,rounded corners=0.5cm] (2,2.5) -- (4,7) -- (6.5,7);
-\draw[draw=red,line width=0.1cm,rounded corners=0.5cm] (1.6,2.5) -- (1.6,7.4) -- (6.5,7.4);
-\draw[draw=green,line width=0.1cm,rounded corners=0.5cm] (7.5,7) -- (7,6.5);
+\node[minimum height=1cm, minimum width=1cm, fill=orange, draw=pink] (node_a) at (4,4) {\textcolor{red}{START}};
+\node[minimum height=1cm, minimum width=1cm, fill=blue, draw=pink] (node_b) at (14,14) {\textcolor{white}{FINISH}};
+\node[minimum height=1cm, minimum width=1cm, fill=red, draw=blue] (node_c) at (22,6) {\textcolor{gray}{c}};
+\node[minimum height=1cm, minimum width=1cm, fill=colorff6633, draw=gray] (node_alpha) at (4,10) {ALPHA};
+\node[minimum height=1cm, minimum width=1cm, fill=gray, draw=gray] (node_beta) at (8,14) {BETA};
+\node[minimum height=1cm, minimum width=1cm] (node_delta) at (10,18) {delta};
+\draw[draw=blue] (4,4.5) -- (8,14) -- (13.5,14);
+\draw[draw=red] (3.2,4.5) -- (3.2,14.8) -- (13.5,14.8);
+\draw[draw=green] (14.5,14) -- (14,13.5);
 
 \end{tikzpicture}
 \end{document}
