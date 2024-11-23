@@ -48,10 +48,12 @@ function parseWaypoints(waypointStr, startPoint, endPoint) {
                 throw new Error(`Unknown waypoint type: ${type}`);
         }
 
+
+        const isControl = type.endsWith('c');
         return createWaypoint(
             point.x,
             point.y,
-            type.endsWith('c')
+            isControl
         );
     });
 }

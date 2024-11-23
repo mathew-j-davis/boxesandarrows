@@ -49,48 +49,46 @@ class NodeReader {
 
 
     static processNodeRecord(record, scale) {
-        // Apply position scaling
-        const x = record.x !== undefined && record.x !== '' ? 
-        parseFloat(record.x) * scale.position.x : 0;
-        const y = record.y !== undefined && record.y !== '' ? 
-        parseFloat(record.y) * scale.position.y : 0;
+        // Store unscaled position values
+        const xUnscaled = record.x !== undefined && record.x !== '' ? 
+            parseFloat(record.x) : 0;
+        const yUnscaled = record.y !== undefined && record.y !== '' ? 
+            parseFloat(record.y) : 0;
 
-        // Apply node size scaling with compatibility for old format
-        const width = 
-            (   record.width !== undefined && record.width !== '' 
-                ? 
-                parseFloat(record.width) 
-                : 
-                (   
-                    record.w !== undefined && record.w !== '' 
-                    ? 
-                    parseFloat(record.w) 
-                    : 
-                    1
-                )
-            ) * scale.node.width;
-            
-        const height = 
-            (   record.height !== undefined && record.height !== '' 
-                ? 
-                parseFloat(record.height) 
-                : 
-                (   
-                    record.h !== undefined && record.h !== '' 
-                    ? 
-                    parseFloat(record.h) 
-                    : 
-                    1
-                )
-            ) * scale.node.height;
+        // Apply position scaling
+        const x = xUnscaled * scale.position.x;
+        const y = yUnscaled * scale.position.y;
+
+        // Store unscaled size values with compatibility for old format
+        const widthUnscaled = 
+            record.width !== undefined && record.width !== '' 
+            ? parseFloat(record.width) 
+            : (record.w !== undefined && record.w !== '' 
+                ? parseFloat(record.w) 
+                : 1);
+                
+        const heightUnscaled = 
+            record.height !== undefined && record.height !== '' 
+            ? parseFloat(record.height) 
+            : (record.h !== undefined && record.h !== '' 
+                ? parseFloat(record.h) 
+                : 1);
+
+        // Apply node size scaling
+        const width = widthUnscaled * scale.node.width;
+        const height = heightUnscaled * scale.node.height;
 
         return {
             name: record.name,
             label: record.label || record.name,
             x,
             y,
+            xUnscaled,
+            yUnscaled,
             width,
             height,
+            widthUnscaled,
+            heightUnscaled,
             type: record.type || 'default',
             style: record.style,
             color: record.color,

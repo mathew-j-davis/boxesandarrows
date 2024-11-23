@@ -31,7 +31,7 @@ class PositionReader {
 
                     // The first value is the y position
                     const yLabel = row[0].trim();
-                    const y = parseFloat(yLabel);
+                    const yUnscaled = parseFloat(yLabel);
 
                     // Iterate over the rest of the columns
                     for (let j = 1; j < row.length; j++) {
@@ -39,12 +39,15 @@ class PositionReader {
                         if (cellValue) {
                             const nodeName = cellValue;
                             const xLabel = xLabels[j - 1];
-                            const x = parseFloat(xLabel);
+                            const xUnscaled = parseFloat(xLabel);
 
                             // Check for valid numerical positions
-                            if (!isNaN(x) && !isNaN(y)) {
-                                positions.set(nodeName, [x, y]);
-                                // Optional: console.log(`Position set for node '${nodeName}': (${x}, ${y})`);
+                            if (!isNaN(xUnscaled) && !isNaN(yUnscaled)) {
+                                positions.set(nodeName, {
+                                    xUnscaled,
+                                    yUnscaled
+                                });
+                                // Optional: console.log(`Position set for node '${nodeName}': (${xUnscaled}, ${yUnscaled})`);
                             } else {
                                 console.warn(`Invalid position for node '${nodeName}': x='${xLabel}', y='${yLabel}'`);
                             }

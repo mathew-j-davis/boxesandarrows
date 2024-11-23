@@ -1,5 +1,16 @@
 const { Direction } = require('./direction');
 const { Point2D } = require('./basic-points');
+/*
+getNodeConnectionPoint handles two different scaling factors that affect connection points:
+Node position scaling (where the node is placed)
+Node size scaling (how big the node is)
+The function:
+Uses node.xUnscaled and node.yUnscaled as the base position (unscaled)
+2. Adds an offset to reach the node's edge: directionVector * node.width/2
+Divides this offset by scale.position.x/y to "pre-compensate" for the position scaling that will happen later
+This produces an unscaled connection point that, when later scaled by scale.position, will end up in the correct position relative to both the node's scaled position and its scaled size.
+This approach allows the waypoint system to work with unscaled coordinates relative to these connection points, maintaining consistency in the relative positioning calculations.
+*/
 
 /**
  * Calculate connection point on a node
@@ -8,7 +19,7 @@ const { Point2D } = require('./basic-points');
  * @param {Object} [offset] - Optional {x, y} offset
  * @returns {Point2D} The calculated connection point
  */
-function getNodeConnectionPoint(node, direction = null, offset = null) {
+function getNodeConnectionPoint(node, scale, direction = null, offset = null) {
     if (!node) {
         throw new Error('Node is required');
     }
@@ -18,10 +29,11 @@ function getNodeConnectionPoint(node, direction = null, offset = null) {
         throw new Error(`Invalid direction: ${direction}`);
     }
     
-    // Calculate point from center using direction vector
+    // Calculate point from center using direction vector 
+    // pre-compensate for position scaling, by dividing the size scaled components by the scale position factor
     const nodePoint = new Point2D(
-        node.x + (directionVector.x * node.width/2),
-        node.y + (directionVector.y * node.height/2)
+        node.xUnscaled + (directionVector.x * node.width/(2 * scale.position.x)),
+        node.yUnscaled + (directionVector.y * node.height/(2 * scale.position.y))
     );
 
 

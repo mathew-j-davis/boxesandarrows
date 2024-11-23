@@ -12,6 +12,14 @@ class EdgeReader {
         };
     }
 
+    static scaleWaypoint(waypoint, scale) {
+        return {
+            x: waypoint.x * scale.position.x,
+            y: waypoint.y * scale.position.y,
+            isControl: waypoint.isControl
+        };
+    }
+
     /**
      * Read edges from CSV file
      * @param {string} filePath - Path to edge CSV file
@@ -43,59 +51,80 @@ class EdgeReader {
                     return null;
                 }
 
+                // unscaled
                 // Handle start adjustments, defaulting to 0 if fields don't exist
                 const startAdjust = {
-                    x: (record.hasOwnProperty('start_adjust_x') ? parseFloat(record.start_adjust_x) : 0) * scale.position.x,
-                    y: (record.hasOwnProperty('start_adjust_y') ? parseFloat(record.start_adjust_y) : 0) * scale.position.y
+                    x: (record.hasOwnProperty('start_adjust_x') ? parseFloat(record.start_adjust_x) : 0),
+                    y: (record.hasOwnProperty('start_adjust_y') ? parseFloat(record.start_adjust_y) : 0)
                 };
 
                 // Handle end adjustments, defaulting to 0 if fields don't exist
                 const endAdjust = {
-                    x: (record.hasOwnProperty('end_adjust_x') ? parseFloat(record.end_adjust_x) : 0) * scale.position.x,
-                    y: (record.hasOwnProperty('end_adjust_y') ? parseFloat(record.end_adjust_y) : 0) * scale.position.y
+                    x: (record.hasOwnProperty('end_adjust_x') ? parseFloat(record.end_adjust_x) : 0),
+                    y: (record.hasOwnProperty('end_adjust_y') ? parseFloat(record.end_adjust_y) : 0)
                 };
 
                 let startPoint = getNodeConnectionPoint(
                     fromNode,
+                    scale,
                     record.start_direction,
-                    startAdjust
+                    startAdjust,
+                   
                 );
 
                 let endPoint = getNodeConnectionPoint(
                     toNode,
+                    scale,
                     record.end_direction,
-                    endAdjust
+                    endAdjust,
                 );
-
-                 // Scale the points
-                //startPoint = this.scalePoint(startPoint, scale);
-                //endPoint = this.scalePoint(endPoint, scale);
 
                 const waypoints = record.waypoints ? 
                 parseWaypoints(
                     record.waypoints, 
-                    record.start, 
-                    record.end
+                    startPoint,
+                    endPoint
                 )
-                .map(wp => this.scalePoint(wp, scale)) : 
+                .map(wp => this.scaleWaypoint(wp, scale)) : 
                 [];
+
+                
+                //Scale the points
+                startPoint = this.scalePoint(startPoint, scale);
+                endPoint = this.scalePoint(endPoint, scale);
+
 
                 return {
                     // Parse start point with three parameters
                     from_name: record.from,
                     to_name: record.to,
-                    start: startPoint,
-                    end: endPoint,
-                    waypoints: waypoints,
+                    start:  startPoint,
+                    end: endPoint,  
+                    waypoints: waypoints, 
+                            
+                    // Start label properties
+                    start_label: record.start_label || '',
+                    start_label_segment: record.start_label_segment || undefined,
+                    start_label_position: record.start_label_position || undefined,
+
+                    // End label properties
+                    end_label: record.end_label || '',
+                    end_label_segment: record.end_label_segment || undefined,
+                    end_label_position: record.end_label_position || undefined,
+
+                    start_arrow: record.start_arrow || '',
+                    end_arrow: record.end_arrow || '',
+                    
+                    // Main label properties
                     label: record.label || '',
+                    label_segment: record.label_segment || undefined,
+                    label_position: record.label_position || undefined,
+
                     style: record.style || '',
                     color: record.color,
                     type: record.type || '',
                     label_justify: record.label_justify,
                     isHtml: record.isHtml === 'true'
-
-
-
 
                 };
             } catch (error) {

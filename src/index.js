@@ -104,10 +104,12 @@ class DiagramBuilder {
         
         positions.forEach((pos, name) => {
             let node = this.nodes.get(name);
-            let x = pos[0] * this.scale.position.x;
-            let y = pos[1] * this.scale.position.y;
+            let x = pos.xUnscaled * this.scale.position.x;
+            let y = pos.yUnscaled * this.scale.position.y;
             
             if (node) {
+                node.xUnscaled = pos.xUnscaled;
+                node.yUnscaled = pos.yUnscaled;
                 node.x = x;
                 node.y = y;
                 this.log(`Updated position of node '${name}' to (${node.x}, ${node.y})`);
@@ -117,8 +119,12 @@ class DiagramBuilder {
                     label: name,
                     x: x,
                     y: y,
+                    xUnscaled: pos.xUnscaled,
+                    yUnscaled: pos.yUnscaled,
                     height: 1 * this.scale.node.height,
                     width: 1 * this.scale.node.width,
+                    heightUnscaled: 1,
+                    widthUnscaled: 1,
                     type: 'default'
                 };
                 this.nodes.set(name, node);
