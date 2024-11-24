@@ -12,6 +12,10 @@
             }
         }
     },
+    "margin": {
+        "h": 1,
+        "w": 1
+    },
     "arrow": {
         "default": {
             "width": "0.2cm",

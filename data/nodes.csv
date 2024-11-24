@@ -1,8 +1,8 @@
-name,label,x,y,h,w,image,label_above,label_below,style,special,noLabel,tags,fillcolor,color,textcolor,#notes
-group,,2,2,5,5,,Group,Group,,,,,,,,
-a,START,2,2,2,2,,,,,,,,,#001122,#001122,
-b,FINISH,7,7,3,1,,,,,,,,,#001122,#001122,
-c,,11,3,1,3,./views/images/circle.png,,,,"[shape=box]    [ labelloc=""b"" ]",,,,#001122,#001122,
-,,,,,,,,,,,,,,,,
-alpha,ALPHA,,,3,3,,,,,,,,#f0f0ff,#001122,#001122,
-beta,BETA,,,2,2,,,,,,,,#f0f0ff,#001122,#354a7b,
+name,label,x,y,h,w,label_above,label_below,style,fillcolor,color,textcolor
+group,,2,2,5,5,Group,Group,,,,
+a,START,2,2,2,2,,,,,#001122,#001122
+b,FINISH,7,7,3,1,,,,,#001122,#001122
+c,,11,3,1,3,,,,,#001122,#001122
+,,,,,,,,,,,
+alpha," ",,,3,3,ALPHA,,,#f0f0ff,#001122,#001122
+beta,BETA,,,2,2,,,,#f0f0ff,#001122,#354a7b

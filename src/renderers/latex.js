@@ -27,11 +27,36 @@ class LatexRenderer extends Renderer {
 
         this.verbose = options.verbose || false;
         this.log = this.verbose ? console.log.bind(console) : () => { };
+
+        // Add margin handling
+        this.margin = {
+            h: style.margin?.h || 1,
+            w: style.margin?.w || 1
+        };
+        
+        // Track diagram bounds
+        this.bounds = {
+            minX: Infinity,
+            minY: Infinity,
+            maxX: -Infinity,
+            maxY: -Infinity
+        };
+    }
+
+    updateBounds(x, y) {
+        this.bounds.minX = Math.min(this.bounds.minX, x);
+        this.bounds.minY = Math.min(this.bounds.minY, y);
+        this.bounds.maxX = Math.max(this.bounds.maxX, x);
+        this.bounds.maxY = Math.max(this.bounds.maxY, y);
     }
 
     // Core rendering methods
     renderNode(node) {
         const pos = `(${node.x},${node.y})`;
+
+        this.updateBounds(node.x - node.width/2, node.y - node.height/2);
+        this.updateBounds(node.x + node.width/2, node.y + node.height/2);
+        
         const nodeStyle = this.getNodeStyle(node);
         let styleStr = this.tikzifyStyle(nodeStyle);
 
@@ -82,6 +107,18 @@ class LatexRenderer extends Renderer {
     }
 
     renderEdge(edge) {
+
+        // Track edge bounds
+        this.updateBounds(edge.start.x, edge.start.y);
+        this.updateBounds(edge.end.x, edge.end.y);
+
+        // Track waypoint bounds
+        if (edge.waypoints) {
+            edge.waypoints.forEach(wp => {
+                this.updateBounds(wp.x, wp.y);
+            });
+        }
+
         // Build style options dynamically from default edge styles
         const styleOptions = new Map();
 
@@ -290,13 +327,7 @@ class LatexRenderer extends Renderer {
     }
 
     getNodeStyle(node) {
-        // const nodeStyles = this.style.node || {};
-        // const defaultStyle = nodeStyles.default || {};
-        //const typeStyle = nodeStyles[node.type] || {};
 
-
-
-        // const defaultStyle = this.style.node?.default || {};
 
         const sizeStyle = {};
 
@@ -362,6 +393,13 @@ class LatexRenderer extends Renderer {
             return `\\definecolor{${colorName}}{HTML}{${hexCode.slice(1)}}`;
         }).join('\n');
 
+        // Calculate bounding box after all nodes and edges have been rendered
+        const boxMinX = this.bounds.minX - this.margin.w;
+        const boxMinY = this.bounds.minY - this.margin.h;
+        const boxMaxX = this.bounds.maxX + this.margin.w;
+        const boxMaxY = this.bounds.maxY + this.margin.h;
+
+
         const preamble = `
 \\documentclass{standalone}
 \\usepackage{tikz}
@@ -377,6 +415,7 @@ ${colorDefinitions}
 \\begin{tikzpicture}
     [>={Stealth[scale=1.0]},  % Uniform arrow style
     ]
+     \\useasboundingbox (${boxMinX},${boxMinY}) rectangle (${boxMaxX},${boxMaxY});
     `;
         const body = this.content.join('\n');
         const closing = `
