@@ -24,23 +24,58 @@
     },
     "node": {
         "default": {
-            "shape": "rectangle",
-            "fill": "white",
-            "draw": "black",
-            "minimum width": "2cm",
-            "minimum height": "1cm",
-            "rounded corners": "0.005cm",
-            "line width": "0.02cm",
-            "text opacity": "1",
-            "font": "\\footnotesize",
-            "inner sep": "0pt"
+            "node": {
+                "shape": "rectangle",
+                "fill": "white",
+                "draw": "black",
+                "minimum width": "2cm",
+                "minimum height": "1cm",
+                "rounded corners": "0.005cm",
+                "line width": "0.02cm",
+                "text opacity": "1",
+                "font": "\\footnotesize",
+                "inner sep": "0pt"
+            }
+        },
+        "group": {
+            "node": {
+                "shape": "rectangle",
+                "fill": "white",
+                "draw": "gray",
+                "minimum width": "2cm",
+                "minimum height": "1cm",
+                "rounded corners": "0.005cm",
+                "line width": "0.02cm",
+                "text opacity": "1",
+                "font": "\\footnotesize",
+                "inner sep": "0pt"
+            }
         }
     },
     "edge": {
         "default": {
-            "draw": "black",
-            "line width": "0.02cm",
-            "rounded corners": "0.05cm"
+            "edge": {
+                "draw": "black",
+                "line width": "0.02cm",
+                "rounded corners": "0.05cm"
+            },
+            "arrow": {
+                "start": {
+                    "shape": "Circle",
+                    "fill": "black",
+                    "width": "0.2cm",
+                    "length": "0.2cm"
+                },
+                "end": {
+                    "shape": "Triangle",
+                    "fill": "black",
+                    "width": "0.2cm",
+                    "length": "0.2cm"
+                }
+            },
+            "label": {
+                "font": "\\footnotesize"
+            }
         }
     },
     "node_text_flags": {

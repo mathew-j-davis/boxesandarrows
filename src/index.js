@@ -78,24 +78,13 @@ class DiagramBuilder {
     }
 
     async renderDiagram(outputPath) {
-        const renderer = new LatexRenderer(this.style, { verbose: this.verbose });
-
-        // Add nodes and edges to the renderer
-        this.importedNodes.forEach(node => renderer.renderNode(node));
-        this.importedEdges.forEach(edge => {
-            const fromNode = this.nodes.get(edge.from_name);
-            const toNode = this.nodes.get(edge.to_name);
-            renderer.renderEdge(edge, fromNode, toNode);
+        const renderer = new LatexRenderer(this.style, { 
+            verbose: this.verbose 
         });
-
-        // Save the LaTeX content to a .tex file
-        const texFilePath = `${outputPath}.tex`;
-        const latexContent = renderer.getLatexContent();
-        fs.writeFileSync(texFilePath, latexContent, 'utf8');
-        this.log(`LaTeX source saved to ${texFilePath}`);
-
-        // Compile the .tex file to a .pdf file
-        await renderer.compileToPdf(texFilePath);
+        await renderer.render(this.importedNodes, this.importedEdges, outputPath);
+        if (this.verbose) {
+            console.log(`Diagram rendered to ${outputPath}.pdf`);
+        }
     }
 
     async loadPositions(positionFile) {

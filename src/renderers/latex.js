@@ -7,34 +7,26 @@ const path = require('path');
 class LatexRenderer extends Renderer {
     constructor(style, options = {}) {
         super(style);
+        this.initializeState(style, options);
+    }
+
+    initializeState(style, options = {}) {
         this.style = style || {};
-        //this.scale = options.scale || 1;
         this.useColor = options.useColor ?? true;
-
         this.content = [];
-        this.usedColors = new Map(); // Keep track of used colors and their names
-
-        // Load the default edge style
-        this.defaultNodeStyle = style.node?.default || {};
-
-        this.defaultEdgeStyle = style.edge?.default || {};
+        this.usedColors = new Map();
+        this.defaultNodeStyle = style.node?.default?.node || {};
+        this.defaultEdgeStyle = style.edge?.default?.edge || {};
         this.defaultNodeTextFlags = style.node_text_flags?.default || {};
         this.defaultEdgeTextFlags = style.edge_text_flags?.default || {};
         this.defaultEdgeStartTextFlags = style.edge_start_text_flags?.default || {};
         this.defaultEdgeEndTextFlags = style.edge_end_text_flags?.default || {};
-
-
-
         this.verbose = options.verbose || false;
-        this.log = this.verbose ? console.log.bind(console) : () => { };
-
-        // Add margin handling
+        this.log = this.verbose ? console.log.bind(console) : () => {};
         this.margin = {
             h: style.margin?.h || 1,
             w: style.margin?.w || 1
         };
-        
-        // Track diagram bounds
         this.bounds = {
             minX: Infinity,
             minY: Infinity,
@@ -43,6 +35,31 @@ class LatexRenderer extends Renderer {
         };
     }
 
+    async render(nodes, edges, outputPath) {
+        // Reset all state to initial values
+        this.initializeState(this.style, { 
+            verbose: this.verbose, 
+            useColor: this.useColor 
+        });
+
+        // Render all nodes
+        nodes.forEach(node => this.renderNode(node));
+
+        // Render all edges
+        edges.forEach(edge => this.renderEdge(edge));
+
+        // Generate the complete LaTeX content
+        const latexContent = this.getLatexContent();
+
+        // Save the LaTeX content to a .tex file
+        const texFilePath = `${outputPath}.tex`;
+        fs.writeFileSync(texFilePath, latexContent, 'utf8');
+        this.log(`LaTeX source saved to ${texFilePath}`);
+
+        // Compile the .tex file to a .pdf file
+        await this.compileToPdf(texFilePath, { verbose: this.verbose });
+        this.log(`PDF generated at ${outputPath}.pdf`);
+    }
     updateBounds(x, y) {
         this.bounds.minX = Math.min(this.bounds.minX, x);
         this.bounds.minY = Math.min(this.bounds.minY, y);
@@ -328,6 +345,10 @@ class LatexRenderer extends Renderer {
 
     getNodeStyle(node) {
 
+        // Get the base style based on node's style property
+        const baseStyle = node.style && typeof node.style === 'string' && this.style.node?.[node.style]?.node
+            ? this.style.node[node.style].node
+            : this.defaultNodeStyle;
 
         const sizeStyle = {};
 
@@ -365,10 +386,10 @@ class LatexRenderer extends Renderer {
 
         // Combine all styles, maintaining precedence order
         return { 
-            ...this.defaultNodeStyle, 
+            ...baseStyle,
             ...sizeStyle, 
-            ...colorStyle, 
-            ...node.style
+            ...colorStyle
+            //...(typeof node.style === 'object' ? node.style : {})
         };
     }
 
@@ -425,28 +446,37 @@ ${colorDefinitions}
         return `${preamble}\n${body}\n${closing}`;
     }
 
-    async compileToPdf(texFilePath) {
+    async compileToPdf(texFilePath, options = {}) {
         const texDir = path.dirname(texFilePath);
         const texFileName = path.basename(texFilePath);
-
-        const command = `pdflatex -interaction=nonstopmode -file-line-error -output-directory="${texDir}" "${texFileName}"`;
-
+    
+        // Get verbose from options with default false
+        const verbose = options.verbose ?? false;
+    
+        // Add -quiet flag if not verbose
+        const interactionMode = verbose ? 'nonstopmode' : 'batchmode';
+        const command = `pdflatex -interaction=${interactionMode} -file-line-error -output-directory="${texDir}" "${texFileName}"`;
+    
         return new Promise((resolve, reject) => {
             exec(command, (error, stdout, stderr) => {
-                console.log('LaTeX stdout:', stdout);
-                if (stderr) console.error('LaTeX stderr:', stderr);
-
+                if (verbose) {
+                    console.log('LaTeX stdout:', stdout);
+                    if (stderr) console.error('LaTeX stderr:', stderr);
+                }
+    
                 if (error) {
                     console.error('LaTeX compilation error:', error);
                     reject(error);
                 } else {
-                    console.log('pdflatex output:', stdout);
+                    if (verbose) {
+                        console.log('pdflatex output:', stdout);
+                    }
                     resolve();
                 }
             });
         });
     }
-
+    
     defineHexColor(hexCode) {
         // Generate a color name by removing '#' and prefixing with 'color'
         const colorName = 'color' + hexCode.slice(1);

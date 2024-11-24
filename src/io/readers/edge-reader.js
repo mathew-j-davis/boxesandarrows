@@ -120,7 +120,7 @@ class EdgeReader {
                     label_segment: record.label_segment || undefined,
                     label_position: record.label_position || undefined,
 
-                    style: record.style || '',
+                    style: record.style,
                     color: record.color,
                     type: record.type || '',
                     label_justify: record.label_justify,
