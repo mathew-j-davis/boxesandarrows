@@ -76,6 +76,21 @@
             "label": {
                 "font": "\\footnotesize"
             }
+        },
+        "dashed": {
+            "edge": {
+                "draw": "black",
+                "line width": "0.02cm",
+                "rounded corners": "0.05cm",
+                "dashed": true
+            }
+        },
+        "thick": {
+            "edge": {
+                "draw": "black",
+                "line width": "0.04cm",
+                "rounded corners": "0.05cm"
+            }
         }
     },
     "node_text_flags": {

@@ -136,70 +136,19 @@ class LatexRenderer extends Renderer {
             });
         }
 
-        // Build style options dynamically from default edge styles
-        const styleOptions = new Map();
+        // Get edge style options
+        const styleOptions = this.getEdgeStyle(edge);
 
-        // 1. Apply default edge styles
-        Object.entries(this.defaultEdgeStyle).forEach(([key, value]) => {
-            styleOptions.set(key, value);
-        });
+        // Convert style options to TikZ format
+        const styleStr = this.tikzifyStyle(styleOptions);
 
-        // 2. Add any edge-specific styles from edge.style
-        if (edge.style) {
-            if (typeof edge.style === 'string') {
-                // Handle simple string styles like 'dotted'
-                if (['dotted', 'dashed', 'solid'].includes(edge.style)) {
-                    styleOptions.set(edge.style, true);
-                } else {
-                    // Parse semicolon-separated styles
-                    edge.style.split(';').forEach(stylePair => {
-                        const [key, value] = stylePair.split('=').map(s => s.trim());
-                        if (key) {
-                            styleOptions.set(key, value || true);
-                        }
-                    });
-                }
-            }
-        }
-
-        // 3. Add edge color if specified
-        if (edge.color) {
-            styleOptions.set('draw', this.getColor(edge.color));
-        }
-
-        // Add arrow styles if specified
-        if (edge.start_arrow || edge.end_arrow) {
-            const arrowStyle = this.getArrowStyle(edge.start_arrow, edge.end_arrow);
-            if (arrowStyle) {
-                styleOptions.set('arrows', arrowStyle);
-            }
-        }
-
-        // 4. Convert style options to TikZ format
-        const styleStr = Array.from(styleOptions.entries())
-            .map(([key, value]) => value === true ? key : `${key}=${value}`)
-            .join(',');
+        // Build the draw command
+        let drawCommand = `\\draw[${styleStr}] (${edge.start.x},${edge.start.y})`;
 
         // Track actual segments (excluding control points)
 
         // const startPoint = `(${edge.start.x},${edge.start.y})`;
         // const endPoint = `(${edge.end.x},${edge.end.y})`;
-
-        let drawCommand = `\\draw[${styleStr}] (${edge.start.x},${edge.start.y})`;
-
-
-
-        /*
-        if (!edge.waypoints || edge.waypoints.length === 0) {
-            const endAnchor = this.getNodeAnchor(toNodeId, edge.end_direction);
-            drawCommand = `\\draw[${styleStr}] ${startAnchor} -- ${endAnchor}`;
-            actualSegments.push({ start: startAnchor, end: endAnchor });
-        } 
-        */
-
-        //const startAnchor = this.getNodeAnchor(fromNodeId, edge.start_direction);
-        //const endAnchor = this.getNodeAnchor(toNodeId, edge.end_direction);
-
 
         let segmentIndex = 0;
 
@@ -698,6 +647,48 @@ ${colorDefinitions}
         }
         
         return `${arrows.join('-')}`;
+    }
+
+    getEdgeStyle(edge) {
+        // Get the base style based on edge's style property
+        const baseStyle = edge.style && typeof edge.style === 'string' && this.style.edge?.[edge.style]?.edge
+            ? this.style.edge[edge.style].edge
+            : this.defaultEdgeStyle;
+
+        // Build style options
+        const styleOptions = {
+            ...baseStyle
+        };
+
+        // Add edge-specific styles if provided as string (e.g., 'dotted', 'dashed')
+        if (edge.style && typeof edge.style === 'string') {
+            if (['dotted', 'dashed', 'solid'].includes(edge.style)) {
+                styleOptions[edge.style] = true;
+            } else if (!this.style.edge?.[edge.style]) {
+                // Parse semicolon-separated styles if it's not a predefined style name
+                edge.style.split(';').forEach(stylePair => {
+                    const [key, value] = stylePair.split('=').map(s => s.trim());
+                    if (key) {
+                        styleOptions[key] = value || true;
+                    }
+                });
+            }
+        }
+
+        // Add edge color if specified
+        if (edge.color) {
+            styleOptions['draw'] = this.getColor(edge.color);
+        }
+
+        // Add arrow styles if specified
+        if (edge.start_arrow || edge.end_arrow) {
+            const arrowStyle = this.getArrowStyle(edge.start_arrow, edge.end_arrow);
+            if (arrowStyle) {
+                styleOptions['arrows'] = arrowStyle;
+            }
+        }
+
+        return styleOptions;
     }
 }
 
