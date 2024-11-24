@@ -14,8 +14,8 @@
     },
     "arrow": {
         "default": {
-            "width": "0.1cm",
-            "length": "0.1cm"
+            "width": "0.2cm",
+            "length": "0.2cm"
         }
     },
     "node": {
@@ -25,18 +25,18 @@
             "draw": "black",
             "minimum width": "2cm",
             "minimum height": "1cm",
-            "rounded corners": "0.025cm",
-            "line width": "0.1cm",
+            "rounded corners": "0.005cm",
+            "line width": "0.02cm",
             "text opacity": "1",
-            "font": "\\tiny",
+            "font": "\\footnotesize",
             "inner sep": "0pt"
         }
     },
     "edge": {
         "default": {
             "draw": "black",
-            "line width": "0.1cm",
-            "rounded corners": "0.5cm"
+            "line width": "0.02cm",
+            "rounded corners": "0.05cm"
         }
     },
     "node_text_flags": {

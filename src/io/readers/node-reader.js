@@ -81,6 +81,10 @@ class NodeReader {
         return {
             name: record.name,
             label: record.label || record.name,
+                        
+            label_above: record.label_above,
+            label_below: record.label_below,
+            
             x,
             y,
             xUnscaled,

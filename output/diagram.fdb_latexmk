@@ -1,10 +1,11 @@
 # Fdb version 4
-["pdflatex"] 1732402750.80083 "c:/Users/mathew/source/repos/boxesandarrows/output/diagram.tex" "diagram.pdf" "diagram" 1732402756.71466 0
-  "c:/Users/mathew/source/repos/boxesandarrows/output/diagram.tex" 1732402747 2818 5c5ded2fb6d4cccd61af793627c81e36 ""
+["pdflatex"] 1732418501.86609 "c:/Users/mathew/source/repos/boxesandarrows/output/diagram.tex" "diagram.pdf" "diagram" 1732418504.34493 0
+  "c:/Users/mathew/source/repos/boxesandarrows/output/diagram.tex" 1732418500 3428 23ef25796fa3a383a0f7e69eab6c15b1 ""
   "c:/texlive/2024/texmf-dist/fonts/map/fontname/texfonts.map" 1725712487 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "c:/texlive/2024/texmf-dist/fonts/tfm/public/cm/cmss10.tfm" 1725709170 1316 b636689f1933f24d1294acdf6041daaa ""
   "c:/texlive/2024/texmf-dist/fonts/tfm/public/cm/cmss8.tfm" 1725709170 1296 d77f431d10d47c8ea2cc18cf45346274 ""
   "c:/texlive/2024/texmf-dist/fonts/tfm/public/cm/cmss9.tfm" 1725709170 1320 49357c421c0d469f88b867dd0c3d10e8 ""
+  "c:/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmss10.pfb" 1725705767 24457 5cbb7bdf209d5d1ce9892a9b80a307cc ""
   "c:/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmss8.pfb" 1725705767 24420 52dbb8e8aa0069a1b987309557f8d303 ""
   "c:/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmss9.pfb" 1725705768 24373 a91d375736817a75026663adcb2190c1 ""
   "c:/texlive/2024/texmf-dist/tex/context/base/mkii/supp-pdf.mkii" 1725715123 71627 94eb9990bed73c364d7f53f960cc8c5b ""
@@ -120,8 +121,8 @@
   "c:/texlive/2024/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1725719276 5543950 2aa73a438b7054b2327b796fbe5f4275 ""
   "c:/texlive/2024/texmf-var/web2c/pdftex/pdflatex.fmt" 1725719642 8239321 27448e1e822aae59191fb52fc8d82e5a ""
   "c:/texlive/2024/texmf.cnf" 1725719238 713 e69b156964470283e0530f5060668171 ""
-  "diagram.aux" 1732402756 69 5f87cb9125522c22b16950a5b36e2d02 "pdflatex"
-  "diagram.tex" 1732402747 2818 5c5ded2fb6d4cccd61af793627c81e36 ""
+  "diagram.aux" 1732418504 69 5f87cb9125522c22b16950a5b36e2d02 "pdflatex"
+  "diagram.tex" 1732418500 3428 23ef25796fa3a383a0f7e69eab6c15b1 ""
   (generated)
   "diagram.aux"
   "diagram.log"

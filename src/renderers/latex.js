@@ -33,7 +33,7 @@ class LatexRenderer extends Renderer {
     renderNode(node) {
         const pos = `(${node.x},${node.y})`;
         const nodeStyle = this.getNodeStyle(node);
-        const styleStr = this.tikzifyStyle(nodeStyle);
+        let styleStr = this.tikzifyStyle(nodeStyle);
 
         // Generate unique node ID for referencing using node.name
         const nodeId = `node_${node.name.replace(/\W/g, '_')}`;
@@ -51,7 +51,31 @@ class LatexRenderer extends Renderer {
             // const labelWithAdjustbox = `{\\adjustbox{max width=${node.width}cm, max height=${node.height}cm}{${node.label}}}`;
             const labelWithAdjustbox = `{\\adjustbox{max width=${node.width}cm, max height=${node.height}cm}{${labelText}}}`;
 
+
+            // Label styles
+            let label_above = '';
+
+            if (node.label_above) {
+                if (styleStr.length > 0) {
+                    label_above += ',';
+                }
+                label_above +=  `label=above:{${this.escapeLaTeX(node.label_above)}}`
+                styleStr += label_above;
+            }
+
+            let label_below = '';
+            if (node.label_below) {
+                if (styleStr.length > 0) {
+                    label_below += ',';
+                }
+                label_below += `label=below:{${this.escapeLaTeX(node.label_below)}}`; // Separate label for below
+                styleStr += label_below;
+            }
+
             output += `\\node[${styleStr}] (${nodeId}) at ${pos} ${labelWithAdjustbox};`;
+
+
+            //{label_above}${label_below};
         }
 
         this.content.push(output);
@@ -304,7 +328,17 @@ class LatexRenderer extends Renderer {
             }
         }
 
-        return { ...this.defaultNodeStyle, ...sizeStyle, ...colorStyle, ...node.style };
+
+
+        //\node[shape=rectangle, draw=black, minimum width=2cm, minimum height=1cm, label={above:Upper Label,below:Lower Label}] (node1) at (4,4) {Main Text};
+
+        // Combine all styles, maintaining precedence order
+        return { 
+            ...this.defaultNodeStyle, 
+            ...sizeStyle, 
+            ...colorStyle, 
+            ...node.style
+        };
     }
 
     tikzifyStyle(style) {
