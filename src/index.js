@@ -14,12 +14,20 @@ class DiagramBuilder {
         // Define a custom logger
         this.log = this.verbose ? console.log.bind(console) : () => {};
 
+        // Load style first
+        this.style = this.loadStyle(options.stylePath);
+        
+        // Create renderer early
+        this.renderer = new LatexRenderer(this.style, { 
+            verbose: this.verbose 
+        });
+
         this.nodes = new Map();
         this.importedNodes = [];
         this.importedEdges = [];
         this.nodePositions = new Map();
-        this.style = this.loadStyle(options.stylePath);
         this.invertY = options.invertY || false;
+        
         // Extract scaling configurations
         this.scale = {
             position: {
@@ -46,10 +54,10 @@ class DiagramBuilder {
         }
     }
 
-    async loadData(nodeFile, edgeFile, positionFile = null) {
+    async loadData(nodesPath, edgesPath, positionFile) {
         try {
             // Load nodes first
-            this.importedNodes = await NodeReader.readFromCsv(nodeFile, this.scale);
+            this.importedNodes = await NodeReader.readFromCsv(nodesPath, this.scale, this.renderer);
             
             // Initialize nodes map
             this.importedNodes.forEach(node => {
@@ -65,8 +73,13 @@ class DiagramBuilder {
                 this.log('No position file specified; using positions from node file or default (0,0).');
             }
 
-            // Now load edges with access to node objects
-            this.importedEdges = await EdgeReader.readFromCsv(edgeFile, this.nodes, this.scale);
+            // Load edges with the renderer for style interpretation
+            this.importedEdges = await EdgeReader.readFromCsv(
+                edgesPath, 
+                this.nodes, 
+                this.scale,
+                this.renderer  // Pass the renderer instance
+            );
 
             if (this.verbose) {
                 console.log(`Successfully loaded ${this.importedNodes.length} nodes and ${this.importedEdges.length} edges with positions from ${positionFile}`);
@@ -78,10 +91,8 @@ class DiagramBuilder {
     }
 
     async renderDiagram(outputPath) {
-        const renderer = new LatexRenderer(this.style, { 
-            verbose: this.verbose 
-        });
-        await renderer.render(this.importedNodes, this.importedEdges, outputPath);
+        // Use the existing renderer instance
+        await this.renderer.render(this.importedNodes, this.importedEdges, outputPath);
         if (this.verbose) {
             console.log(`Diagram rendered to ${outputPath}.pdf`);
         }
@@ -114,8 +125,14 @@ class DiagramBuilder {
                     width: 1 * this.scale.node.width,
                     heightUnscaled: 1,
                     widthUnscaled: 1,
-                    type: 'default'
+                    type: 'default',
+                    anchor: null,
+                    anchorVector: null
                 };
+
+
+                node.anchorVector = this.renderer.getNodeAnchor(node);
+
                 this.nodes.set(name, node);
                 this.importedNodes.push(node);
                 this.log(`Created new node '${name}' at position (${node.x}, ${node.y})`);

@@ -12,10 +12,10 @@ class Direction {
     static DOWN       = new Point2D(0, -1);
     static RIGHT      = new Point2D(1, 0);
     static LEFT       = new Point2D(-1, 0);
-    static UP_RIGHT   = new Point2D(UNIT_DIAGONAL_COMPONENT, UNIT_DIAGONAL_COMPONENT);
-    static UP_LEFT    = new Point2D(-UNIT_DIAGONAL_COMPONENT, UNIT_DIAGONAL_COMPONENT);
-    static DOWN_RIGHT = new Point2D(UNIT_DIAGONAL_COMPONENT, -UNIT_DIAGONAL_COMPONENT);
-    static DOWN_LEFT  = new Point2D(-UNIT_DIAGONAL_COMPONENT, -UNIT_DIAGONAL_COMPONENT);
+    static UP_RIGHT   = new Point2D(1, 1);
+    static UP_LEFT    = new Point2D(-1, 1);
+    static DOWN_RIGHT = new Point2D(1, -1);
+    static DOWN_LEFT  = new Point2D(-1, -1);
     static CENTER     = new Point2D(0, 0);
 
     // Compass point aliases
@@ -69,7 +69,11 @@ class Direction {
             'northeast': this.NORTHEAST,
             'northwest': this.NORTHWEST,
             'southeast': this.SOUTHEAST,
-            'southwest': this.SOUTHWEST
+            'southwest': this.SOUTHWEST,
+            'north east': this.NORTHEAST,
+            'north west': this.NORTHWEST,
+            'south east': this.SOUTHEAST,
+            'south west': this.SOUTHWEST
         };
 
         let vector = vectors[reference.toLowerCase()];

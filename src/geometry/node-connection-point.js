@@ -17,9 +17,10 @@ This approach allows the waypoint system to work with unscaled coordinates relat
  * @param {Object} node - Node with {x, y, width, height} properties
  * @param {string} [direction] - Direction (e.g., "right", "north")
  * @param {Object} [offset] - Optional {x, y} offset
+ * @param {string} [anchor] - Node anchor point (e.g., "north west", "center")
  * @returns {Point2D} The calculated connection point
  */
-function getNodeConnectionPoint(node, scale, direction = null, offset = null) {
+function getNodeConnectionPoint(node, scale, direction = null, offset = null, renderer) {
     if (!node) {
         throw new Error('Node is required');
     }
@@ -28,22 +29,18 @@ function getNodeConnectionPoint(node, scale, direction = null, offset = null) {
     if (!directionVector) {
         throw new Error(`Invalid direction: ${direction}`);
     }
+
+    // Use the pre-calculated anchor vector
+    const anchorVector = node.anchorVector;
     
-    // Calculate point from center using direction vector 
-    // pre-compensate for position scaling, by dividing the size scaled components by the scale position factor
+    // Calculate point from center using direction vector adjusted by anchor vector
     const nodePoint = new Point2D(
-        node.xUnscaled + (directionVector.x * node.width/(2 * scale.position.x)),
-        node.yUnscaled + (directionVector.y * node.height/(2 * scale.position.y))
+        node.xUnscaled + ((directionVector.x - anchorVector.x) * node.width/(2 * scale.position.x)),
+        node.yUnscaled + ((directionVector.y - anchorVector.y) * node.height/(2 * scale.position.y))
     );
-
-
     
-    // Apply offset if it exists, defaulting to 0 if component is undefined
     if (offset) {
-        return nodePoint.add(new Point2D(
-            offset.x || 0,
-            offset.y || 0
-        ));
+        return nodePoint.add(new Point2D(offset.x || 0, offset.y || 0));
     }
 
     return nodePoint;

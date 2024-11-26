@@ -26,6 +26,7 @@
         "default": {
             "node": {
                 "shape": "rectangle",
+                "anchor": "north west",
                 "fill": "white",
                 "draw": "black",
                 "minimum width": "2cm",
@@ -49,6 +50,7 @@
                 "text opacity": "1",
                 "font": "\\footnotesize",
                 "inner sep": "0pt"
+
             }
         }
     },

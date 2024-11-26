@@ -1,5 +1,6 @@
 const Renderer = require('./base');
-const { Point2D, Direction, Box } = require('../geometry/basic-points');
+const { Point2D } = require('../geometry/basic-points');
+const { Direction } = require('../geometry/direction');
 const { exec } = require('child_process');
 const fs = require('fs');
 const path = require('path');
@@ -71,8 +72,7 @@ class LatexRenderer extends Renderer {
     renderNode(node) {
         const pos = `(${node.x},${node.y})`;
 
-        this.updateBounds(node.x - node.width/2, node.y - node.height/2);
-        this.updateBounds(node.x + node.width/2, node.y + node.height/2);
+        this.updateNodeBounds(node);
         
         const nodeStyle = this.getNodeStyle(node);
         let styleStr = this.tikzifyStyle(nodeStyle);
@@ -445,24 +445,48 @@ ${colorDefinitions}
     }
 
     // Helper method to get node anchor point
-    getNodeAnchor(nodeId, direction) {
-        if (direction) {
-            if (direction === 'c') {
-                return `(${nodeId}.center)`;
-            } else if (this.isCompassDirection(direction)) {
-                return `(${nodeId}.${this.translateDirection(direction)})`;
-            } else if (!isNaN(parseFloat(direction))) {
-                // Angle in degrees (requires TikZ calc library)
-                const angle = parseFloat(direction);
-                return `({${nodeId}.\${${angle}}})`;
-            } else {
-                this.log(`Unknown direction '${direction}' for node '${nodeId}', defaulting to center.`);
-                return `(${nodeId}.center)`;
+    getNodeAnchor(node) {
+        const tryGetAnchor = () => {  // Changed to arrow function to preserve 'this' context
+            // Check for named style on node
+            if (node.anchor && typeof node.anchor === 'string') {
+                return Direction.getVector(node.anchor);
             }
-        } else {
-            // Default to node border in the direction towards the other node
-            return `(${nodeId})`;
+
+            // Check for named style on node
+            if (node.style && typeof node.style === 'string') {
+                // Check if named style exists in stylesheet
+                const namedStyle = this.style.node?.[node.style]?.node;
+                if (namedStyle) {
+                    // Check if named style has an anchor
+                    if (namedStyle.anchor) {
+                        this.log(`Using anchor '${namedStyle.anchor}' from named style '${node.style}'`);
+                        return Direction.getVector(namedStyle.anchor);
+                    }
+                    else{
+                        return null;
+                    }
+                }
+            }
+
+            // Check default style for anchor
+            const defaultAnchor = this.style.node?.default?.node?.anchor;
+            if (defaultAnchor) {
+                this.log(`Using anchor '${defaultAnchor}' from default style`);
+                return Direction.getVector(defaultAnchor);
+            }
+
+            return null;  // Return null if no anchor is found
+        };
+
+        let anchorVector = tryGetAnchor();
+
+        if (!anchorVector) {
+            // Fallback to center
+            this.log('No anchor specified, using center');
+            anchorVector = Direction.getVector('center');
         }
+
+        return anchorVector;
     }
 
     // Helper method to check if direction is a compass point
@@ -689,6 +713,21 @@ ${colorDefinitions}
         }
 
         return styleOptions;
+    }
+
+    updateNodeBounds(node) {
+        // Use the pre-calculated anchor vector
+        const anchorVector = node.anchorVector;
+        
+        // Calculate the actual center point of the node
+        const centerX = node.x + ((0 - anchorVector.x) * node.width/2);
+        const centerY = node.y + ((0 - anchorVector.y) * node.height/2);
+        
+        // Update bounds for all corners of the node
+        this.updateBounds(centerX - node.width/2, centerY - node.height/2);
+        this.updateBounds(centerX + node.width/2, centerY - node.height/2);
+        this.updateBounds(centerX - node.width/2, centerY + node.height/2);
+        this.updateBounds(centerX + node.width/2, centerY + node.height/2);
     }
 }
 

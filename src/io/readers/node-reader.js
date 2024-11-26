@@ -2,7 +2,9 @@ const csv = require('csv-parser');
 const fs = require('fs');
 
 class NodeReader {
-    static readFromCsv(nodeFile, scale) {
+
+
+    static readFromCsv(nodeFile, scale, renderer) {
         return new Promise((resolve, reject) => {
             const nodes = [];
 
@@ -14,7 +16,7 @@ class NodeReader {
                     const isEmptyRow = values.every(val => val === '');
 
                     if (!isEmptyRow) {
-                        const node = this.processNodeRecord(data, scale);
+                        const node = this.processNodeRecord(data, scale, renderer);
                         nodes.push(node);
                         /*
                         // Process the row if it's not empty
@@ -48,7 +50,7 @@ class NodeReader {
     }
 
 
-    static processNodeRecord(record, scale) {
+    static processNodeRecord(record, scale, renderer) {
         // Store unscaled position values
         const xUnscaled = record.x !== undefined && record.x !== '' ? 
             parseFloat(record.x) : 0;
@@ -78,7 +80,7 @@ class NodeReader {
         const width = widthUnscaled * scale.node.width;
         const height = heightUnscaled * scale.node.height;
 
-        return {
+        let node = {
             name: record.name,
             label: record.label || record.name,
                         
@@ -97,8 +99,14 @@ class NodeReader {
             style: record.style,
             color: record.color,
             fillcolor: record.fillcolor,
-            textcolor: record.textcolor
+            textcolor: record.textcolor,
+            anchor: record.anchor,
+            anchorVector: null
         };
+
+        node.anchorVector = renderer.getNodeAnchor(node);
+
+        return node;
     }
 }
 

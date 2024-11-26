@@ -26,7 +26,7 @@ class EdgeReader {
      * @param {Map} nodesMap - Map of nodes
      * @returns {Array} Array of edge objects
      */
-    static readFromCsv(filePath, nodesMap, scale) {
+    static readFromCsv(filePath, nodesMap, scale, renderer) {
         const fileContent = fs.readFileSync(filePath, 'utf-8');
         const records = parse(fileContent, {
             columns: true,
@@ -69,7 +69,7 @@ class EdgeReader {
                     scale,
                     record.start_direction,
                     startAdjust,
-                   
+                    renderer
                 );
 
                 let endPoint = getNodeConnectionPoint(
@@ -77,6 +77,7 @@ class EdgeReader {
                     scale,
                     record.end_direction,
                     endAdjust,
+                    renderer
                 );
 
                 const waypoints = record.waypoints ? 

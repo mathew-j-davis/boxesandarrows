@@ -1,0 +1,4 @@
+name,label,x,y,h,w,label_above,label_below,style,fillcolor,color,textcolor
+group,,2,2,5,5,Group,Group,group,,,
+a,START,2,2,2,2,,,,,#001122,#001122
+b,FINISH,8,8,4,4,,,,,#001122,#001122
