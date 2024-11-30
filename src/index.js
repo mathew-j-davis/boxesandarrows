@@ -31,12 +31,12 @@ class DiagramBuilder {
         // Extract scaling configurations
         this.scale = {
             position: {
-                x: this.style.scale?.position?.x || 1,
-                y: this.style.scale?.position?.y || 1
+                x: this.style.page?.scale?.position?.x || 1,
+                y: this.style.page?.scale?.position?.y || 1
             },
             node: {
-                width: this.style.scale?.size?.node?.w || 1,
-                height: this.style.scale?.size?.node?.h || 1
+                width: this.style.page?.scale?.size?.node?.w || 1,
+                height: this.style.page?.scale?.size?.node?.h || 1
             }
         };
     }

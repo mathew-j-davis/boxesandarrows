@@ -4,10 +4,12 @@ const { Direction } = require('../geometry/direction');
 const { exec } = require('child_process');
 const fs = require('fs');
 const path = require('path');
+const LatexStyleHandler = require('../styles/latex-style-handler');
 
 class LatexRenderer extends Renderer {
     constructor(style, options = {}) {
         super(style);
+        this.styleHandler = new LatexStyleHandler(style);
         this.initializeState(style, options);
     }
 
@@ -16,24 +18,27 @@ class LatexRenderer extends Renderer {
         this.useColor = options.useColor ?? true;
         this.content = [];
         this.usedColors = new Map();
-        this.defaultNodeStyle = style.node?.default?.node || {};
-        this.defaultEdgeStyle = style.edge?.default?.edge || {};
-        this.defaultNodeTextFlags = style.node_text_flags?.default || {};
-        this.defaultEdgeTextFlags = style.edge_text_flags?.default || {};
-        this.defaultEdgeStartTextFlags = style.edge_start_text_flags?.default || {};
-        this.defaultEdgeEndTextFlags = style.edge_end_text_flags?.default || {};
         this.verbose = options.verbose || false;
         this.log = this.verbose ? console.log.bind(console) : () => {};
+        
+        // Get margins from the new page section
         this.margin = {
-            h: style.margin?.h || 1,
-            w: style.margin?.w || 1
+            h: style.page?.margin?.h || 1,
+            w: style.page?.margin?.w || 1
         };
+
         this.bounds = {
             minX: Infinity,
             minY: Infinity,
             maxX: -Infinity,
             maxY: -Infinity
         };
+
+        // Get text flags from style system
+        this.defaultNodeTextFlags = this.styleHandler.getCompleteStyle(null, 'node', 'text');
+        this.defaultEdgeTextFlags = this.styleHandler.getCompleteStyle(null, 'edge', 'text');
+        this.defaultEdgeStartTextFlags = this.styleHandler.getCompleteStyle(null, 'edge', 'text', 'text_start');
+        this.defaultEdgeEndTextFlags = this.styleHandler.getCompleteStyle(null, 'edge', 'text', 'text_end');
     }
 
     async render(nodes, edges, outputPath) {
@@ -71,10 +76,15 @@ class LatexRenderer extends Renderer {
     // Core rendering methods
     renderNode(node) {
         const pos = `(${node.x},${node.y})`;
-
         this.updateNodeBounds(node);
         
-        const nodeStyle = this.getNodeStyle(node);
+        // Get base style from style handler
+        const nodeStyle = this.styleHandler.getCompleteStyle(node.style, 'node', 'object');
+        
+        // Override dimensions with node-specific values
+        nodeStyle['minimum width'] = `${node.width}cm`;
+        nodeStyle['minimum height'] = `${node.height}cm`;
+        
         let styleStr = this.tikzifyStyle(nodeStyle);
 
         // Generate unique node ID for referencing using node.name
@@ -84,40 +94,34 @@ class LatexRenderer extends Renderer {
         if (node.hideLabel) {
             output += `\\node[${styleStr}] (${nodeId}) at ${pos} {};`;
         } else {
+            // Apply text styles by wrapping the label
             let labelText = node.label;
+            const textStyle = this.styleHandler.getCompleteStyle(node.style, 'node', 'text');
+            
+            // Apply text styles as wrappers
+            Object.entries(textStyle || {}).forEach(([flag, value]) => {
+                if (value === true) {
+                    const command = flag.startsWith('\\') ? flag.slice(1) : flag;
+                    labelText = `\\${command}{${labelText}}`;
+                }
+            });
+
             if (node.textcolor) {
-                const textColor = this.getColor(node.textcolor);
-                labelText = `\\textcolor{${textColor}}{${labelText}}`;
+                labelText = `\\textcolor{${this.getColor(node.textcolor)}}{${labelText}}`;
             }
-            // Add adjustbox to constrain label size while maintaining node size
-            // const labelWithAdjustbox = `{\\adjustbox{max width=${node.width}cm, max height=${node.height}cm}{${node.label}}}`;
+
+            // Add adjustbox with node-specific dimensions
             const labelWithAdjustbox = `{\\adjustbox{max width=${node.width}cm, max height=${node.height}cm}{${labelText}}}`;
 
-
-            // Label styles
-            let label_above = '';
-
+            // Handle labels
             if (node.label_above) {
-                if (styleStr.length > 0) {
-                    label_above += ',';
-                }
-                label_above +=  `label=above:{${this.escapeLaTeX(node.label_above)}}`
-                styleStr += label_above;
+                styleStr += (styleStr.length > 0 ? ',' : '') + `label=above:{${this.escapeLaTeX(node.label_above)}}`;
             }
-
-            let label_below = '';
             if (node.label_below) {
-                if (styleStr.length > 0) {
-                    label_below += ',';
-                }
-                label_below += `label=below:{${this.escapeLaTeX(node.label_below)}}`; // Separate label for below
-                styleStr += label_below;
+                styleStr += (styleStr.length > 0 ? ',' : '') + `label=below:{${this.escapeLaTeX(node.label_below)}}`;
             }
 
             output += `\\node[${styleStr}] (${nodeId}) at ${pos} ${labelWithAdjustbox};`;
-
-
-            //{label_above}${label_below};
         }
 
         this.content.push(output);
@@ -244,8 +248,11 @@ class LatexRenderer extends Renderer {
         const options = [];
 
         for (const [key, value] of Object.entries(styleObj)) {
-            // Direct mapping of style keys to TikZ options
-            options.push(`${key}=${value}`);
+            if (value === true) {
+                options.push(key);
+            } else if (value !== false) {
+                options.push(`${key}=${value}`);
+            }
         }
 
         return options.join(', ');
@@ -265,14 +272,38 @@ class LatexRenderer extends Renderer {
 
     // Document structure
     beforeRender() {
-        // Update the preamble to include default styles
-        return `\\begin{tikzpicture}[
-    > = stealth,
-    every node/.style={
-        draw,
-        align=center
-    }
-]
+        // Get preamble settings from style system
+        const preambleStyle = this.styleHandler.getCompleteStyle(null, 'document', 'preamble') || {
+            documentClass: 'standalone',
+            packages: [
+                'tikz',
+                'adjustbox',
+                'helvet',
+                'sansmathfonts',
+                'xcolor'
+            ],
+            tikzlibraries: [
+                'arrows.meta',
+                'calc',
+                'decorations.pathmorphing',
+                'shapes.arrows'
+            ]
+        };
+
+        // Generate preamble from style
+        const packages = preambleStyle.packages
+            .map(pkg => `\\usepackage{${pkg}}`)
+            .join('\n');
+        
+        const libraries = preambleStyle.tikzlibraries
+            .map(lib => `\\usetikzlibrary{${lib}}`)
+            .join('\n');
+
+        return `
+\\documentclass{${preambleStyle.documentClass}}
+${packages}
+${libraries}
+\\renewcommand{\\familydefault}{\\sfdefault}
 `;
     }
 
@@ -293,68 +324,40 @@ class LatexRenderer extends Renderer {
     }
 
     getNodeStyle(node) {
+        // Get object and text styles
+        const objectStyle = this.styleHandler.getCompleteStyle(node.style, 'node', 'object');
+        const textStyle = this.styleHandler.getCompleteStyle(node.style, 'node', 'text');
+        
+        const style = { ...objectStyle };
 
-        // Get the base style based on node's style property
-        const baseStyle = node.style && typeof node.style === 'string' && this.style.node?.[node.style]?.node
-            ? this.style.node[node.style].node
-            : this.defaultNodeStyle;
+        // Add text style flags
+        Object.entries(textStyle || {}).forEach(([flag, value]) => {
+            if (value === true) {
+                style[flag] = true;
+            }
+        });
 
-        const sizeStyle = {};
-
-        // If node has custom height and width, add them to the style
+        // Add size styles if specified
         if (node.height !== undefined) {
-            sizeStyle['minimum height'] = `${node.height}cm`; // Adjust units if necessary
+            style['minimum height'] = `${node.height}cm`;
         }
         if (node.width !== undefined) {
-            sizeStyle['minimum width'] = `${node.width}cm`;
+            style['minimum width'] = `${node.width}cm`;
         }
 
-
-        // Apply custom colors
-        const colorStyle = {};
+        // Add colors if specified
         if (node.fillcolor) {
-            if (node.fillcolor.startsWith('#')) {
-                const colorName = this.defineHexColor(node.fillcolor);
-                colorStyle['fill'] = colorName;
-            } else {
-                colorStyle['fill'] = node.fillcolor;
-            }
+            style['fill'] = this.getColor(node.fillcolor);
         }
         if (node.color) {
-            if (node.color.startsWith('#')) {
-                const colorName = this.defineHexColor(node.color);
-                colorStyle['draw'] = colorName;
-            } else {
-                colorStyle['draw'] = node.color;
-            }
+            style['draw'] = this.getColor(node.color);
         }
 
-
-
-        //\node[shape=rectangle, draw=black, minimum width=2cm, minimum height=1cm, label={above:Upper Label,below:Lower Label}] (node1) at (4,4) {Main Text};
-
-        // Combine all styles, maintaining precedence order
-        return { 
-            ...baseStyle,
-            ...sizeStyle, 
-            ...colorStyle
-            //...(typeof node.style === 'object' ? node.style : {})
-        };
+        return style;
     }
 
     tikzifyStyle(style) {
-        const styleProps = [];
-
-        for (const [key, value] of Object.entries(style)) {
-            if (value === true) {
-                styleProps.push(key);
-            } else {
-                styleProps.push(`${key}=${value}`);
-            }
-        }
-
-        return styleProps.join(', ');
-
+        return this.generateTikzOptions(style);
     }
 
     getLatexContent() {
@@ -369,7 +372,6 @@ class LatexRenderer extends Renderer {
         const boxMaxX = this.bounds.maxX + this.margin.w;
         const boxMaxY = this.bounds.maxY + this.margin.h;
 
-
         const preamble = `
 \\documentclass{standalone}
 \\usepackage{tikz}
@@ -382,11 +384,11 @@ class LatexRenderer extends Renderer {
 \\usepackage{xcolor}
 ${colorDefinitions}
 \\begin{document}
-\\begin{tikzpicture}
-    [>={Stealth[scale=1.0]},  % Uniform arrow style
-    ]
-     \\useasboundingbox (${boxMinX},${boxMinY}) rectangle (${boxMaxX},${boxMaxY});
-    `;
+\\begin{tikzpicture}[
+    >=Stealth  
+]
+\\useasboundingbox (${boxMinX},${boxMinY}) rectangle (${boxMaxX},${boxMaxY});
+`;
         const body = this.content.join('\n');
         const closing = `
 \\end{tikzpicture}
@@ -446,47 +448,20 @@ ${colorDefinitions}
 
     // Helper method to get node anchor point
     getNodeAnchor(node) {
-        const tryGetAnchor = () => {  // Changed to arrow function to preserve 'this' context
-            // Check for named style on node
-            if (node.anchor && typeof node.anchor === 'string') {
-                return Direction.getVector(node.anchor);
-            }
-
-            // Check for named style on node
-            if (node.style && typeof node.style === 'string') {
-                // Check if named style exists in stylesheet
-                const namedStyle = this.style.node?.[node.style]?.node;
-                if (namedStyle) {
-                    // Check if named style has an anchor
-                    if (namedStyle.anchor) {
-                        this.log(`Using anchor '${namedStyle.anchor}' from named style '${node.style}'`);
-                        return Direction.getVector(namedStyle.anchor);
-                    }
-                    else{
-                        return null;
-                    }
-                }
-            }
-
-            // Check default style for anchor
-            const defaultAnchor = this.style.node?.default?.node?.anchor;
-            if (defaultAnchor) {
-                this.log(`Using anchor '${defaultAnchor}' from default style`);
-                return Direction.getVector(defaultAnchor);
-            }
-
-            return null;  // Return null if no anchor is found
-        };
-
-        let anchorVector = tryGetAnchor();
-
-        if (!anchorVector) {
-            // Fallback to center
-            this.log('No anchor specified, using center');
-            anchorVector = Direction.getVector('center');
+        // Check for anchor directly on node
+        if (node.anchor && typeof node.anchor === 'string') {
+            return Direction.getVector(node.anchor);
         }
 
-        return anchorVector;
+        // Get anchor from style system
+        const anchor = this.styleHandler.getStyleAttribute(
+            'node',
+            node.style,
+            'object.anchor',
+            'center'  // default if not found in either style or base
+        );
+
+        return Direction.getVector(anchor);
     }
 
     // Helper method to check if direction is a compass point
@@ -531,46 +506,38 @@ ${colorDefinitions}
 
     getLabelsForSegment(edge, segmentNumber, totalSegments) {
         const labels = [];
-
-        // Helper function to calculate position along the path
-        const calculatePosition = (segmentIndex, defaultPosition) => {
-            if (segmentIndex < 0) {
-                segmentIndex = totalSegments + segmentIndex + 1; // Handle negative indices
-            }
-            if (segmentIndex === segmentNumber) {
-                return defaultPosition;
-            }
-            return null;
-        };
-
-        // Helper to apply text flags to label text
-        const applyTextFlags = (text, flags) => {
+        
+        // Helper to apply text style
+        const applyTextStyle = (text, category) => {
+            const textStyle = this.styleHandler.getCompleteStyle(edge.style, 'edge', 'text', category);
             let result = text;
-            Object.entries(flags).forEach(([flag, value]) => {
+            Object.entries(textStyle || {}).forEach(([flag, value]) => {
                 if (value === true) {
-                    result = `\\${flag}{${result}}`;
+                    // Remove the extra backslash and use single backslash
+                    const command = flag.startsWith('\\') ? flag.slice(1) : flag;
+                    result = `\\${command}{${result}}`;  // Single backslash
                 }
             });
             return result;
         };
 
+        // Helper for position calculation
+        const calculatePosition = (segmentIndex, defaultPosition) => {
+            if (segmentIndex < 0) {
+                segmentIndex = totalSegments + segmentIndex + 1;
+            }
+            return segmentIndex === segmentNumber ? defaultPosition : null;
+        };
+
         // Start Label
         if (edge.start_label) {
-            const segmentIndex = edge.start_label_segment !== undefined
-                ? parseInt(edge.start_label_segment)
-                : 1;
-
-            const position = calculatePosition(
-                segmentIndex,
-                edge.start_label_position !== undefined
-                    ? parseFloat(edge.start_label_position)
-                    : 0.1
-            );
-
+            const segmentIndex = edge.start_label_segment ?? 1;
+            const position = calculatePosition(segmentIndex, edge.start_label_position ?? 0.1);
+            
             if (position !== null) {
                 labels.push({
-                    text: applyTextFlags(this.escapeLaTeX(edge.start_label), this.defaultEdgeStartTextFlags),
-                    position: position,
+                    text: applyTextStyle(this.escapeLaTeX(edge.start_label), 'text_start'),
+                    position,
                     justify: edge.label_justify || 'above'
                 });
             }
@@ -578,16 +545,13 @@ ${colorDefinitions}
 
         // End Label
         if (edge.end_label) {
-            const segmentIndex = edge.end_label_segment !== undefined ?
-                parseInt(edge.end_label_segment) : totalSegments;
-            const position = calculatePosition(segmentIndex,
-                edge.end_label_position !== undefined ?
-                    parseFloat(edge.end_label_position) : 0.9);
-
+            const segmentIndex = edge.end_label_segment ?? totalSegments;
+            const position = calculatePosition(segmentIndex, edge.end_label_position ?? 0.9);
+            
             if (position !== null) {
                 labels.push({
-                    text: applyTextFlags(this.escapeLaTeX(edge.end_label), this.defaultEdgeEndTextFlags),
-                    position: position,
+                    text: applyTextStyle(this.escapeLaTeX(edge.end_label), 'text_end'),
+                    position,
                     justify: edge.label_justify || 'above'
                 });
             }
@@ -595,21 +559,17 @@ ${colorDefinitions}
 
         // Main Label
         if (edge.label) {
-            const defaultSegment = totalSegments % 2 === 1 ?
-                Math.ceil(totalSegments / 2) :
-                Math.floor(totalSegments / 2) + 1;
-
-            const segmentIndex = edge.label_segment !== undefined ?
-                parseInt(edge.label_segment) : defaultSegment;
-            const position = calculatePosition(segmentIndex,
-                edge.label_position !== undefined ?
-                    parseFloat(edge.label_position) :
-                    (totalSegments % 2 === 1 ? 0.5 : 0.0));
-
+            const defaultSegment = Math.ceil(totalSegments / 2);
+            const segmentIndex = edge.label_segment ?? defaultSegment;
+            const position = calculatePosition(
+                segmentIndex,
+                edge.label_position ?? (totalSegments % 2 === 1 ? 0.5 : 0.0)
+            );
+            
             if (position !== null) {
                 labels.push({
-                    text: applyTextFlags(this.escapeLaTeX(edge.label), this.defaultEdgeTextFlags),
-                    position: position,
+                    text: applyTextStyle(this.escapeLaTeX(edge.label), 'text'),
+                    position,
                     justify: edge.label_justify || 'above'
                 });
             }
@@ -634,85 +594,37 @@ ${colorDefinitions}
         return Math.sqrt(dx * dx + dy * dy);
     }
 
-    getArrowStyle(startArrow, endArrow) {
-        // Get default arrow modifiers from style
-        const defaultModifiers = [];
-        if (this.style?.arrow?.default) {
-            const defaults = this.style.arrow.default;
-            Object.entries(defaults).forEach(([key, value]) => {
-                defaultModifiers.push(`${key}=${value}`);
-            });
-        }
-        const modifierStr = defaultModifiers.length > 0 ? 
-            `[${defaultModifiers.join(',')}]` : '';
-
-        const arrows = [];
-        
-        // Start arrow (at the beginning of the line)
-        if (startArrow) {
-            // Apply default modifiers unless the arrow already has its own
-            const arrowStr = startArrow.includes('[') ? 
-                `{${startArrow}}` : 
-                `{${startArrow}${modifierStr}}`;
-            arrows.push(arrowStr);
-        } else {
-            arrows.push('');
-        }
-        
-        // End arrow (at the end of the line)
-        if (endArrow) {
-            // Apply default modifiers unless the arrow already has its own
-            const arrowStr = endArrow.includes('[') ? 
-                `{${endArrow}}` : 
-                `{${endArrow}${modifierStr}}`;
-            arrows.push(arrowStr);
-        } else {
-            arrows.push('');
-        }
-        
-        return `${arrows.join('-')}`;
-    }
-
     getEdgeStyle(edge) {
-        // Get the base style based on edge's style property
-        const baseStyle = edge.style && typeof edge.style === 'string' && this.style.edge?.[edge.style]?.edge
-            ? this.style.edge[edge.style].edge
-            : this.defaultEdgeStyle;
-
-        // Build style options
-        const styleOptions = {
-            ...baseStyle
-        };
-
-        // Add edge-specific styles if provided as string (e.g., 'dotted', 'dashed')
-        if (edge.style && typeof edge.style === 'string') {
-            if (['dotted', 'dashed', 'solid'].includes(edge.style)) {
-                styleOptions[edge.style] = true;
-            } else if (!this.style.edge?.[edge.style]) {
-                // Parse semicolon-separated styles if it's not a predefined style name
-                edge.style.split(';').forEach(stylePair => {
-                    const [key, value] = stylePair.split('=').map(s => s.trim());
-                    if (key) {
-                        styleOptions[key] = value || true;
-                    }
-                });
-            }
-        }
-
-        // Add edge color if specified
+        // Get the complete edge style
+        const style = this.styleHandler.getCompleteStyle(edge.style, 'edge', 'object');
+        
+        // Override color if specified
         if (edge.color) {
-            styleOptions['draw'] = this.getColor(edge.color);
+            style['draw'] = this.getColor(edge.color);
         }
 
-        // Add arrow styles if specified
+        // Add arrow style if needed
         if (edge.start_arrow || edge.end_arrow) {
             const arrowStyle = this.getArrowStyle(edge.start_arrow, edge.end_arrow);
             if (arrowStyle) {
-                styleOptions['arrows'] = arrowStyle;
+                style['arrows'] = arrowStyle;
             }
         }
 
-        return styleOptions;
+        return style;
+    }
+
+    getArrowStyle(startArrow, endArrow) {
+        const formatArrowStyle = (arrowType) => {
+            if (!arrowType) return '';
+            // Remove shape=ArrowType from the style since it's redundant
+            return `{${arrowType}[width=0.2cm, length=0.2cm]}`;
+        };
+
+        const start = formatArrowStyle(startArrow);
+        const end = formatArrowStyle(endArrow);
+
+        return start || end ? `${start}-${end}` : '';
     }
 
     updateNodeBounds(node) {

@@ -18,26 +18,7 @@ class NodeReader {
                     if (!isEmptyRow) {
                         const node = this.processNodeRecord(data, scale, renderer);
                         nodes.push(node);
-                        /*
-                        // Process the row if it's not empty
-                        const node = {
-                            id: data.id || '',
-                            name: data.name || '',
-                            type: data.type || '',
-                            x: data.x !== undefined && data.x !== '' ? parseFloat(data.x) : undefined,
-                            y: data.y !== undefined && data.y !== '' ? parseFloat(data.y) : undefined,
 
-                            //compatibility with old format
-                            height: data.height  !== undefined && data.height !== '' ? parseFloat(data.height) : (data.h !== undefined && data.h !== '' ? parseFloat(data.h) : undefined ),
-                            width: data.width !== undefined && data.width !== '' ? parseFloat(data.width) : (data.w !== undefined && data.w !== '' ? parseFloat(data.w) : undefined ),
-
-                            fillcolor: data.fillcolor || undefined,
-                            color: data.color || undefined,
-                            textcolor: data.textcolor || undefined,
-                            label: data.label || '',
-                            // Add other properties as needed
-
-                            */
                     }
                 })
                 .on('end', () => {
@@ -61,32 +42,44 @@ class NodeReader {
         const x = xUnscaled * scale.position.x;
         const y = yUnscaled * scale.position.y;
 
-        // Store unscaled size values with compatibility for old format
+        // Get style defaults if available
+        const styleDefaults = renderer.styleHandler?.getCompleteStyle(record.style, 'node', 'object') || {};
+        
+        // Parse style dimensions if they exist (removing 'cm' suffix)
+        const defaultWidth = styleDefaults['minimum width'] 
+            ? parseFloat(styleDefaults['minimum width'].replace('cm', '')) 
+            : 1;
+        const defaultHeight = styleDefaults['minimum height']
+            ? parseFloat(styleDefaults['minimum height'].replace('cm', ''))
+            : 1;
+
+        // Store unscaled size values with priority: CSV > Style > Default
         const widthUnscaled = 
             record.width !== undefined && record.width !== '' 
-            ? parseFloat(record.width) 
-            : (record.w !== undefined && record.w !== '' 
-                ? parseFloat(record.w) 
-                : 1);
-                
+                ? parseFloat(record.width) 
+                : (record.w !== undefined && record.w !== '' 
+                    ? parseFloat(record.w) 
+                    : defaultWidth);
+                    
         const heightUnscaled = 
             record.height !== undefined && record.height !== '' 
-            ? parseFloat(record.height) 
-            : (record.h !== undefined && record.h !== '' 
-                ? parseFloat(record.h) 
-                : 1);
+                ? parseFloat(record.height) 
+                : (record.h !== undefined && record.h !== '' 
+                    ? parseFloat(record.h) 
+                    : defaultHeight);
 
-        // Apply node size scaling
-        const width = widthUnscaled * scale.node.width;
-        const height = heightUnscaled * scale.node.height;
+        // Validate scale object structure or use defaults
+        const nodeScale = scale?.size?.node || { w: 1, h: 1 };
+
+        // Apply node size scaling with validated scale object
+        const width = widthUnscaled * nodeScale.w;
+        const height = heightUnscaled * nodeScale.h;
 
         let node = {
             name: record.name,
             label: record.label || record.name,
-                        
             label_above: record.label_above,
             label_below: record.label_below,
-            
             x,
             y,
             xUnscaled,

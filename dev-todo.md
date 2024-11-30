@@ -1416,3 +1416,9 @@ we ar enot going to use syntax like this anymore :
 instead our start point will be defined by 
 
 magick ./output/diagram.pdf -flatten -background white -alpha remove ./output/diagram.png
+
+
+
+
+
+node src/index.js -n ./data/nodes.csv -e ./data/edges.csv -m ./data/map.csv -s style-latex.json

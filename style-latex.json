@@ -1,123 +1,97 @@
 {
-    "scale": {
-        "point": 72,
-        "position": {
-            "x": 2,
-            "y": 2
-        },
-        "size": {
-            "node": {
-                "h": 1,
-                "w": 1
+    "page": {
+        "scale": {
+            "position": {
+                "x": 2,
+                "y": 2
+            },
+            "size": {
+                "node": {
+                    "h": 1,
+                    "w": 1
+                }
             }
+        },
+        "margin": {
+            "h": 1,
+            "w": 1
         }
     },
-    "margin": {
-        "h": 1,
-        "w": 1
-    },
-    "arrow": {
-        "default": {
-            "width": "0.2cm",
-            "length": "0.2cm"
-        }
-    },
-    "node": {
-        "default": {
+    "style": {
+        "base": {
             "node": {
-                "shape": "rectangle",
-                "anchor": "north west",
-                "fill": "white",
-                "draw": "black",
-                "minimum width": "2cm",
-                "minimum height": "1cm",
-                "rounded corners": "0.005cm",
-                "line width": "0.02cm",
-                "text opacity": "1",
-                "font": "\\footnotesize",
-                "inner sep": "0pt"
+                "object": {
+                    "shape": "rectangle",
+                    "fill": "white",
+                    "draw": "black",
+                    "minimum width": "2cm",
+                    "minimum height": "1cm",
+                    "rounded corners": "0.005cm",
+                    "line width": "0.02cm",
+                    "text opacity": "1",
+                    "font": "\\footnotesize",
+                    "inner sep": "0pt"
+                },
+                "text": {
+                    "\\sffamily": true,
+                    "\\small": true
+                }
+            },
+            "edge": {
+                "object": {
+                    "draw": "black",
+                    "line width": "0.02cm",
+                    "rounded corners": "0.05cm"
+                },
+                "head": {
+                    "shape": "Circle",
+                    "width": "0.2cm",
+                    "length": "0.2cm"
+                },
+                "head_start": {
+                    "shape": "Circle",
+                    "width": "0.2cm",
+                    "length": "0.2cm"
+                },
+                "head_end": {
+                    "shape": "Triangle",
+                    "width": "0.2cm",
+                    "length": "0.2cm"
+                },
+                "text": {
+                    "\\sffamily": true,
+                    "\\small": true
+                },
+                "text_start": {
+                    "\\sffamily": true,
+                    "\\small": true
+                },
+                "text_end": {
+                    "\\sffamily": true,
+                    "\\small": true
+                }
             }
         },
         "group": {
             "node": {
-                "shape": "rectangle",
-                "fill": "white",
-                "draw": "gray",
-                "minimum width": "2cm",
-                "minimum height": "1cm",
-                "rounded corners": "0.005cm",
-                "line width": "0.02cm",
-                "text opacity": "1",
-                "font": "\\footnotesize",
-                "inner sep": "0pt"
-
-            }
-        }
-    },
-    "edge": {
-        "default": {
-            "edge": {
-                "draw": "black",
-                "line width": "0.02cm",
-                "rounded corners": "0.05cm"
-            },
-            "arrow": {
-                "start": {
-                    "shape": "Circle",
-                    "fill": "black",
-                    "width": "0.2cm",
-                    "length": "0.2cm"
-                },
-                "end": {
-                    "shape": "Triangle",
-                    "fill": "black",
-                    "width": "0.2cm",
-                    "length": "0.2cm"
+                "object": {
+                    "draw": "gray"
                 }
-            },
-            "label": {
-                "font": "\\footnotesize"
             }
         },
         "dashed": {
             "edge": {
-                "draw": "black",
-                "line width": "0.02cm",
-                "rounded corners": "0.05cm",
-                "dashed": true
+                "object": {
+                    "dashed": true
+                }
             }
         },
         "thick": {
             "edge": {
-                "draw": "black",
-                "line width": "0.04cm",
-                "rounded corners": "0.05cm"
+                "object": {
+                    "line width": "0.04cm"
+                }
             }
-        }
-    },
-    "node_text_flags": {
-        "default": {
-            "\\sffamily": true,
-            "\\small": true
-        }
-    },
-    "edge_text_flags": {
-        "default": {
-            "sffamily": true,
-            "small": true
-        }
-    }
-    ,
-    "edge_start_text_flags": {
-        "default": {
-            "sffamily": true,
-            "small": true
-        }
-    },
-    "edge_end_text_flags": {
-        "default": {
-            "sffamily": true,
-            "small": true
         }
     }
 }
