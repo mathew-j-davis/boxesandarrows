@@ -10,47 +10,44 @@ const LatexRenderer = require('./renderers/latex');
 class DiagramBuilder {
     constructor(options = {}) {
         this.verbose = options.verbose || false;
-
-        // Define a custom logger
         this.log = this.verbose ? console.log.bind(console) : () => {};
 
-        // Load style first
-        this.style = this.loadStyle(options.stylePath);
-        
-        // Create renderer early
-        this.renderer = new LatexRenderer(this.style, { 
-            verbose: this.verbose 
-        });
+        // Create renderer based on type
+        const rendererType = options.renderer || 'latex';
+        this.renderer = this.createRenderer(rendererType, options);
+
+        // Load style if provided
+        this.style = options.stylePath ? this.renderer.loadStyle(options.stylePath) : {};
+
+        // Let renderer define its scaling requirements
+        this.scale = this.renderer.getScaleConfig(this.style);
 
         this.nodes = new Map();
         this.importedNodes = [];
         this.importedEdges = [];
         this.nodePositions = new Map();
         this.invertY = options.invertY || false;
-        
-        // Extract scaling configurations
-        this.scale = {
-            position: {
-                x: this.style.page?.scale?.position?.x || 1,
-                y: this.style.page?.scale?.position?.y || 1
-            },
-            node: {
-                width: this.style.page?.scale?.size?.node?.w || 1,
-                height: this.style.page?.scale?.size?.node?.h || 1
-            }
-        };
     }
 
-    loadStyle(stylePath) {
-        const styleFile = stylePath || './style-latex.json';
-        try {
-            const styleText = fs.readFileSync(styleFile, 'utf8');
-            const style = JSON.parse(styleText);
-            this.log('Style loaded:', style);
-            return style;
-        } catch (error) {
-            console.error(`Failed to load or parse style file at ${styleFile}:`, error.message);
-            process.exit(1);
+    createRenderer(type, options) {
+        switch (type.toLowerCase()) {
+            case 'latex':
+                return new LatexRenderer({
+                    ...options,
+                    stylePath: options.stylePath
+                });
+            default:
+                throw new Error(`Unknown renderer type: ${type}`);
+        }
+    }
+
+    async renderDiagram(outputPath) {
+        // Let renderer handle the full output path
+        //const fullPath = this.renderer.getOutputPath(outputPath);
+        await this.renderer.render(this.importedNodes, this.importedEdges, outputPath);
+        
+        if (this.verbose) {
+            console.log(`Diagram rendered to ${outputPath}`);
         }
     }
 
@@ -87,14 +84,6 @@ class DiagramBuilder {
         } catch (error) {
             console.error('Error loading data:', error);
             throw error;
-        }
-    }
-
-    async renderDiagram(outputPath) {
-        // Use the existing renderer instance
-        await this.renderer.render(this.importedNodes, this.importedEdges, outputPath);
-        if (this.verbose) {
-            console.log(`Diagram rendered to ${outputPath}.pdf`);
         }
     }
 

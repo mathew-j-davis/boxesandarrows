@@ -1,4 +1,4 @@
-const Renderer = require('./base');
+const RendererBase = require('./renderer-base');
 const { Point2D } = require('../geometry/basic-points');
 const { Direction } = require('../geometry/direction');
 const { exec } = require('child_process');
@@ -6,10 +6,14 @@ const fs = require('fs');
 const path = require('path');
 const LatexStyleHandler = require('../styles/latex-style-handler');
 
-class LatexRenderer extends Renderer {
-    constructor(style, options = {}) {
-        super(style);
+class LatexRenderer extends RendererBase {
+    constructor(options = {}) {
+        super(options);
+        
+        // Load style if path provided, otherwise use empty object
+        const style = options.stylePath ? this.loadStyle(options.stylePath) : {};
         this.styleHandler = new LatexStyleHandler(style);
+        this.scale = this.getScaleConfig(style);  // Make sure scale is stored as instance variable
         this.initializeState(style, options);
     }
 
@@ -21,10 +25,14 @@ class LatexRenderer extends Renderer {
         this.verbose = options.verbose || false;
         this.log = this.verbose ? console.log.bind(console) : () => {};
         
-        // Get margins from the new page section
+        // Add default values when style.page is undefined
+        const pageStyle = this.style.page || {};
+        const marginStyle = pageStyle.margin || {};
+        
+        // Get margins with fallbacks
         this.margin = {
-            h: style.page?.margin?.h || 1,
-            w: style.page?.margin?.w || 1
+            h: marginStyle.h || 1,
+            w: marginStyle.w || 1
         };
 
         this.bounds = {
@@ -110,7 +118,7 @@ class LatexRenderer extends Renderer {
                 labelText = `\\textcolor{${this.getColor(node.textcolor)}}{${labelText}}`;
             }
 
-            // Add adjustbox with node-specific dimensions
+            // Add adjustbox
             const labelWithAdjustbox = `{\\adjustbox{max width=${node.width}cm, max height=${node.height}cm}{${labelText}}}`;
 
             // Handle labels
@@ -640,6 +648,34 @@ ${colorDefinitions}
         this.updateBounds(centerX + node.width/2, centerY - node.height/2);
         this.updateBounds(centerX - node.width/2, centerY + node.height/2);
         this.updateBounds(centerX + node.width/2, centerY + node.height/2);
+    }
+
+    getScaleConfig(style) {
+        // Default scale values if style is not provided
+        const defaultScale = {
+            position: { x: 1, y: 1 },
+            node: {
+                height: 1,
+                width: 1
+            }
+        };
+
+        // If no style provided, return defaults
+        if (!style?.page?.scale) {
+            return defaultScale;
+        }
+
+        // Extract values from style, maintaining structure from style-latex.json
+        return {
+            position: {
+                x: style.page.scale.position?.x || defaultScale.position.x,
+                y: style.page.scale.position?.y || defaultScale.position.y
+            },
+            node: {
+                height: style.page.scale.size?.node?.h || defaultScale.node.height,
+                width: style.page.scale.size?.node?.w || defaultScale.node.width
+            }
+        };
     }
 }
 
