@@ -1,5 +1,7 @@
-from,to,type,start_direction,end_direction,label,color,start_arrow,end_arrow
-start,end,c,,,,,,
-start,b,c,,,,,,
-b,end,c,,,,,,
-
+from,to,type,start_direction,end_direction,label,color,start_arrow,end_arrow,path_type
+start,b,c,,,,,,,
+b,end,c,,,,,,,
+start,end,c,s,,,,,,
+start,end,c,s,,,,,,--
+start,end,c,s,,,,,,|-
+start,end,c,s,,,,,,-|

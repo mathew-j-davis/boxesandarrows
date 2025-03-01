@@ -188,8 +188,8 @@ class LatexRenderer extends RendererBase {
         let currentSegmentTail = '';
 
         if (edge.waypoints.length === 0) {
-            // Add end point
-            drawCommand += ` -- ${this.getPositionReferenceNotation(edge.to_name, edge.end_direction, edge.endAdjusted, edge.end.x, edge.end.y)}`;
+            // Add end point using the edge's path_type instead of hardcoded '--'
+            drawCommand += ` ${edge.path_type} ${this.getPositionReferenceNotation(edge.to_name, edge.end_direction, edge.endAdjusted, edge.end.x, edge.end.y)}`;
 
             const labels = this.getLabelsForSegment(edge, 1, totalSegments);
             if (labels.length > 0) {
@@ -474,30 +474,30 @@ ${libraries}
         return Direction.getVector(anchor);
     }
 
-    // Helper method to check if direction is a compass point
-    isCompassDirection(direction) {
-        const compassDirections = [
-            'north', 'south', 'east', 'west',
-            'north east', 'north west', 'south east', 'south west',
-            'n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'
-        ];
-        return compassDirections.includes(direction.toLowerCase());
-    }
+    // // Helper method to check if direction is a compass point
+    // isCompassDirection(direction) {
+    //     const compassDirections = [
+    //         'north', 'south', 'east', 'west',
+    //         'north east', 'north west', 'south east', 'south west',
+    //         'n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'
+    //     ];
+    //     return compassDirections.includes(direction.toLowerCase());
+    // }
 
-    // Helper method to translate shorthand directions to TikZ anchors
-    translateDirection(direction) {
-        const directionMap = {
-            n: 'north',
-            s: 'south',
-            e: 'east',
-            w: 'west',
-            ne: 'north east',
-            nw: 'north west',
-            se: 'south east',
-            sw: 'south west'
-        };
-        return directionMap[direction.toLowerCase()] || direction.toLowerCase();
-    }
+    // // Helper method to translate shorthand directions to TikZ anchors
+    // translateDirection(direction) {
+    //     const directionMap = {
+    //         n: 'north',
+    //         s: 'south',
+    //         e: 'east',
+    //         w: 'west',
+    //         ne: 'north east',
+    //         nw: 'north west',
+    //         se: 'south east',
+    //         sw: 'south west'
+    //     };
+    //     return directionMap[direction.toLowerCase()] || direction.toLowerCase();
+    // }
 
     // Helper method to build a curved path
     buildCurvedPath(pathPoints) {
