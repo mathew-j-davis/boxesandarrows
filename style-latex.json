@@ -21,75 +21,184 @@
         "base": {
             "node": {
                 "object": {
-                    "shape": "rectangle",
-                    "fill": "white",
-                    "draw": "black",
-                    "minimum width": "2cm",
-                    "minimum height": "1cm",
-                    "rounded corners": "0.005cm",
-                    "line width": "0.02cm",
-                    "text opacity": "1",
-                    "font": "\\footnotesize",
-                    "inner sep": "0pt"
+                    "tikz": {
+                        "shape": "rectangle",
+                        "fill": "white",
+                        "draw": "black",
+                        "minimum width": "2cm",
+                        "minimum height": "1cm",
+                        "rounded corners": "0.005cm",
+                        "line width": "0.02cm",
+                        "text opacity": "1",
+                        "font": "\\footnotesize",
+                        "inner sep": "0pt"
+                    }
                 },
                 "text": {
-                    "\\sffamily": true,
-                    "\\small": true
+                    "latex": {
+                        "flags": {
+                            "font": "\\sffamily",
+                            "size": "\\small"
+                        }
+                    }
                 }
             },
             "edge": {
                 "object": {
-                    "draw": "black",
-                    "line width": "0.02cm",
-                    "rounded corners": "0.05cm"
+                    "tikz": {
+                        "draw": "black",
+                        "line width": "0.02cm",
+                        "rounded corners": "0.05cm"
+                    }
                 },
-                "head": {
-                    "shape": "Circle",
-                    "width": "0.2cm",
-                    "length": "0.2cm"
-                },
-                "head_start": {
-                    "shape": "Circle",
-                    "width": "0.2cm",
-                    "length": "0.2cm"
-                },
-                "head_end": {
-                    "shape": "Triangle",
-                    "width": "0.2cm",
-                    "length": "0.2cm"
+                "arrow": {
+                    "tikz": {
+                        "default": {
+                            "shape": "Circle",
+                            "width": "0.2cm",
+                            "length": "0.2cm"
+                        },
+                        "start": {
+                            "shape": "Circle",
+                            "width": "0.2cm",
+                            "length": "0.2cm"
+                        },
+                        "end": {
+                            "shape": "Triangle",
+                            "width": "0.2cm",
+                            "length": "0.2cm"
+                        }
+                    }
                 },
                 "text": {
-                    "\\sffamily": true,
-                    "\\small": true
-                },
-                "text_start": {
-                    "\\sffamily": true,
-                    "\\small": true
-                },
-                "text_end": {
-                    "\\sffamily": true,
-                    "\\small": true
+                    "tikz": {
+                        "default": {
+                            "pos": "0.5"
+                        },
+                        "start": {
+                            "pos": "0.1"
+                        },
+                        "end": {
+                            "pos": "0.9"
+                        }
+                    },
+                    "latex": {
+                        "default": {
+                            "flags": {
+                                "font": "\\sffamily",
+                                "size": "\\small"
+                            }
+                        },
+                        "start": {
+                            "flags": {
+                                "font": "\\sffamily",
+                                "size": "\\small"
+                            }
+                        },
+                        "end": {
+                            "flags": {
+                                "font": "\\sffamily",
+                                "size": "\\small"
+                            }
+                        }
+                    }
                 }
             }
         },
         "group": {
             "node": {
                 "object": {
-                    "draw": "gray"
+                    "tikz": {
+                        "draw": "gray"
+                    }
+                }
+            }
+        },
+        "northwestgroup": {
+            "node": {
+                "object": {
+                    "tikz": {
+                        "draw": "gray",
+                        "line width": "0.02cm",
+                        "text opacity": "0",
+                        "anchor": "north west"
+                    }
+                }
+            }
+        },
+        "label": {
+            "node": {
+                "object": {
+                    "tikz": {
+                        "draw": "white!0",
+                        "line width": "0.00cm",
+                        "text opacity": "1"
+                    }
+                },
+                "text": {
+                    "latex": {
+                        "flags": {
+                            "font": "\\sffamily",
+                            "size": "\\normalsize"
+                        }
+                    }
+                }
+            }
+        },
+        "northwestlabel": {
+            "node": {
+                "object": {
+                    "tikz": {
+                        "draw": "white",
+                        "line width": "0.00cm",
+                        "text opacity": "1",
+                        "anchor": "north west"
+                    }
+                },
+                "text": {
+                    "latex": {
+                        "flags": {
+                            "font": "\\sffamily",
+                            "size": "\\large"
+                        }
+                    }
                 }
             }
         },
         "dashed": {
             "edge": {
                 "object": {
-                    "dashed": true
+                    "tikz": {
+                        "dashed": true
+                    }
+                }
+            }
+        },
+        "soft": {
+            "edge": {
+                "object": {
+                    "tikz": {
+                        "draw": "red",
+                        "line width": "0.01cm"
+                    }
+                }
+            }
+        },
+        "bend_right": {
+            "edge": {
+                "object": {
+                    "tikz": {
+                        "bend": "right"
+                    }
                 }
             }
         },
         "thick": {
             "edge": {
                 "object": {
-                    "line width": "0.04cm"
+                    "tikz": {
+                        "line width": "0.04cm"
+                    }
                 }
             }
         }

@@ -58,6 +58,45 @@ class LatexStyleHandler {
             ...selectedStyleSpecific,
         };
     }
+
+    applyLatexFormatting(text, style) {
+        let result = text;
+        
+        if (style?.latex?.flags) {
+            for (const [category, command] of Object.entries(style.latex.flags)) {
+                if (command) {
+                    const cleanCommand = command.startsWith('\\') ? command.slice(1) : command;
+                    result = `\\${cleanCommand}{${result}}`;
+                }
+            }
+        }
+
+        if (style?.latex?.commands) {
+            for (const [name, command] of Object.entries(style.latex.commands)) {
+                if (command.args && command.enabled !== false) {
+                    const cleanName = name.startsWith('\\') ? name.slice(1) : name;
+                    result = `\\${cleanName}${command.args.map(arg => `{${arg}}`).join('')}{${result}}`;
+                }
+            }
+        }
+
+        return result;
+    }
+
+    tikzifyStyle(style) {
+        if (!style?.tikz) return '';
+        
+        const options = Object.entries(style.tikz)
+            .map(([key, value]) => {
+                if (value === true) return key;
+                if (value === false) return null;
+                return `${key}=${value}`;
+            })
+            .filter(Boolean)
+            .join(', ');
+            
+        return options;
+    }
 }
 
 module.exports = LatexStyleHandler;

@@ -94,6 +94,7 @@ class NodeReader {
             fillcolor: record.fillcolor,
             textcolor: record.textcolor,
             anchor: record.anchor,
+            shape: record.shape,
             anchorVector: null
         };
 

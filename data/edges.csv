@@ -1,4 +1,5 @@
-from,to,type,start_direction,start_adjust_x,start_adjust_y,start_label,start_label_segment,start_label_position,end_direction,end_adjust_x,end_adjust_y,end_label,end_label_segment,end_label_position,label,label_position,label_adjust_x,label_adjust_y,label_justify,style,waypoints,label_segment,color,start_arrow,end_arrow
-b,b,c,e,,,start,,,s,,,end,,,,,,,,dashed,"sc(3,0) ec(0,-3)",,#00caff,Circle,Triangle
-a,b,c,n,,,S,,,w,,,E,,,L,,,,,thick,"(4,5) ",,#00caff,Circle,Triangle
-a,b,c,n,-0.4,,start,,,w,,0.4,end,,,,,,,,,"(5.6,7.4)",,#00caff,Circle,Triangle
+from,to,type,start_direction,end_direction,label,color,start_arrow,end_arrow
+start,end,c,,,,,,
+start,b,c,,,,,,
+b,end,c,,,,,,
+

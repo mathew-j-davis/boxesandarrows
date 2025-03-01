@@ -13,7 +13,18 @@ class LatexRenderer extends RendererBase {
         // Load style if path provided, otherwise use empty object
         const style = options.stylePath ? this.loadStyle(options.stylePath) : {};
         this.styleHandler = new LatexStyleHandler(style);
-        this.scale = this.getScaleConfig(style);  // Make sure scale is stored as instance variable
+        this.scale = this.getScaleConfig(style);
+        
+        // Set template paths with defaults
+        this.headerTemplatePath = options.headerTemplatePath || 
+                                  path.join(__dirname, '../templates/latex_header_template.txt');
+        this.footerTemplatePath = options.footerTemplatePath || 
+                                  path.join(__dirname, '../templates/latex_footer_template.txt');
+        
+        // Load templates
+        this.headerTemplate = this.loadTemplate(this.headerTemplatePath);
+        this.footerTemplate = this.loadTemplate(this.footerTemplatePath);
+        
         this.initializeState(style, options);
     }
 
@@ -41,12 +52,6 @@ class LatexRenderer extends RendererBase {
             maxX: -Infinity,
             maxY: -Infinity
         };
-
-        // Get text flags from style system
-        this.defaultNodeTextFlags = this.styleHandler.getCompleteStyle(null, 'node', 'text');
-        this.defaultEdgeTextFlags = this.styleHandler.getCompleteStyle(null, 'edge', 'text');
-        this.defaultEdgeStartTextFlags = this.styleHandler.getCompleteStyle(null, 'edge', 'text', 'text_start');
-        this.defaultEdgeEndTextFlags = this.styleHandler.getCompleteStyle(null, 'edge', 'text', 'text_end');
     }
 
     async render(nodes, edges, outputPath) {
@@ -86,34 +91,38 @@ class LatexRenderer extends RendererBase {
         const pos = `(${node.x},${node.y})`;
         this.updateNodeBounds(node);
         
-        // Get base style from style handler
-        const nodeStyle = this.styleHandler.getCompleteStyle(node.style, 'node', 'object');
+        // Get the complete style including TikZ and LaTeX attributes
+        const style = this.styleHandler.getCompleteStyle(node.style, 'node', 'object');
         
         // Override dimensions with node-specific values
-        nodeStyle['minimum width'] = `${node.width}cm`;
-        nodeStyle['minimum height'] = `${node.height}cm`;
+        if (style.tikz) {
+            style.tikz['minimum width'] = `${node.width}cm`;
+            style.tikz['minimum height'] = `${node.height}cm`;
+            
+            // Override shape if specified in the node
+            if (node.shape) {
+                style.tikz['shape'] = node.shape;
+            }
+        }
         
-        let styleStr = this.tikzifyStyle(nodeStyle);
+        // Generate TikZ style string
+        let styleStr = this.styleHandler.tikzifyStyle(style);
 
         // Generate unique node ID for referencing using node.name
-        const nodeId = `node_${node.name.replace(/\W/g, '_')}`;
+        const nodeId = `${node.name.replace(/\W/g, '_')}`;
 
         let output = '';
         if (node.hideLabel) {
             output += `\\node[${styleStr}] (${nodeId}) at ${pos} {};`;
         } else {
-            // Apply text styles by wrapping the label
+            // Get text style and apply formatting
             let labelText = node.label;
             const textStyle = this.styleHandler.getCompleteStyle(node.style, 'node', 'text');
             
-            // Apply text styles as wrappers
-            Object.entries(textStyle || {}).forEach(([flag, value]) => {
-                if (value === true) {
-                    const command = flag.startsWith('\\') ? flag.slice(1) : flag;
-                    labelText = `\\${command}{${labelText}}`;
-                }
-            });
+            // Apply LaTeX formatting
+            labelText = this.styleHandler.applyLatexFormatting(labelText, textStyle);
 
+            // Add textcolor if specified on node (this could be moved to the style system)
             if (node.textcolor) {
                 labelText = `\\textcolor{${this.getColor(node.textcolor)}}{${labelText}}`;
             }
@@ -136,7 +145,7 @@ class LatexRenderer extends RendererBase {
     }
 
     renderEdge(edge) {
-
+        
         // Track edge bounds
         this.updateBounds(edge.start.x, edge.start.y);
         this.updateBounds(edge.end.x, edge.end.y);
@@ -152,19 +161,16 @@ class LatexRenderer extends RendererBase {
         const styleOptions = this.getEdgeStyle(edge);
 
         // Convert style options to TikZ format
-        const styleStr = this.tikzifyStyle(styleOptions);
+        const styleStr = this.styleHandler.tikzifyStyle(styleOptions);
 
-        // Build the draw command
-        let drawCommand = `\\draw[${styleStr}] (${edge.start.x},${edge.start.y})`;
+        // Build the draw command - simplified starting point
+        let drawCommand = `\\draw[${styleStr}]`;
+
+        // Add start point based on whether it's adjusted or not
+        drawCommand += ` ${this.getPositionReferenceNotation(edge.from_name, edge.start_direction, edge.startAdjusted, edge.start.x, edge.start.y)}`;
 
         // Track actual segments (excluding control points)
-
-        // const startPoint = `(${edge.start.x},${edge.start.y})`;
-        // const endPoint = `(${edge.end.x},${edge.end.y})`;
-
         let segmentIndex = 0;
-
-
 
         // Calculate total number of real segments
         const realPointsInWaypoints = edge.waypoints
@@ -172,8 +178,6 @@ class LatexRenderer extends RendererBase {
             : [];
 
         const totalSegments = realPointsInWaypoints.length + 1; // +1 for the final segment to end point
-
-
 
         console.log('Edge waypoints:', edge.waypoints);
         console.log('Real points in waypoints:', realPointsInWaypoints);
@@ -184,8 +188,8 @@ class LatexRenderer extends RendererBase {
         let currentSegmentTail = '';
 
         if (edge.waypoints.length === 0) {
-
-            drawCommand += ` -- (${edge.end.x},${edge.end.y})`;
+            // Add end point
+            drawCommand += ` -- ${this.getPositionReferenceNotation(edge.to_name, edge.end_direction, edge.endAdjusted, edge.end.x, edge.end.y)}`;
 
             const labels = this.getLabelsForSegment(edge, 1, totalSegments);
             if (labels.length > 0) {
@@ -229,12 +233,13 @@ class LatexRenderer extends RendererBase {
                 }
             }
 
-            // did waypoint processing leave and open segment?
-
+            // did waypoint processing leave an open segment?
             if (currentSegmentTail.length > 0) {
-                drawCommand +=  currentSegmentTail + ` .. (${edge.end.x},${edge.end.y})`;
+                // Add end point
+                drawCommand += currentSegmentTail + ` .. ${this.getPositionReferenceNotation(edge.to_name, edge.end_direction, edge.endAdjusted, edge.end.x, edge.end.y)}`;
             } else {
-                drawCommand += ` -- (${edge.end.x},${edge.end.y})`;
+                // Add end point
+                drawCommand += ` -- ${this.getPositionReferenceNotation(edge.to_name, edge.end_direction, edge.endAdjusted, edge.end.x, edge.end.y)}`;
             }
 
             // Add labels for this segment
@@ -245,7 +250,6 @@ class LatexRenderer extends RendererBase {
                 });
             }
         }
-
 
         drawCommand += ';';
         console.log('draw command', drawCommand);
@@ -315,10 +319,6 @@ ${libraries}
 `;
     }
 
-    afterRender() {
-        return '\\end{tikzpicture}';
-    }
-
     // Helper methods
     escapeLaTeX(text) {
         if (!text) return '';
@@ -380,29 +380,31 @@ ${libraries}
         const boxMaxX = this.bounds.maxX + this.margin.w;
         const boxMaxY = this.bounds.maxY + this.margin.h;
 
-        const preamble = `
-\\documentclass{standalone}
-\\usepackage{tikz}
-\\usepackage{adjustbox}
-\\usepackage{helvet}  
-\\usepackage{sansmathfonts}  
-\\renewcommand{\\familydefault}{\\sfdefault}  
-\\usetikzlibrary{arrows.meta,calc,decorations.pathmorphing}
-\\usetikzlibrary{shapes.arrows}
-\\usepackage{xcolor}
-${colorDefinitions}
-\\begin{document}
-\\begin{tikzpicture}[
-    >=Stealth  
-]
-\\useasboundingbox (${boxMinX},${boxMinY}) rectangle (${boxMaxX},${boxMaxY});
-`;
+        // Replace placeholders in header template
+        let header = this.headerTemplate
+            .replace(/{{COLOR_DEFINITIONS}}/g, colorDefinitions)
+            .replace(/{{BOX_MIN_X}}/g, boxMinX)
+            .replace(/{{BOX_MIN_Y}}/g, boxMinY)
+            .replace(/{{BOX_MAX_X}}/g, boxMaxX)
+            .replace(/{{BOX_MAX_Y}}/g, boxMaxY);
+
+        // If no bounding box placeholder in template, add it before the tikzpicture ends
+        if (!header.includes('\\useasboundingbox')) {
+            const tikzPictureIndex = header.indexOf('\\begin{tikzpicture}');
+            if (tikzPictureIndex !== -1) {
+                const insertPosition = tikzPictureIndex + '\\begin{tikzpicture}'.length;
+                header = header.slice(0, insertPosition) + 
+                         `\n\\useasboundingbox (${boxMinX},${boxMinY}) rectangle (${boxMaxX},${boxMaxY});` + 
+                         header.slice(insertPosition);
+            }
+        }
+
         const body = this.content.join('\n');
-        const closing = `
-\\end{tikzpicture}
-\\end{document}
-`;
-        return `${preamble}\n${body}\n${closing}`;
+        
+        // Use footer template
+        const footer = this.footerTemplate;
+        
+        return `${header}\n${body}\n${footer}`;
     }
 
     async compileToPdf(texFilePath, options = {}) {
@@ -515,21 +517,7 @@ ${colorDefinitions}
     getLabelsForSegment(edge, segmentNumber, totalSegments) {
         const labels = [];
         
-        // Helper to apply text style
-        const applyTextStyle = (text, category) => {
-            const textStyle = this.styleHandler.getCompleteStyle(edge.style, 'edge', 'text', category);
-            let result = text;
-            Object.entries(textStyle || {}).forEach(([flag, value]) => {
-                if (value === true) {
-                    // Remove the extra backslash and use single backslash
-                    const command = flag.startsWith('\\') ? flag.slice(1) : flag;
-                    result = `\\${command}{${result}}`;  // Single backslash
-                }
-            });
-            return result;
-        };
-
-        // Helper for position calculation
+        // Helper to get position for segment
         const calculatePosition = (segmentIndex, defaultPosition) => {
             if (segmentIndex < 0) {
                 segmentIndex = totalSegments + segmentIndex + 1;
@@ -543,8 +531,9 @@ ${colorDefinitions}
             const position = calculatePosition(segmentIndex, edge.start_label_position ?? 0.1);
             
             if (position !== null) {
+                const textStyle = this.styleHandler.getCompleteStyle(edge.style, 'edge', 'text_start');
                 labels.push({
-                    text: applyTextStyle(this.escapeLaTeX(edge.start_label), 'text_start'),
+                    text: this.styleHandler.applyLatexFormatting(this.escapeLaTeX(edge.start_label), textStyle),
                     position,
                     justify: edge.label_justify || 'above'
                 });
@@ -557,8 +546,9 @@ ${colorDefinitions}
             const position = calculatePosition(segmentIndex, edge.end_label_position ?? 0.9);
             
             if (position !== null) {
+                const textStyle = this.styleHandler.getCompleteStyle(edge.style, 'edge', 'text_end');
                 labels.push({
-                    text: applyTextStyle(this.escapeLaTeX(edge.end_label), 'text_end'),
+                    text: this.styleHandler.applyLatexFormatting(this.escapeLaTeX(edge.end_label), textStyle),
                     position,
                     justify: edge.label_justify || 'above'
                 });
@@ -569,14 +559,25 @@ ${colorDefinitions}
         if (edge.label) {
             const defaultSegment = Math.ceil(totalSegments / 2);
             const segmentIndex = edge.label_segment ?? defaultSegment;
-            const position = calculatePosition(
-                segmentIndex,
-                edge.label_position ?? (totalSegments % 2 === 1 ? 0.5 : 0.0)
-            );
+
+            let lp = 0.5;
+            const edgeTextStyle = this.styleHandler.getCompleteStyle(edge.style, 'edge', 'text');
+
+            // Check if we have a position value in the style
+            if (totalSegments == 1 && edgeTextStyle?.tikz?.pos) {
+                lp = edge.label_position ?? edgeTextStyle.tikz.pos;
+            } else {
+                lp = calculatePosition(
+                    segmentIndex,
+                    edge.label_position ?? (totalSegments % 2 === 1 ? 0.5 : 0.0)
+                );
+            }
+
+            const position = lp;
             
             if (position !== null) {
                 labels.push({
-                    text: applyTextStyle(this.escapeLaTeX(edge.label), 'text'),
+                    text: this.styleHandler.applyLatexFormatting(this.escapeLaTeX(edge.label), edgeTextStyle),
                     position,
                     justify: edge.label_justify || 'above'
                 });
@@ -607,15 +608,15 @@ ${colorDefinitions}
         const style = this.styleHandler.getCompleteStyle(edge.style, 'edge', 'object');
         
         // Override color if specified
-        if (edge.color) {
-            style['draw'] = this.getColor(edge.color);
+        if (edge.color && style.tikz) {
+            style.tikz['draw'] = this.getColor(edge.color);
         }
 
         // Add arrow style if needed
-        if (edge.start_arrow || edge.end_arrow) {
+        if ((edge.start_arrow || edge.end_arrow) && style.tikz) {
             const arrowStyle = this.getArrowStyle(edge.start_arrow, edge.end_arrow);
             if (arrowStyle) {
-                style['arrows'] = arrowStyle;
+                style.tikz['arrows'] = arrowStyle;
             }
         }
 
@@ -676,6 +677,57 @@ ${colorDefinitions}
                 width: style.page.scale.size?.node?.w || defaultScale.node.width
             }
         };
+    }
+
+    // Load template from file or use default
+    loadTemplate(templatePath, defaultTemplate) {
+        try {
+            if (fs.existsSync(templatePath)) {
+                return fs.readFileSync(templatePath, 'utf8');
+            }
+            console.warn(`Template file not found: ${templatePath}, using default template.`);
+            return defaultTemplate;
+        } catch (error) {
+            console.error(`Error loading template: ${error.message}`);
+            return defaultTemplate;
+        }
+    }
+
+    // Define default header template as a fallback
+    getDefaultHeaderTemplate() {
+        return `\\documentclass{standalone}
+\\usepackage{tikz}
+\\usepackage{adjustbox}
+\\usepackage{helvet}  
+\\usepackage{sansmathfonts}  
+\\renewcommand{\\familydefault}{\\sfdefault}  
+\\usetikzlibrary{arrows.meta,calc,decorations.pathmorphing}
+\\usetikzlibrary{shapes.arrows}
+\\usepackage{xcolor}
+{{COLOR_DEFINITIONS}}
+\\begin{document}
+\\begin{tikzpicture}
+\\useasboundingbox ({{BOX_MIN_X}},{{BOX_MIN_Y}}) rectangle ({{BOX_MAX_X}},{{BOX_MAX_Y}});`;
+    }
+
+    // Add this new helper method to the LatexRenderer class
+    getNodeReferenceNotation(nodeName, direction) {
+        // Handle the case when direction is missing or empty
+        if (!direction) {
+            return `(${nodeName})`;
+        }
+        return `(${nodeName}.${direction})`;
+    }
+
+    // Add this new helper method
+    getPositionReferenceNotation(nodeName, direction, useCoordinates, x, y) {
+        if (useCoordinates) {
+            // Use exact coordinates
+            return `(${x},${y})`;
+        } else {
+            // Use node reference notation
+            return this.getNodeReferenceNotation(nodeName, direction);
+        }
     }
 }
 
