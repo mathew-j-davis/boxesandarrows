@@ -11,6 +11,9 @@ class DiagramBuilder {
     constructor(options = {}) {
         this.verbose = options.verbose || false;
         this.log = this.verbose ? console.log.bind(console) : () => {};
+        
+        // Store all options
+        this.options = options;
 
         // Create renderer based on type
         const rendererType = options.renderer || 'latex';
@@ -44,7 +47,17 @@ class DiagramBuilder {
     async renderDiagram(outputPath) {
         // Let renderer handle the full output path
         //const fullPath = this.renderer.getOutputPath(outputPath);
-        await this.renderer.render(this.importedNodes, this.importedEdges, outputPath);
+        
+        // Pass rendering options including grid parameter if set
+        const renderOptions = {};
+        if (this.options && this.options.grid) {
+            // Grid spacing is in unscaled coordinates
+            // The renderer will handle drawing the grid at scaled positions
+            // but with unscaled coordinate labels
+            renderOptions.grid = parseFloat(this.options.grid);
+        }
+        
+        await this.renderer.render(this.importedNodes, this.importedEdges, outputPath, renderOptions);
         
         if (this.verbose) {
             console.log(`Diagram rendered to ${outputPath}`);
@@ -110,8 +123,8 @@ class DiagramBuilder {
                     y: y,
                     xUnscaled: pos.xUnscaled,
                     yUnscaled: pos.yUnscaled,
-                    height: 1 * this.scale.node.height,
-                    width: 1 * this.scale.node.width,
+                    height: 1 * this.scale.size.h,
+                    width: 1 * this.scale.size.w,
                     heightUnscaled: 1,
                     widthUnscaled: 1,
                     type: 'default',
@@ -134,18 +147,19 @@ async function main() {
     const argv = minimist(process.argv.slice(2));
 
     if (!argv.n || !argv.e) {
-        console.error('Usage: node src/index.js -n <nodes.csv> -e <edges.csv> [-m <positions.csv>] [-s <style.json>] [-o <output/diagram>] [--invert-y] [--verbose]');
+        console.error('Usage: node src/index.js -n <nodes.csv> -e <edges.csv> [-m <positions.csv>] [-s <style.json>] [-o <output/diagram>] [-g <grid_spacing>] [--invert-y] [--verbose]');
         process.exit(1);
     }
 
     const builder = new DiagramBuilder({
         stylePath: argv.s,
         invertY: argv['invert-y'] || false,
-        verbose: argv.verbose || false
+        verbose: argv.verbose || false,
+        grid: argv.g // Pass grid parameter
     });
 
     try {
-        await builder.loadData(argv.n,  argv.e, argv.m,);
+        await builder.loadData(argv.n, argv.e, argv.m);
         if (builder.verbose) {
             console.log(`Loaded ${builder.importedNodes.length} nodes and ${builder.importedEdges.length} edges`);
         }

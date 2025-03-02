@@ -7,10 +7,10 @@
 \usetikzlibrary{arrows.meta,calc,decorations.pathmorphing}
 \usetikzlibrary{shapes.geometric, shapes.arrows}
 \usepackage{xcolor}
-
+{{INCLUDE_DEFINITIONS}}
 {{COLOR_DEFINITIONS}}
 \begin{document}
 \begin{tikzpicture}
 \useasboundingbox ({{BOX_MIN_X}},{{BOX_MIN_Y}}) rectangle ({{BOX_MAX_X}},{{BOX_MAX_Y}});
-
+{{INCLUDE_PRE_BOILERPLATE}}
 

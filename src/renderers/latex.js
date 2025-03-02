@@ -21,9 +21,19 @@ class LatexRenderer extends RendererBase {
         this.footerTemplatePath = options.footerTemplatePath || 
                                   path.join(__dirname, '../templates/latex_footer_template.txt');
         
+        // Set additional content file paths
+        this.definitionsPath = options.definitionsPath || null;
+        this.preBoilerplatePath = options.preBoilerplatePath || null;
+        this.postBoilerplatePath = options.postBoilerplatePath || null;
+        
         // Load templates
         this.headerTemplate = this.loadTemplate(this.headerTemplatePath);
         this.footerTemplate = this.loadTemplate(this.footerTemplatePath);
+        
+        // Load additional content
+        this.definitionsContent = this.loadContentFile(this.definitionsPath);
+        this.preBoilerplateContent = this.loadContentFile(this.preBoilerplatePath);
+        this.postBoilerplateContent = this.loadContentFile(this.postBoilerplatePath);
         
         this.initializeState(style, options);
     }
@@ -54,7 +64,7 @@ class LatexRenderer extends RendererBase {
         };
     }
 
-    async render(nodes, edges, outputPath) {
+    async render(nodes, edges, outputPath, options = {}) {
         // Reset all state to initial values
         this.initializeState(this.style, { 
             verbose: this.verbose, 
@@ -66,6 +76,18 @@ class LatexRenderer extends RendererBase {
 
         // Render all edges
         edges.forEach(edge => this.renderEdge(edge));
+
+        // Draw grid if specified (add before content so it's behind everything)
+        if (options.grid && typeof options.grid === 'number') {
+            // Store content temporarily
+            const contentBackup = [...this.content];
+            // Clear content to add grid first
+            this.content = [];
+            // Draw grid with specified spacing
+            this.drawGrid(options.grid);
+            // Add original content back so grid is behind everything
+            this.content.push(...contentBackup);
+        }
 
         // Generate the complete LaTeX content
         const latexContent = this.getLatexContent();
@@ -103,6 +125,23 @@ class LatexRenderer extends RendererBase {
             if (node.shape) {
                 style.tikz['shape'] = node.shape;
             }
+            
+            // Add anchor information if it's not the default 'center'
+            if (node.anchor)  {
+                // Standardize the anchor name for consistent TikZ syntax
+                const standardizedAnchor = Direction.standardiseBasicDirectionName(node.anchor);
+                if (standardizedAnchor) {
+                    style.tikz['anchor'] = standardizedAnchor;
+                }
+            } 
+            
+            // else if (node.anchorVector) {
+            //     // Try to get anchor name from the vector
+            //     const anchorName = Direction.getDirectionNameFromVector(node.anchorVector);
+            //     if (anchorName && anchorName !== 'center') {
+            //         style.tikz['anchor'] = anchorName;
+            //     }
+            // }
         }
         
         // Generate TikZ style string
@@ -386,7 +425,9 @@ ${libraries}
             .replace(/{{BOX_MIN_X}}/g, boxMinX)
             .replace(/{{BOX_MIN_Y}}/g, boxMinY)
             .replace(/{{BOX_MAX_X}}/g, boxMaxX)
-            .replace(/{{BOX_MAX_Y}}/g, boxMaxY);
+            .replace(/{{BOX_MAX_Y}}/g, boxMaxY)
+            .replace(/{{INCLUDE_DEFINITIONS}}/g, this.definitionsContent)
+            .replace(/{{INCLUDE_PRE_BOILERPLATE}}/g, this.preBoilerplateContent);
 
         // If no bounding box placeholder in template, add it before the tikzpicture ends
         if (!header.includes('\\useasboundingbox')) {
@@ -401,8 +442,8 @@ ${libraries}
 
         const body = this.content.join('\n');
         
-        // Use footer template
-        const footer = this.footerTemplate;
+        // Use footer template and replace the post boilerplate tag
+        const footer = this.footerTemplate.replace(/{{INCLUDE_POST_BOILERPLATE}}/g, this.postBoilerplateContent);
         
         return `${header}\n${body}\n${footer}`;
     }
@@ -655,9 +696,9 @@ ${libraries}
         // Default scale values if style is not provided
         const defaultScale = {
             position: { x: 1, y: 1 },
-            node: {
-                height: 1,
-                width: 1
+            size: {
+                w: 1,
+                h: 1
             }
         };
 
@@ -672,9 +713,9 @@ ${libraries}
                 x: style.page.scale.position?.x || defaultScale.position.x,
                 y: style.page.scale.position?.y || defaultScale.position.y
             },
-            node: {
-                height: style.page.scale.size?.node?.h || defaultScale.node.height,
-                width: style.page.scale.size?.node?.w || defaultScale.node.width
+            size: {
+                w: style.page.scale.size?.w || defaultScale.size.w,
+                h: style.page.scale.size?.h || defaultScale.size.h
             }
         };
     }
@@ -727,6 +768,69 @@ ${libraries}
         } else {
             // Use node reference notation
             return this.getNodeReferenceNotation(nodeName, direction);
+        }
+    }
+
+    // New method to load content files
+    loadContentFile(filePath) {
+        if (!filePath) return '';
+        
+        try {
+            if (fs.existsSync(filePath)) {
+                return fs.readFileSync(filePath, 'utf8');
+            }
+            console.warn(`Content file not found: ${filePath}, using empty content.`);
+            return '';
+        } catch (error) {
+            console.error(`Error loading content file: ${error.message}`);
+            return '';
+        }
+    }
+
+    // Add method to draw a grid with labels
+    drawGrid(gridSpacing) {
+        if (!gridSpacing || gridSpacing <= 0) return;
+
+        // gridSpacing is in unscaled coordinates, so convert to scaled
+        const scaledGridSpacingX = gridSpacing * this.scale.position.x;
+        const scaledGridSpacingY = gridSpacing * this.scale.position.y;
+
+        // Find the grid bounds based on the diagram bounds
+        // Use the calculated bounds from the diagram content
+        const minX = Math.floor(this.bounds.minX / scaledGridSpacingX) * scaledGridSpacingX;
+        const maxX = Math.ceil(this.bounds.maxX / scaledGridSpacingX) * scaledGridSpacingX;
+        const minY = Math.floor(this.bounds.minY / scaledGridSpacingY) * scaledGridSpacingY;
+        const maxY = Math.ceil(this.bounds.maxY / scaledGridSpacingY) * scaledGridSpacingY;
+
+        // Grid style
+        const gridStyle = 'dashed,gray,opacity=0.5';
+        
+        // Generate vertical grid lines with labels
+        for (let x = minX; x <= maxX; x += scaledGridSpacingX) {
+            // Draw vertical line
+            this.content.push(`\\draw[${gridStyle}] (${x},${minY}) -- (${x},${maxY});`);
+            
+            // Calculate unscaled coordinate for label
+            const unscaledX = x / this.scale.position.x;
+            // Round to 2 decimal places to avoid floating point issues
+            const formattedX = Math.round(unscaledX * 100) / 100;
+            
+            // Add label at the bottom with unscaled value
+            this.content.push(`\\node[below] at (${x},${minY}) {${formattedX}};`);
+        }
+        
+        // Generate horizontal grid lines with labels
+        for (let y = minY; y <= maxY; y += scaledGridSpacingY) {
+            // Draw horizontal line
+            this.content.push(`\\draw[${gridStyle}] (${minX},${y}) -- (${maxX},${y});`);
+            
+            // Calculate unscaled coordinate for label
+            const unscaledY = y / this.scale.position.y;
+            // Round to 2 decimal places to avoid floating point issues
+            const formattedY = Math.round(unscaledY * 100) / 100;
+            
+            // Add label on the left with unscaled value
+            this.content.push(`\\node[left] at (${minX},${y}) {${formattedY}};`);
         }
     }
 }

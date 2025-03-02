@@ -169,10 +169,10 @@ class Direction {
      */
     static getVerticalName(d) {
         if (d < 0) {
-            return 'south ';
+            return 'south';
         }
         if (d > 0) {
-            return 'north ';
+            return 'north';
         }
         return '';
     }
@@ -202,7 +202,7 @@ class Direction {
         if (dx == 0 && dy == 0) {
             return 'center';
         }
-        const directionName = (this.getHorizontalName(dx) + this.getVerticalName(dy)).trim();
+        const directionName = (this.getVerticalName(dy) + ' ' + this.getHorizontalName(dx)).trim();
         if (directionName.length == 0) {
             return 'center';
         }

@@ -17,6 +17,7 @@
                 "-e", "./data/edges.csv",
                 "-m", "./data/map.csv",
                 "-s", "style-latex.json",
+                "-g", "1",
                 "--trace-warnings"
 
             ]

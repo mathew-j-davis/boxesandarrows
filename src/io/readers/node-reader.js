@@ -69,7 +69,7 @@ class NodeReader {
                     : defaultHeight);
 
         // Validate scale object structure or use defaults
-        const nodeScale = scale?.size?.node || { w: 1, h: 1 };
+        const nodeScale = scale?.size || { w: 1, h: 1 };
 
         // Apply node size scaling with validated scale object
         const width = widthUnscaled * nodeScale.w;
