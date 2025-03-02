@@ -116,8 +116,11 @@ class LatexRenderer extends RendererBase {
         // Get the complete style including TikZ and LaTeX attributes
         const style = this.styleHandler.getCompleteStyle(node.style, 'node', 'object');
         
-        // Override dimensions with node-specific values
+        // Clone the tikz object to prevent shared state between nodes
         if (style.tikz) {
+            style.tikz = { ...style.tikz };
+            
+            // Override dimensions with node-specific values
             style.tikz['minimum width'] = `${node.width}cm`;
             style.tikz['minimum height'] = `${node.height}cm`;
             

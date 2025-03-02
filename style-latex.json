@@ -112,18 +112,7 @@
                 }
             }
         },
-        "northwestgroup": {
-            "node": {
-                "object": {
-                    "tikz": {
-                        "draw": "gray",
-                        "line width": "0.02cm",
-                        "text opacity": "0",
-                        "anchor": "north west"
-                    }
-                }
-            }
-        },
+
         "label": {
             "node": {
                 "object": {
@@ -138,26 +127,6 @@
                         "flags": {
                             "font": "\\sffamily",
                             "size": "\\normalsize"
-                        }
-                    }
-                }
-            }
-        },
-        "northwestlabel": {
-            "node": {
-                "object": {
-                    "tikz": {
-                        "draw": "white",
-                        "line width": "0.00cm",
-                        "text opacity": "1",
-                        "anchor": "north west"
-                    }
-                },
-                "text": {
-                    "latex": {
-                        "flags": {
-                            "font": "\\sffamily",
-                            "size": "\\large"
                         }
                     }
                 }
