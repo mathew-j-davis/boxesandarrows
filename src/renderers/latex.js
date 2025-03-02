@@ -230,14 +230,35 @@ class LatexRenderer extends RendererBase {
         let currentSegmentTail = '';
 
         if (edge.waypoints.length === 0) {
-            // Add end point using the edge's path_type instead of hardcoded '--'
-            drawCommand += ` ${edge.path_type} ${this.getPositionReferenceNotation(edge.to_name, edge.end_direction, edge.endAdjusted, edge.end.x, edge.end.y)}`;
-
-            const labels = this.getLabelsForSegment(edge, 1, totalSegments);
-            if (labels.length > 0) {
-                labels.forEach(label => {
-                    drawCommand += ` node[${label.justify}, pos=${label.position}] {${label.text}}`;
-                });
+            // Special handling when using 'to' path type, as it requires different label syntax
+            if (edge.path_type === 'to') {
+                // When using 'to', node labels must be inside the 'to' operation
+                const labels = this.getLabelsForSegment(edge, 1, totalSegments);
+                if (labels.length > 0) {
+                    // For 'to' paths, add labels within the to operation
+                    drawCommand += ` ${edge.from_name ? this.getPositionReferenceNotation(edge.from_name, edge.start_direction, edge.startAdjusted, edge.start.x, edge.start.y) : ''} to`;
+                    
+                    // Add each label as a node within the 'to' operation
+                    labels.forEach(label => {
+                        drawCommand += ` node[${label.justify}] {${label.text}}`;
+                    });
+                    
+                    // Complete the 'to' operation with the destination
+                    drawCommand += ` ${this.getPositionReferenceNotation(edge.to_name, edge.end_direction, edge.endAdjusted, edge.end.x, edge.end.y)}`;
+                } else {
+                    // If no labels, just use the simple to syntax
+                    drawCommand += ` ${edge.path_type} ${this.getPositionReferenceNotation(edge.to_name, edge.end_direction, edge.endAdjusted, edge.end.x, edge.end.y)}`;
+                }
+            } else {
+                // For other path types (like '--'), we can use the standard approach
+                drawCommand += ` ${edge.path_type} ${this.getPositionReferenceNotation(edge.to_name, edge.end_direction, edge.endAdjusted, edge.end.x, edge.end.y)}`;
+                
+                const labels = this.getLabelsForSegment(edge, 1, totalSegments);
+                if (labels.length > 0) {
+                    labels.forEach(label => {
+                        drawCommand += ` node[${label.justify}, pos=${label.position}] {${label.text}}`;
+                    });
+                }
             }
         } else {
             // Process all waypoints

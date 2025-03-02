@@ -6,6 +6,7 @@ const { Direction } = require('../../geometry/direction');
 
 
 const PATH_TYPES = {
+    TO: 'to',
     LINE: '--',
     BAR_END: '-|',
     BAR_START: '|-',
@@ -230,7 +231,7 @@ class EdgeReader {
                     waypoints: waypoints,
                     
 
-                    path_type: record.path_type || PATH_TYPES.LINE,
+                    path_type: record.path_type || PATH_TYPES.TO,
                     
                     // Start label properties
                     start_label: record.start_label || '',

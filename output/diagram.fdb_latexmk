@@ -1,6 +1,6 @@
 # Fdb version 4
-["pdflatex"] 1740896116.89382 "c:/Users/mathew/source/repos/boxesandarrows/output/diagram.tex" "diagram.pdf" "diagram" 1740896120.57965 0
-  "c:/Users/mathew/source/repos/boxesandarrows/output/diagram.tex" 1740896114 4297 89e7bd94b0ee4e958a24b8a307e8d0d9 ""
+["pdflatex"] 1740907736.35139 "c:/Users/mathew/source/repos/boxesandarrows/output/diagram.tex" "diagram.pdf" "diagram" 1740907739.49248 0
+  "c:/Users/mathew/source/repos/boxesandarrows/output/diagram.tex" 1740907729 4297 b7380e9fa84b9b2200ab75a036aabfa0 ""
   "c:/texlive/2024/texmf-dist/fonts/map/fontname/texfonts.map" 1725712487 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "c:/texlive/2024/texmf-dist/fonts/tfm/public/cm/cmss10.tfm" 1725709170 1316 b636689f1933f24d1294acdf6041daaa ""
   "c:/texlive/2024/texmf-dist/fonts/tfm/public/cm/cmss8.tfm" 1725709170 1296 d77f431d10d47c8ea2cc18cf45346274 ""
@@ -122,8 +122,8 @@
   "c:/texlive/2024/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1725719276 5543950 2aa73a438b7054b2327b796fbe5f4275 ""
   "c:/texlive/2024/texmf-var/web2c/pdftex/pdflatex.fmt" 1725719642 8239321 27448e1e822aae59191fb52fc8d82e5a ""
   "c:/texlive/2024/texmf.cnf" 1725719238 713 e69b156964470283e0530f5060668171 ""
-  "diagram.aux" 1740896120 69 5f87cb9125522c22b16950a5b36e2d02 "pdflatex"
-  "diagram.tex" 1740896114 4297 89e7bd94b0ee4e958a24b8a307e8d0d9 ""
+  "diagram.aux" 1740907739 69 5f87cb9125522c22b16950a5b36e2d02 "pdflatex"
+  "diagram.tex" 1740907729 4297 b7380e9fa84b9b2200ab75a036aabfa0 ""
   (generated)
   "diagram.aux"
   "diagram.log"

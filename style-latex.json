@@ -141,6 +141,60 @@
                 }
             }
         },
+        "bend_r_30": {
+            "edge": {
+                "object": {
+                    "tikz": {
+                        "bend right": "30"
+                    }
+                }
+            }
+        },
+        "bend_r_40": {
+            "edge": {
+                "object": {
+                    "tikz": {
+                        "bend right": "40"
+                    }
+                }
+            }
+        },
+        "bend_r_50": {
+            "edge": {
+                "object": {
+                    "tikz": {
+                        "bend right": "50"
+                    }
+                }
+            }
+        },
+        "bend_l_30": {
+            "edge": {
+                "object": {
+                    "tikz": {
+                        "bend left": "30"
+                    }
+                }
+            }
+        },
+        "bend_l_40": {
+            "edge": {
+                "object": {
+                    "tikz": {
+                        "bend left": "40"
+                    }
+                }
+            }
+        },
+        "bend_l_50": {
+            "edge": {
+                "object": {
+                    "tikz": {
+                        "bend left": "50"
+                    }
+                }
+            }
+        },
         "soft": {
             "edge": {
                 "object": {

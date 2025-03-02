@@ -75,9 +75,9 @@
 \node[shape=diamond, fill=white, draw=black, minimum width=6cm, minimum height=2cm, rounded corners=0.005cm, line width=0.02cm, text opacity=1, font=\footnotesize, inner sep=0pt] (start) at (2,28) {\adjustbox{max width=6cm, max height=2cm}{\textcolor{color001122}{\small{\sffamily{Start}}}}};
 \node[shape=circle, fill=white, draw=black, minimum width=6cm, minimum height=6cm, rounded corners=0.005cm, line width=0.02cm, text opacity=1, font=\footnotesize, inner sep=0pt] (end) at (16,4) {\adjustbox{max width=6cm, max height=6cm}{\textcolor{color001122}{\small{\sffamily{End}}}}};
 \node[shape=circle, fill=white, draw=black, minimum width=2cm, minimum height=2cm, rounded corners=0.005cm, line width=0.02cm, text opacity=1, font=\footnotesize, inner sep=0pt] (b) at (10,28) {\adjustbox{max width=2cm, max height=2cm}{\textcolor{color001122}{\small{\sffamily{b}}}}};
-\draw[draw=black, line width=0.02cm, rounded corners=0.05cm] (start) -- (b);
-\draw[draw=black, line width=0.02cm, rounded corners=0.05cm] (b) -- (end);
-\draw[draw=black, line width=0.02cm, rounded corners=0.05cm] (start.south) -- (end);
+\draw[draw=black, line width=0.02cm, rounded corners=0.05cm] (start) to (b);
+\draw[draw=black, line width=0.02cm, rounded corners=0.05cm] (b) to (end);
+\draw[draw=black, line width=0.02cm, rounded corners=0.05cm] (start.south) to (end);
 \draw[draw=black, line width=0.02cm, rounded corners=0.05cm] (start.south) -- (end);
 \draw[draw=black, line width=0.02cm, rounded corners=0.05cm] (start.south) |- (end);
 \draw[draw=black, line width=0.02cm, rounded corners=0.05cm] (start.south) -| (end);
