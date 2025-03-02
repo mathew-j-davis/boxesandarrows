@@ -1,6 +1,11 @@
 const fs = require('fs');
 
 class PositionReader {
+    // Add a static property for the delimiter
+    // Use semicolon (;) to separate multiple node names in a cell
+    // Example: "node1;node2;node3" in a position cell will place all three nodes at that position
+    static nodeNameDelimiter = ';';
+
     static readFromCsv(positionFile) {
         return new Promise((resolve, reject) => {
             const positions = new Map();
@@ -31,22 +36,33 @@ class PositionReader {
 
                     // The first value is the y position
                     const yLabel = row[0].trim();
-                    const y = parseFloat(yLabel);
+                    const yUnscaled = parseFloat(yLabel);
 
                     // Iterate over the rest of the columns
                     for (let j = 1; j < row.length; j++) {
                         const cellValue = row[j] ? row[j].trim() : '';
                         if (cellValue) {
-                            const nodeName = cellValue;
                             const xLabel = xLabels[j - 1];
-                            const x = parseFloat(xLabel);
+                            const xUnscaled = parseFloat(xLabel);
 
                             // Check for valid numerical positions
-                            if (!isNaN(x) && !isNaN(y)) {
-                                positions.set(nodeName, [x, y]);
-                                // Optional: console.log(`Position set for node '${nodeName}': (${x}, ${y})`);
+                            if (!isNaN(xUnscaled) && !isNaN(yUnscaled)) {
+                                // Always split by delimiter and process each node name
+                                const nodeNames = cellValue.split(this.nodeNameDelimiter);
+                                
+                                // Set position for each non-empty node name
+                                for (const nodeName of nodeNames) {
+                                    const trimmedName = nodeName.trim();
+                                    if (trimmedName) {  // Only process non-empty node names
+                                        positions.set(trimmedName, {
+                                            xUnscaled,
+                                            yUnscaled
+                                        });
+                                    }
+                                }
+                                // Optional: console.log(`Position set for node '${nodeName}': (${xUnscaled}, ${yUnscaled})`);
                             } else {
-                                console.warn(`Invalid position for node '${nodeName}': x='${xLabel}', y='${yLabel}'`);
+                                console.warn(`Invalid position for node(s) '${cellValue}': x='${xLabel}', y='${yLabel}'`);
                             }
                         }
                     }

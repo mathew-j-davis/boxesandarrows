@@ -1,5 +1,23 @@
 
-Ctrl+K to generate a command
+to do:
+
+
+
+general clean up of code
+
+
+hex colours for style
+
+
+names styles for nodes, edges, arrows, labels
+
+magick ./output/diagram.pdf -flatten -background white -alpha remove ./output/diagram.png
+
+
+
+
+
+
 hi claude, we were just chatting in this ide, I'd like to continue that conversation, but I've opened a new folder and the context has gone
 
 Hello! I apologize, but I don't have access to the previous conversation context since this is a new session. Each conversation with me starts fresh, as I don't maintain memory between sessions.
@@ -1397,3 +1415,10 @@ we ar enot going to use syntax like this anymore :
 
 instead our start point will be defined by 
 
+magick ./output/diagram.pdf -flatten -background white -alpha remove ./output/diagram.png
+
+
+
+
+
+node src/index.js -n ./data/nodes.csv -e ./data/edges.csv -m ./data/map.csv -s style-latex.json

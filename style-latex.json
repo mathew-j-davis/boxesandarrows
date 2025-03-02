@@ -1,27 +1,227 @@
 {
-  "scale": {
-    "point": 72,
-    "x": 2,
-    "y": 2,
-    "h": 1.0,
-    "w": 1.0
-  },
-  "node_styles": {
-    "default": {
-      "shape": "rectangle",
-      "fill": "white",
-      "draw": "black",
-      "minimum width": "2cm",
-      "minimum height": "1cm",
-      "rounded corners": "0.25cm",
-      "line width": "0.05cm"
+    "page": {
+        "scale": {
+            "position": {
+                "x": 2,
+                "y": 2
+            },
+            "size": {          
+                "h": 2,
+                "w": 2
+            }
+        },
+        "margin": {
+            "h": 1,
+            "w": 1
+        }
+    },
+    "style": {
+        "base": {
+            "node": {
+                "object": {
+                    "tikz": {
+                        "shape": "rectangle",
+                        "fill": "white",
+                        "draw": "black",
+                        "minimum width": "1cm",
+                        "minimum height": "0.5cm",
+                        "rounded corners": "0.005cm",
+                        "line width": "0.02cm",
+                        "text opacity": "1",
+                        "font": "\\footnotesize",
+                        "inner sep": "0pt"
+                    }
+                },
+                "text": {
+                    "latex": {
+                        "flags": {
+                            "font": "\\sffamily",
+                            "size": "\\small"
+                        }
+                    }
+                }
+            },
+            "edge": {
+                "object": {
+                    "tikz": {
+                        "draw": "black",
+                        "line width": "0.02cm",
+                        "rounded corners": "0.05cm"
+                    }
+                },
+                "arrow": {
+                    "tikz": {
+                        "default": {
+                            "shape": "Circle",
+                            "width": "0.2cm",
+                            "length": "0.2cm"
+                        },
+                        "start": {
+                            "shape": "Circle",
+                            "width": "0.2cm",
+                            "length": "0.2cm"
+                        },
+                        "end": {
+                            "shape": "Triangle",
+                            "width": "0.2cm",
+                            "length": "0.2cm"
+                        }
+                    }
+                },
+                "text": {
+                    "tikz": {
+                        "default": {
+                            "pos": "0.5"
+                        },
+                        "start": {
+                            "pos": "0.1"
+                        },
+                        "end": {
+                            "pos": "0.9"
+                        }
+                    },
+                    "latex": {
+                        "default": {
+                            "flags": {
+                                "font": "\\sffamily",
+                                "size": "\\small"
+                            }
+                        },
+                        "start": {
+                            "flags": {
+                                "font": "\\sffamily",
+                                "size": "\\small"
+                            }
+                        },
+                        "end": {
+                            "flags": {
+                                "font": "\\sffamily",
+                                "size": "\\small"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "group": {
+            "node": {
+                "object": {
+                    "tikz": {
+                        "draw": "gray"
+                    }
+                }
+            }
+        },
+
+        "label": {
+            "node": {
+                "object": {
+                    "tikz": {
+                        "draw": "white!0",
+                        "line width": "0.00cm",
+                        "text opacity": "1"
+                    }
+                },
+                "text": {
+                    "latex": {
+                        "flags": {
+                            "font": "\\sffamily",
+                            "size": "\\normalsize"
+                        }
+                    }
+                }
+            }
+        },
+        "dashed": {
+            "edge": {
+                "object": {
+                    "tikz": {
+                        "dashed": true
+                    }
+                }
+            }
+        },
+        "bend_r_30": {
+            "edge": {
+                "object": {
+                    "tikz": {
+                        "bend right": "30"
+                    }
+                }
+            }
+        },
+        "bend_r_40": {
+            "edge": {
+                "object": {
+                    "tikz": {
+                        "bend right": "40"
+                    }
+                }
+            }
+        },
+        "bend_r_50": {
+            "edge": {
+                "object": {
+                    "tikz": {
+                        "bend right": "50"
+                    }
+                }
+            }
+        },
+        "bend_l_30": {
+            "edge": {
+                "object": {
+                    "tikz": {
+                        "bend left": "30"
+                    }
+                }
+            }
+        },
+        "bend_l_40": {
+            "edge": {
+                "object": {
+                    "tikz": {
+                        "bend left": "40"
+                    }
+                }
+            }
+        },
+        "bend_l_50": {
+            "edge": {
+                "object": {
+                    "tikz": {
+                        "bend left": "50"
+                    }
+                }
+            }
+        },
+        "soft": {
+            "edge": {
+                "object": {
+                    "tikz": {
+                        "draw": "red",
+                        "line width": "0.01cm"
+                    }
+                }
+            }
+        },
+        "bend_right": {
+            "edge": {
+                "object": {
+                    "tikz": {
+                        "bend": "right"
+                    }
+                }
+            }
+        },
+        "thick": {
+            "edge": {
+                "object": {
+                    "tikz": {
+                        "line width": "0.04cm"
+                    }
+                }
+            }
+        }
     }
-  },
-  "edge_styles": {
-    "default": {
-      "draw": "black",
-      "line width": "0.05cm",
-      "rounded corners": "0.5cm"
-    }
-  }
-} 
+}

@@ -1,4 +1,5 @@
 const { Point2D } = require('./basic-points');
+const { createWaypoint } = require('./waypoint');
 
 /**
  * Waypoint type codes:
@@ -17,8 +18,9 @@ const { Point2D } = require('./basic-points');
  * @param {string} waypointStr - Waypoint string (e.g., "s(1,1) c(2,2) e(1,1)")
  * @param {Point2D} startPoint - Pre-calculated start connection point
  * @param {Point2D} endPoint - Pre-calculated end connection point
- * @returns {Array<{point: Point2D, isControl: boolean}>} Array of calculated waypoints
+ * @returns {Array<Waypoint>} Array of calculated waypoints
  */
+
 function parseWaypoints(waypointStr, startPoint, endPoint) {
     if (!waypointStr) return [];
     
@@ -46,49 +48,28 @@ function parseWaypoints(waypointStr, startPoint, endPoint) {
                 throw new Error(`Unknown waypoint type: ${type}`);
         }
 
-        return {
-            point,
-            isControl: type.endsWith('c')
-        };
+
+        const isControl = type.endsWith('c');
+        return createWaypoint(
+            point.x,
+            point.y,
+            isControl
+        );
     });
 }
 
-/**
- * Parse single waypoint part
- * @param {string} part - e.g., "s(1,1)" or "sc(1,1)" or "(2,2)"
- * @returns {{type: string, x: number, y: number}}
- */
-function parseWaypointPart(part) {
 
-        // Regex breakdown:
-    // ^                   - Start of string
-    // (s|sc|e|ec|a|ac|c)?- Optional waypoint type:
-    //                         s  = start-relative point
-    //                         sc = start-relative control point
-    //                         e  = end-relative point
-    //                         ec = end-relative control point
-    //                         a  = absolute point
-    //                         ac = absolute control point
-    //                         c  = control point (same as ac)
-    // \(                  - Opening parenthesis (escaped)
-    // ([^,]+)            - First coordinate: one or more characters that aren't commas
-    // ,                  - Literal comma separator
-    // ([^)]+)           - Second coordinate: one or more characters that aren't closing parentheses
-    // \)                 - Closing parenthesis (escaped)
-    // $                  - End of string
-    
-    const regex = /^(s|sc|e|ec|a|ac|c)?\(([^,]+),([^)]+)\)$/;
-    const match = part.match(regex);
-    
+function parseWaypointPart(part) {
+    // Match pattern like "s(1,2)" or just "(1,2)"
+    const match = part.match(/^([a-z]*)?\((-?\d*\.?\d+),(-?\d*\.?\d+)\)$/);
     if (!match) {
         throw new Error(`Invalid waypoint format: ${part}`);
     }
-
-    const [_, type, xStr, yStr] = match;
+    
     return {
-        type: type || '',  // empty string for no prefix
-        x: parseFloat(xStr),
-        y: parseFloat(yStr)
+        type: match[1] || '', // If no type prefix, use empty string
+        x: parseFloat(match[2]),
+        y: parseFloat(match[3])
     };
 }
 

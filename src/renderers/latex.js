@@ -1,145 +1,338 @@
-const Renderer = require('./base');
-const { Point2D, Direction, Box } = require('../geometry/basic-points');
+const RendererBase = require('./renderer-base');
+const { Point2D } = require('../geometry/basic-points');
+const { Direction } = require('../geometry/direction');
 const { exec } = require('child_process');
 const fs = require('fs');
 const path = require('path');
+const LatexStyleHandler = require('../styles/latex-style-handler');
 
-class LatexRenderer extends Renderer {
-    constructor(style, options = {}) {
-        super(style);
+class LatexRenderer extends RendererBase {
+    constructor(options = {}) {
+        super(options);
+        
+        // Load style if path provided, otherwise use empty object
+        const style = options.stylePath ? this.loadStyle(options.stylePath) : {};
+        this.styleHandler = new LatexStyleHandler(style);
+        this.scale = this.getScaleConfig(style);
+        
+        // Set template paths with defaults
+        this.headerTemplatePath = options.headerTemplatePath || 
+                                  path.join(__dirname, '../templates/latex_header_template.txt');
+        this.footerTemplatePath = options.footerTemplatePath || 
+                                  path.join(__dirname, '../templates/latex_footer_template.txt');
+        
+        // Set additional content file paths
+        this.definitionsPath = options.definitionsPath || null;
+        this.preBoilerplatePath = options.preBoilerplatePath || null;
+        this.postBoilerplatePath = options.postBoilerplatePath || null;
+        
+        // Load templates
+        this.headerTemplate = this.loadTemplate(this.headerTemplatePath);
+        this.footerTemplate = this.loadTemplate(this.footerTemplatePath);
+        
+        // Load additional content
+        this.definitionsContent = this.loadContentFile(this.definitionsPath);
+        this.preBoilerplateContent = this.loadContentFile(this.preBoilerplatePath);
+        this.postBoilerplateContent = this.loadContentFile(this.postBoilerplatePath);
+        
+        this.initializeState(style, options);
+    }
+
+    initializeState(style, options = {}) {
         this.style = style || {};
-        this.scale = options.scale || 1;
         this.useColor = options.useColor ?? true;
-
         this.content = [];
-        this.usedColors = new Map(); // Keep track of used colors and their names
-
-            // Load the default edge style
-            this.defaultEdgeStyle = style.edge?.default || {};
-            
+        this.usedColors = new Map();
         this.verbose = options.verbose || false;
         this.log = this.verbose ? console.log.bind(console) : () => {};
+        
+        // Add default values when style.page is undefined
+        const pageStyle = this.style.page || {};
+        const marginStyle = pageStyle.margin || {};
+        
+        // Get margins with fallbacks
+        this.margin = {
+            h: marginStyle.h || 1,
+            w: marginStyle.w || 1
+        };
+
+        this.bounds = {
+            minX: Infinity,
+            minY: Infinity,
+            maxX: -Infinity,
+            maxY: -Infinity
+        };
+    }
+
+    async render(nodes, edges, outputPath, options = {}) {
+        // Reset all state to initial values
+        this.initializeState(this.style, { 
+            verbose: this.verbose, 
+            useColor: this.useColor 
+        });
+
+        // Render all nodes
+        nodes.forEach(node => this.renderNode(node));
+
+        // Render all edges
+        edges.forEach(edge => this.renderEdge(edge));
+
+        // Draw grid if specified (add before content so it's behind everything)
+        if (options.grid && typeof options.grid === 'number') {
+            // Store content temporarily
+            const contentBackup = [...this.content];
+            // Clear content to add grid first
+            this.content = [];
+            // Draw grid with specified spacing
+            this.drawGrid(options.grid);
+            // Add original content back so grid is behind everything
+            this.content.push(...contentBackup);
+        }
+
+        // Generate the complete LaTeX content
+        const latexContent = this.getLatexContent();
+
+        // Save the LaTeX content to a .tex file
+        const texFilePath = `${outputPath}.tex`;
+        fs.writeFileSync(texFilePath, latexContent, 'utf8');
+        this.log(`LaTeX source saved to ${texFilePath}`);
+
+        // Compile the .tex file to a .pdf file
+        await this.compileToPdf(texFilePath, { verbose: this.verbose });
+        this.log(`PDF generated at ${outputPath}.pdf`);
+    }
+    updateBounds(x, y) {
+        this.bounds.minX = Math.min(this.bounds.minX, x);
+        this.bounds.minY = Math.min(this.bounds.minY, y);
+        this.bounds.maxX = Math.max(this.bounds.maxX, x);
+        this.bounds.maxY = Math.max(this.bounds.maxY, y);
     }
 
     // Core rendering methods
     renderNode(node) {
         const pos = `(${node.x},${node.y})`;
-        const nodeStyle = this.getNodeStyle(node);
-        const styleStr = this.tikzifyStyle(nodeStyle);
+        this.updateNodeBounds(node);
         
+        // Get the complete style including TikZ and LaTeX attributes
+        const style = this.styleHandler.getCompleteStyle(node.style, 'node', 'object');
+        
+        // Clone the tikz object to prevent shared state between nodes
+        if (style.tikz) {
+            style.tikz = { ...style.tikz };
+            
+            // Override dimensions with node-specific values
+            style.tikz['minimum width'] = `${node.width}cm`;
+            style.tikz['minimum height'] = `${node.height}cm`;
+            
+            // Override shape if specified in the node
+            if (node.shape) {
+                style.tikz['shape'] = node.shape;
+            }
+            
+            // Add anchor information if it's not the default 'center'
+            if (node.anchor)  {
+                // Standardize the anchor name for consistent TikZ syntax
+                const standardizedAnchor = Direction.standardiseBasicDirectionName(node.anchor);
+                if (standardizedAnchor) {
+                    style.tikz['anchor'] = standardizedAnchor;
+                }
+            } 
+            
+            // else if (node.anchorVector) {
+            //     // Try to get anchor name from the vector
+            //     const anchorName = Direction.getDirectionNameFromVector(node.anchorVector);
+            //     if (anchorName && anchorName !== 'center') {
+            //         style.tikz['anchor'] = anchorName;
+            //     }
+            // }
+        }
+        
+        // Generate TikZ style string
+        let styleStr = this.styleHandler.tikzifyStyle(style);
+
         // Generate unique node ID for referencing using node.name
-        const nodeId = `node_${node.name.replace(/\W/g, '_')}`;
-        
+        const nodeId = `${node.name.replace(/\W/g, '_')}`;
+
         let output = '';
         if (node.hideLabel) {
             output += `\\node[${styleStr}] (${nodeId}) at ${pos} {};`;
         } else {
-            let labelText = this.escapeLaTeX(node.label);
+            // Get text style and apply formatting
+            let labelText = node.label;
+            const textStyle = this.styleHandler.getCompleteStyle(node.style, 'node', 'text');
+            
+            // Apply LaTeX formatting
+            labelText = this.styleHandler.applyLatexFormatting(labelText, textStyle);
+
+            // Add textcolor if specified on node (this could be moved to the style system)
             if (node.textcolor) {
-                const textColor = this.getColor(node.textcolor);
-                labelText = `\\textcolor{${textColor}}{${labelText}}`;
+                labelText = `\\textcolor{${this.getColor(node.textcolor)}}{${labelText}}`;
             }
-            output += `\\node[${styleStr}] (${nodeId}) at ${pos} {${labelText}};`;
+
+            // Add adjustbox
+            const labelWithAdjustbox = `{\\adjustbox{max width=${node.width}cm, max height=${node.height}cm}{${labelText}}}`;
+
+            // Handle labels
+            if (node.label_above) {
+                styleStr += (styleStr.length > 0 ? ',' : '') + `label=above:{${this.escapeLaTeX(node.label_above)}}`;
+            }
+            if (node.label_below) {
+                styleStr += (styleStr.length > 0 ? ',' : '') + `label=below:{${this.escapeLaTeX(node.label_below)}}`;
+            }
+
+            output += `\\node[${styleStr}] (${nodeId}) at ${pos} ${labelWithAdjustbox};`;
         }
-        
+
         this.content.push(output);
     }
 
-    renderEdge(edge, fromNode, toNode) {
-        if (!fromNode || !toNode) {
-            console.warn(`Edge from '${edge.from_name}' to '${edge.to_name}' cannot be rendered because one of the nodes is missing.`);
-            return;
+    renderEdge(edge) {
+        
+        // Track edge bounds
+        this.updateBounds(edge.start.x, edge.start.y);
+        this.updateBounds(edge.end.x, edge.end.y);
+
+        // Track waypoint bounds
+        if (edge.waypoints) {
+            edge.waypoints.forEach(wp => {
+                this.updateBounds(wp.x, wp.y);
+            });
         }
 
-        // Generate unique node IDs
-        const fromNodeId = `node_${fromNode.name.replace(/\W/g, '_')}`;
-        const toNodeId = `node_${toNode.name.replace(/\W/g, '_')}`;
+        // Get edge style options
+        const styleOptions = this.getEdgeStyle(edge);
 
-        // Build style options dynamically from default edge styles
-        const styleOptions = new Map();
-        
-        // 1. Start with default edge styles from style-latex.json
-        const defaultEdgeStyle = this.style.edge_styles?.default || {};
-        Object.entries(defaultEdgeStyle).forEach(([key, value]) => {
-            styleOptions.set(key, value);
-        });
+        // Convert style options to TikZ format
+        const styleStr = this.styleHandler.tikzifyStyle(styleOptions);
 
-        // 2. Add any edge-specific styles from edge.style
-        if (edge.style) {
-            if (typeof edge.style === 'string') {
-                // Handle simple string styles like 'dotted'
-                if (['dotted', 'dashed', 'solid'].includes(edge.style)) {
-                    styleOptions.set(edge.style, true);
+        // Build the draw command - simplified starting point
+        let drawCommand = `\\draw[${styleStr}]`;
+
+        // Add start point based on whether it's adjusted or not
+        drawCommand += ` ${this.getPositionReferenceNotation(edge.from_name, edge.start_direction, edge.startAdjusted, edge.start.x, edge.start.y)}`;
+
+        // Track actual segments (excluding control points)
+        let segmentIndex = 0;
+
+        // Calculate total number of real segments
+        const realPointsInWaypoints = edge.waypoints
+            ? edge.waypoints.filter(wp => !wp.isControl)
+            : [];
+
+        const totalSegments = realPointsInWaypoints.length + 1; // +1 for the final segment to end point
+
+        console.log('Edge waypoints:', edge.waypoints);
+        console.log('Real points in waypoints:', realPointsInWaypoints);
+        console.log('Total segments:', totalSegments);
+
+        console.log('draw command', drawCommand);
+
+        let currentSegmentTail = '';
+
+        if (edge.waypoints.length === 0) {
+            // Special handling when using 'to' path type, as it requires different label syntax
+            if (edge.path_type === 'to') {
+                // When using 'to', node labels must be inside the 'to' operation
+                const labels = this.getLabelsForSegment(edge, 1, totalSegments);
+                if (labels.length > 0) {
+                    // For 'to' paths, add labels within the to operation
+                    drawCommand += ` ${edge.from_name ? this.getPositionReferenceNotation(edge.from_name, edge.start_direction, edge.startAdjusted, edge.start.x, edge.start.y) : ''} to`;
+                    
+                    // Add each label as a node within the 'to' operation
+                    labels.forEach(label => {
+                        drawCommand += ` node[${label.justify}] {${label.text}}`;
+                    });
+                    
+                    // Complete the 'to' operation with the destination
+                    drawCommand += ` ${this.getPositionReferenceNotation(edge.to_name, edge.end_direction, edge.endAdjusted, edge.end.x, edge.end.y)}`;
                 } else {
-                    // Parse semicolon-separated styles
-                    edge.style.split(';').forEach(stylePair => {
-                        const [key, value] = stylePair.split('=').map(s => s.trim());
-                        if (key) {
-                            styleOptions.set(key, value || true);
-                        }
+                    // If no labels, just use the simple to syntax
+                    drawCommand += ` ${edge.path_type} ${this.getPositionReferenceNotation(edge.to_name, edge.end_direction, edge.endAdjusted, edge.end.x, edge.end.y)}`;
+                }
+            } else {
+                // For other path types (like '--'), we can use the standard approach
+                drawCommand += ` ${edge.path_type} ${this.getPositionReferenceNotation(edge.to_name, edge.end_direction, edge.endAdjusted, edge.end.x, edge.end.y)}`;
+                
+                const labels = this.getLabelsForSegment(edge, 1, totalSegments);
+                if (labels.length > 0) {
+                    labels.forEach(label => {
+                        drawCommand += ` node[${label.justify}, pos=${label.position}] {${label.text}}`;
                     });
                 }
-            } else if (typeof edge.style === 'object') {
-                // Handle object-style definitions
-                Object.entries(edge.style).forEach(([key, value]) => {
-                    styleOptions.set(key, value);
+            }
+        } else {
+            // Process all waypoints
+            for (const wp of edge.waypoints) {
+                if (wp.isControl) {
+                    if (currentSegmentTail.length === 0) {
+                        // We found a control point no previous control point in this segment   
+                        currentSegmentTail += ` .. controls (${wp.x},${wp.y})`;
+                    } else {
+                        // We already have a control point in this segment, add this control point
+                        currentSegmentTail += ` and (${wp.x},${wp.y})`;
+                    }
+                } else {
+                    if (currentSegmentTail.length === 0) {
+                        // We found a real point no previous control point in this segment      
+                        currentSegmentTail += ` -- (${wp.x},${wp.y})`;
+                    } else {
+                        // We already have a control point in this segment, add this real point
+                        currentSegmentTail += ` .. (${wp.x},${wp.y})`;
+                    }
+                    
+                    // control found end segment
+                    drawCommand += currentSegmentTail;
+                    currentSegmentTail = '';
+                    segmentIndex++;
+
+                    // Add labels for this segment
+                    const labels = this.getLabelsForSegment(edge, segmentIndex, totalSegments);
+                    if (labels.length > 0) {
+                        labels.forEach(label => {
+                            drawCommand += ` node[${label.justify}, pos=${label.position}] {${label.text}}`;
+                        });
+                    }
+                    console.log('draw command', drawCommand);
+                }
+            }
+
+            // did waypoint processing leave an open segment?
+            if (currentSegmentTail.length > 0) {
+                // Add end point
+                drawCommand += currentSegmentTail + ` .. ${this.getPositionReferenceNotation(edge.to_name, edge.end_direction, edge.endAdjusted, edge.end.x, edge.end.y)}`;
+            } else {
+                // Add end point
+                drawCommand += ` -- ${this.getPositionReferenceNotation(edge.to_name, edge.end_direction, edge.endAdjusted, edge.end.x, edge.end.y)}`;
+            }
+
+            // Add labels for this segment
+            const labels = this.getLabelsForSegment(edge, totalSegments, totalSegments);
+            if (labels.length > 0) {
+                labels.forEach(label => {
+                    drawCommand += ` node[${label.justify}, pos=${label.position}] {${label.text}}`;
                 });
             }
         }
 
-        // 3. Add edge color if specified
-        if (edge.color) {
-            styleOptions.set('draw', this.getColor(edge.color));
-        }
-
-        // 4. Convert style options to TikZ format
-        const styleStr = Array.from(styleOptions.entries())
-            .map(([key, value]) => value === true ? key : `${key}=${value}`)
-            .join(',');
-
-        // Build the path including waypoints
-        const pathPoints = [this.getNodeAnchor(fromNodeId, edge.start_direction)];
-
-        // Include waypoints if any
-        if (edge.waypoints && edge.waypoints.length > 0) {
-            edge.waypoints.forEach((wp) => {
-                pathPoints.push(`(${wp.x},${wp.y})`);
-            });
-        }
-
-        pathPoints.push(this.getNodeAnchor(toNodeId, edge.end_direction));
-
-        // Build the draw command
-        let drawCommand = `\\draw[${styleStr}] ${pathPoints[0]}`;
-
-        // Build the path with labels
-        for (let i = 1; i < pathPoints.length; i++) {
-            drawCommand += ` -- ${pathPoints[i]}`;
-        }
-
-        // Add labels if present
-        const labels = this.getLabelsForSegment(edge, 1, pathPoints.length);
-        if (labels.length > 0) {
-            labels.forEach(label => {
-                drawCommand += ` node[${label.justify}, pos=${label.position}] {${this.escapeLaTeX(label.text)}}`;
-            });
-        }
-
         drawCommand += ';';
+        console.log('draw command', drawCommand);
         this.content.push(drawCommand);
     }
 
     generateTikzOptions(styleObj) {
         const options = [];
- 
+
         for (const [key, value] of Object.entries(styleObj)) {
-            // Direct mapping of style keys to TikZ options
-            options.push(`${key}=${value}`);
+            if (value === true) {
+                options.push(key);
+            } else if (value !== false) {
+                options.push(`${key}=${value}`);
+            }
         }
- 
+
         return options.join(', ');
     }
-    
+
     calculateControlPoint(node, direction, controlLength) {
         if (!direction || !controlLength) {
             return new Point2D(node.x, node.y);
@@ -154,25 +347,45 @@ class LatexRenderer extends Renderer {
 
     // Document structure
     beforeRender() {
-        // Update the preamble to include default styles
-        return `\\begin{tikzpicture}[
-    > = stealth,
-    every node/.style={
-        draw,
-        align=center
-    }
-]
-`;
-    }
+        // Get preamble settings from style system
+        const preambleStyle = this.styleHandler.getCompleteStyle(null, 'document', 'preamble') || {
+            documentClass: 'standalone',
+            packages: [
+                'tikz',
+                'adjustbox',
+                'helvet',
+                'sansmathfonts',
+                'xcolor'
+            ],
+            tikzlibraries: [
+                'arrows.meta',
+                'calc',
+                'decorations.pathmorphing',
+                'shapes.arrows'
+            ]
+        };
 
-    afterRender() {
-        return '\\end{tikzpicture}';
+        // Generate preamble from style
+        const packages = preambleStyle.packages
+            .map(pkg => `\\usepackage{${pkg}}`)
+            .join('\n');
+        
+        const libraries = preambleStyle.tikzlibraries
+            .map(lib => `\\usetikzlibrary{${lib}}`)
+            .join('\n');
+
+        return `
+\\documentclass{${preambleStyle.documentClass}}
+${packages}
+${libraries}
+\\renewcommand{\\familydefault}{\\sfdefault}
+`;
     }
 
     // Helper methods
     escapeLaTeX(text) {
         if (!text) return '';
-        
+
         // Basic LaTeX special character escaping
         return text
             .replace(/\\/g, '\\textbackslash{}')
@@ -182,75 +395,40 @@ class LatexRenderer extends Renderer {
     }
 
     getNodeStyle(node) {
-        const nodeStyles = this.style.node_styles || {};
-        const defaultStyle = nodeStyles.default || {};
-        const typeStyle = nodeStyles[node.type] || {};
-        const sizeStyle = {};
+        // Get object and text styles
+        const objectStyle = this.styleHandler.getCompleteStyle(node.style, 'node', 'object');
+        const textStyle = this.styleHandler.getCompleteStyle(node.style, 'node', 'text');
+        
+        const style = { ...objectStyle };
 
-        // If node has custom height and width, add them to the style
-        if (node.h !== undefined) {
-            sizeStyle['minimum height'] = `${node.h}cm`; // Adjust units if necessary
-        }
-        if (node.w !== undefined) {
-            sizeStyle['minimum width'] = `${node.w}cm`;
-        }
-
-        // Apply custom colors
-        const colorStyle = {};
-        if (node.fillcolor) {
-            if (node.fillcolor.startsWith('#')) {
-                const colorName = this.defineHexColor(node.fillcolor);
-                colorStyle['fill'] = colorName;
-            } else {
-                colorStyle['fill'] = node.fillcolor;
+        // Add text style flags
+        Object.entries(textStyle || {}).forEach(([flag, value]) => {
+            if (value === true) {
+                style[flag] = true;
             }
+        });
+
+        // Add size styles if specified
+        if (node.height !== undefined) {
+            style['minimum height'] = `${node.height}cm`;
+        }
+        if (node.width !== undefined) {
+            style['minimum width'] = `${node.width}cm`;
+        }
+
+        // Add colors if specified
+        if (node.fillcolor) {
+            style['fill'] = this.getColor(node.fillcolor);
         }
         if (node.color) {
-            if (node.color.startsWith('#')) {
-                const colorName = this.defineHexColor(node.color);
-                colorStyle['draw'] = colorName;
-            } else {
-                colorStyle['draw'] = node.color;
-            }
+            style['draw'] = this.getColor(node.color);
         }
 
-        return { ...defaultStyle, ...typeStyle, ...sizeStyle, ...colorStyle, ...node.style };
+        return style;
     }
 
     tikzifyStyle(style) {
-        const styleProps = [];
-        
-        // Convert style properties to TikZ format
-        for (const [key, value] of Object.entries(style)) {
-            switch (key) {
-                case 'shape':
-                    styleProps.push(value);
-                    break;
-                case 'fill':
-                    if (this.useColor) styleProps.push(`fill=${value}`);
-                    break;
-                case 'draw':
-                    styleProps.push(`draw=${value}`);
-                    break;
-                case 'minimum width':
-                case 'minimum height':
-                case 'minimum size':
-                    styleProps.push(`${key}=${value}`);
-                    break;
-                case 'line width':
-                    styleProps.push(`line width=${value}`);
-                    break;
-                case 'rounded corners':
-                    if (value !== '0pt') styleProps.push(`rounded corners=${value}`);
-                    break;
-                case 'aspect':
-                    styleProps.push(`aspect=${value}`);
-                    break;
-                // Add more style conversions as needed
-            }
-        }
-
-        return styleProps.join(', ');
+        return this.generateTikzOptions(style);
     }
 
     getLatexContent() {
@@ -259,42 +437,72 @@ class LatexRenderer extends Renderer {
             return `\\definecolor{${colorName}}{HTML}{${hexCode.slice(1)}}`;
         }).join('\n');
 
-        const preamble = `
-\\documentclass{standalone}
-\\usepackage{tikz}
-\\usetikzlibrary{arrows.meta,calc,decorations.pathmorphing}
-\\usepackage{xcolor}
-${colorDefinitions}
-\\begin{document}
-\\begin{tikzpicture}
-    [>={Stealth[scale=1.0]},  % Uniform arrow style
-    ]
-    `;
+        // Calculate bounding box after all nodes and edges have been rendered
+        const boxMinX = this.bounds.minX - this.margin.w;
+        const boxMinY = this.bounds.minY - this.margin.h;
+        const boxMaxX = this.bounds.maxX + this.margin.w;
+        const boxMaxY = this.bounds.maxY + this.margin.h;
+
+        // Replace placeholders in header template
+        let header = this.headerTemplate
+            .replace(/{{COLOR_DEFINITIONS}}/g, colorDefinitions)
+            .replace(/{{BOX_MIN_X}}/g, boxMinX)
+            .replace(/{{BOX_MIN_Y}}/g, boxMinY)
+            .replace(/{{BOX_MAX_X}}/g, boxMaxX)
+            .replace(/{{BOX_MAX_Y}}/g, boxMaxY)
+            .replace(/{{INCLUDE_DEFINITIONS}}/g, this.definitionsContent)
+            .replace(/{{INCLUDE_PRE_BOILERPLATE}}/g, this.preBoilerplateContent);
+
+        // If no bounding box placeholder in template, add it before the tikzpicture ends
+        if (!header.includes('\\useasboundingbox')) {
+            const tikzPictureIndex = header.indexOf('\\begin{tikzpicture}');
+            if (tikzPictureIndex !== -1) {
+                const insertPosition = tikzPictureIndex + '\\begin{tikzpicture}'.length;
+                header = header.slice(0, insertPosition) + 
+                         `\n\\useasboundingbox (${boxMinX},${boxMinY}) rectangle (${boxMaxX},${boxMaxY});` + 
+                         header.slice(insertPosition);
+            }
+        }
+
         const body = this.content.join('\n');
-        const closing = `
-\\end{tikzpicture}
-\\end{document}
-`;
-        return `${preamble}\n${body}\n${closing}`;
+        
+        // Use footer template and replace the post boilerplate tag
+        const footer = this.footerTemplate.replace(/{{INCLUDE_POST_BOILERPLATE}}/g, this.postBoilerplateContent);
+        
+        return `${header}\n${body}\n${footer}`;
     }
 
-    async compileToPdf(texFilePath) {
+    async compileToPdf(texFilePath, options = {}) {
         const texDir = path.dirname(texFilePath);
         const texFileName = path.basename(texFilePath);
-
+    
+        // Get verbose from options with default false
+        const verbose = options.verbose ?? false;
+    
+        // Add -quiet flag if not verbose
+        const interactionMode = verbose ? 'nonstopmode' : 'batchmode';
+        const command = `pdflatex -interaction=${interactionMode} -file-line-error -output-directory="${texDir}" "${texFileName}"`;
+    
         return new Promise((resolve, reject) => {
-            exec(`pdflatex -output-directory=${texDir} ${texFileName}`, (error, stdout, stderr) => {
+            exec(command, (error, stdout, stderr) => {
+                if (verbose) {
+                    console.log('LaTeX stdout:', stdout);
+                    if (stderr) console.error('LaTeX stderr:', stderr);
+                }
+    
                 if (error) {
-                    console.error(`Error compiling LaTeX: ${error.message}`);
+                    console.error('LaTeX compilation error:', error);
                     reject(error);
                 } else {
-                    console.log('pdflatex output:', stdout);
+                    if (verbose) {
+                        console.log('pdflatex output:', stdout);
+                    }
                     resolve();
                 }
             });
         });
     }
-
+    
     defineHexColor(hexCode) {
         // Generate a color name by removing '#' and prefixing with 'color'
         const colorName = 'color' + hexCode.slice(1);
@@ -314,50 +522,47 @@ ${colorDefinitions}
     }
 
     // Helper method to get node anchor point
-    getNodeAnchor(nodeId, direction) {
-        if (direction) {
-            if (direction === 'c') {
-                return `(${nodeId}.center)`;
-            } else if (this.isCompassDirection(direction)) {
-                return `(${nodeId}.${this.translateDirection(direction)})`;
-            } else if (!isNaN(parseFloat(direction))) {
-                // Angle in degrees (requires TikZ calc library)
-                const angle = parseFloat(direction);
-                return `({${nodeId}.\${${angle}}})`;
-            } else {
-                this.log(`Unknown direction '${direction}' for node '${nodeId}', defaulting to center.`);
-                return `(${nodeId}.center)`;
-            }
-        } else {
-            // Default to node border in the direction towards the other node
-            return `(${nodeId})`;
+    getNodeAnchor(node) {
+        // Check for anchor directly on node
+        if (node.anchor && typeof node.anchor === 'string') {
+            return Direction.getVector(node.anchor);
         }
+
+        // Get anchor from style system
+        const anchor = this.styleHandler.getStyleAttribute(
+            'node',
+            node.style,
+            'object.anchor',
+            'center'  // default if not found in either style or base
+        );
+
+        return Direction.getVector(anchor);
     }
 
-    // Helper method to check if direction is a compass point
-    isCompassDirection(direction) {
-        const compassDirections = [
-            'north', 'south', 'east', 'west',
-            'north east', 'north west', 'south east', 'south west',
-            'n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'
-        ];
-        return compassDirections.includes(direction.toLowerCase());
-    }
+    // // Helper method to check if direction is a compass point
+    // isCompassDirection(direction) {
+    //     const compassDirections = [
+    //         'north', 'south', 'east', 'west',
+    //         'north east', 'north west', 'south east', 'south west',
+    //         'n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'
+    //     ];
+    //     return compassDirections.includes(direction.toLowerCase());
+    // }
 
-    // Helper method to translate shorthand directions to TikZ anchors
-    translateDirection(direction) {
-        const directionMap = {
-            n: 'north',
-            s: 'south',
-            e: 'east',
-            w: 'west',
-            ne: 'north east',
-            nw: 'north west',
-            se: 'south east',
-            sw: 'south west'
-        };
-        return directionMap[direction.toLowerCase()] || direction.toLowerCase();
-    }
+    // // Helper method to translate shorthand directions to TikZ anchors
+    // translateDirection(direction) {
+    //     const directionMap = {
+    //         n: 'north',
+    //         s: 'south',
+    //         e: 'east',
+    //         w: 'west',
+    //         ne: 'north east',
+    //         nw: 'north west',
+    //         se: 'south east',
+    //         sw: 'south west'
+    //     };
+    //     return directionMap[direction.toLowerCase()] || direction.toLowerCase();
+    // }
 
     // Helper method to build a curved path
     buildCurvedPath(pathPoints) {
@@ -374,142 +579,74 @@ ${colorDefinitions}
         return path;
     }
 
-    // Helper method to build labels along the edge
-    buildEdgeLabels(edge, pathPoints) {
-        let labelOutput = '';
-        const numSegments = pathPoints.length - 1;
-
-        // Calculate segment lengths for accurate positioning
-        const segmentLengths = [];
-        let totalLength = 0;
-        for (let i = 0; i < numSegments; i++) {
-            const from = this.parsePoint(pathPoints[i]);
-            const to = this.parsePoint(pathPoints[i + 1]);
-            const length = this.calculateDistance(from, to);
-            segmentLengths.push(length);
-            totalLength += length;
-        }
-
-        // Helper function to calculate absolute position along the path
-        const getPositionAlongPath = (segmentIndex, positionInSegment) => {
-            const cumulativeLength = segmentLengths.slice(0, segmentIndex).reduce((acc, len) => acc + len, 0);
-            const segmentLength = segmentLengths[segmentIndex];
-            const pos = (cumulativeLength + positionInSegment * segmentLength) / totalLength;
-            return Math.min(Math.max(pos, 0), 1); // Clamp between 0 and 1
-        };
-
-        // Function to add a label node
-        const addLabelNode = (pos, labelText, justify) => {
-            return ` node[${justify}, pos=${pos}] {${this.escapeLaTeX(labelText)}}`;
+    getLabelsForSegment(edge, segmentNumber, totalSegments) {
+        const labels = [];
+        
+        // Helper to get position for segment
+        const calculatePosition = (segmentIndex, defaultPosition) => {
+            if (segmentIndex < 0) {
+                segmentIndex = totalSegments + segmentIndex + 1;
+            }
+            return segmentIndex === segmentNumber ? defaultPosition : null;
         };
 
         // Start Label
         if (edge.start_label) {
-            const segmentIndex = edge.start_label_segment !== undefined ? edge.start_label_segment - 1 : 0; // Default to first segment
-            const segmentPos = edge.start_label_position !== undefined ? parseFloat(edge.start_label_position) : 0.1; // Default to 0.1
-            const index = segmentIndex < 0 ? numSegments + segmentIndex : segmentIndex;
-
-            if (index >= 0 && index < numSegments) {
-                const pos = getPositionAlongPath(index, segmentPos);
-                labelOutput += addLabelNode(pos, edge.start_label, edge.label_justify || 'above');
-            } else {
-                console.warn(`Invalid start_label_segment for edge from '${edge.from_name}' to '${edge.to_name}'`);
-            }
-        }
-
-        // End Label
-        if (edge.end_label) {
-            const segmentIndex = edge.end_label_segment !== undefined ? edge.end_label_segment - 1 : numSegments - 1; // Default to last segment
-            const segmentPos = edge.end_label_position !== undefined ? parseFloat(edge.end_label_position) : 0.9; // Default to 0.9
-            const index = segmentIndex < 0 ? numSegments + segmentIndex : segmentIndex;
-
-            if (index >= 0 && index < numSegments) {
-                const pos = getPositionAlongPath(index, segmentPos);
-                labelOutput += addLabelNode(pos, edge.end_label, edge.label_justify || 'above');
-            } else {
-                console.warn(`Invalid end_label_segment for edge from '${edge.from_name}' to '${edge.to_name}'`);
-            }
-        }
-
-        // Main Label
-        if (edge.label) {
-            let defaultSegmentNumber;
-            if (numSegments % 2 === 1) {
-                // Odd number of segments, middle segment
-                defaultSegmentNumber = Math.ceil(numSegments / 2);
-            } else {
-                // Even number of segments, one after the middle
-                defaultSegmentNumber = (numSegments / 2) + 1;
-            }
-
-            const labelSegment = edge.label_segment !== undefined ? parseInt(edge.label_segment) : defaultSegmentNumber;
-
-            if (labelSegment === segmentNumber) {
-                const position = edge.label_position !== undefined ? parseFloat(edge.label_position) :
-                    (totalSegments % 2 === 1 ? 0.5 : 0.0);
+            const segmentIndex = edge.start_label_segment ?? 1;
+            const position = calculatePosition(segmentIndex, edge.start_label_position ?? 0.1);
+            
+            if (position !== null) {
+                const textStyle = this.styleHandler.getCompleteStyle(edge.style, 'edge', 'text_start');
                 labels.push({
-                    text: edge.label,
-                    position: position,
+                    text: this.styleHandler.applyLatexFormatting(this.escapeLaTeX(edge.start_label), textStyle),
+                    position,
                     justify: edge.label_justify || 'above'
                 });
             }
         }
 
-        return labelOutput;
-    }
-
-    getLabelsForSegment(edge, segmentNumber, totalSegments) {
-        const labels = [];
-
-        // Start Label
-        let startLabelSegment = edge.start_label_segment !== undefined ? parseInt(edge.start_label_segment) : 1; // Default to first segment
-        if (startLabelSegment < 0) {
-            startLabelSegment = totalSegments + startLabelSegment + 1; // Adjust for negative indices
-        }
-        if (edge.start_label && startLabelSegment === segmentNumber) {
-            const position = edge.start_label_position !== undefined ? parseFloat(edge.start_label_position) : 0.1;
-            labels.push({
-                text: edge.start_label,
-                position: position,
-                justify: edge.label_justify || 'above'
-            });
-        }
-
         // End Label
-        let endLabelSegment = edge.end_label_segment !== undefined ? parseInt(edge.end_label_segment) : totalSegments; // Default to last segment
-        if (endLabelSegment < 0) {
-            endLabelSegment = totalSegments + endLabelSegment + 1; // Adjust for negative indices
-        }
-        if (edge.end_label && endLabelSegment === segmentNumber) {
-            const position = edge.end_label_position !== undefined ? parseFloat(edge.end_label_position) : 0.9;
-            labels.push({
-                text: edge.end_label,
-                position: position,
-                justify: edge.label_justify || 'above'
-            });
+        if (edge.end_label) {
+            const segmentIndex = edge.end_label_segment ?? totalSegments;
+            const position = calculatePosition(segmentIndex, edge.end_label_position ?? 0.9);
+            
+            if (position !== null) {
+                const textStyle = this.styleHandler.getCompleteStyle(edge.style, 'edge', 'text_end');
+                labels.push({
+                    text: this.styleHandler.applyLatexFormatting(this.escapeLaTeX(edge.end_label), textStyle),
+                    position,
+                    justify: edge.label_justify || 'above'
+                });
+            }
         }
 
         // Main Label
-        let defaultLabelSegment;
-        if (totalSegments % 2 === 1) {
-            // Odd number of segments, middle segment
-            defaultLabelSegment = Math.ceil(totalSegments / 2);
-        } else {
-            // Even number of segments, one after the middle
-            defaultLabelSegment = Math.floor(totalSegments / 2) + 1;
-        }
-        let labelSegment = edge.label_segment !== undefined ? parseInt(edge.label_segment) : defaultLabelSegment;
-        if (labelSegment < 0) {
-            labelSegment = totalSegments + labelSegment + 1; // Adjust for negative indices
-        }
-        if (edge.label && labelSegment === segmentNumber) {
-            const position = edge.label_position !== undefined ? parseFloat(edge.label_position) :
-                (totalSegments % 2 === 1 ? 0.5 : 0.0);
-            labels.push({
-                text: edge.label,
-                position: position,
-                justify: edge.label_justify || 'above'
-            });
+        if (edge.label) {
+            const defaultSegment = Math.ceil(totalSegments / 2);
+            const segmentIndex = edge.label_segment ?? defaultSegment;
+
+            let lp = 0.5;
+            const edgeTextStyle = this.styleHandler.getCompleteStyle(edge.style, 'edge', 'text');
+
+            // Check if we have a position value in the style
+            if (totalSegments == 1 && edgeTextStyle?.tikz?.pos) {
+                lp = edge.label_position ?? edgeTextStyle.tikz.pos;
+            } else {
+                lp = calculatePosition(
+                    segmentIndex,
+                    edge.label_position ?? (totalSegments % 2 === 1 ? 0.5 : 0.0)
+                );
+            }
+
+            const position = lp;
+            
+            if (position !== null) {
+                labels.push({
+                    text: this.styleHandler.applyLatexFormatting(this.escapeLaTeX(edge.label), edgeTextStyle),
+                    position,
+                    justify: edge.label_justify || 'above'
+                });
+            }
         }
 
         return labels;
@@ -529,6 +666,196 @@ ${colorDefinitions}
         const dx = pointB.x - pointA.x;
         const dy = pointB.y - pointA.y;
         return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    getEdgeStyle(edge) {
+        // Get the complete edge style
+        const style = this.styleHandler.getCompleteStyle(edge.style, 'edge', 'object');
+        
+        // Override color if specified
+        if (edge.color && style.tikz) {
+            style.tikz['draw'] = this.getColor(edge.color);
+        }
+
+        // Add arrow style if needed
+        if ((edge.start_arrow || edge.end_arrow) && style.tikz) {
+            const arrowStyle = this.getArrowStyle(edge.start_arrow, edge.end_arrow);
+            if (arrowStyle) {
+                style.tikz['arrows'] = arrowStyle;
+            }
+        }
+
+        return style;
+    }
+
+    getArrowStyle(startArrow, endArrow) {
+        const formatArrowStyle = (arrowType) => {
+            if (!arrowType) return '';
+            // Remove shape=ArrowType from the style since it's redundant
+            return `{${arrowType}[width=0.2cm, length=0.2cm]}`;
+        };
+
+        const start = formatArrowStyle(startArrow);
+        const end = formatArrowStyle(endArrow);
+
+        return start || end ? `${start}-${end}` : '';
+    }
+
+    updateNodeBounds(node) {
+        // Use the pre-calculated anchor vector
+        const anchorVector = node.anchorVector;
+        
+        // Calculate the actual center point of the node
+        const centerX = node.x + ((0 - anchorVector.x) * node.width/2);
+        const centerY = node.y + ((0 - anchorVector.y) * node.height/2);
+        
+        // Update bounds for all corners of the node
+        this.updateBounds(centerX - node.width/2, centerY - node.height/2);
+        this.updateBounds(centerX + node.width/2, centerY - node.height/2);
+        this.updateBounds(centerX - node.width/2, centerY + node.height/2);
+        this.updateBounds(centerX + node.width/2, centerY + node.height/2);
+    }
+
+    getScaleConfig(style) {
+        // Default scale values if style is not provided
+        const defaultScale = {
+            position: { x: 1, y: 1 },
+            size: {
+                w: 1,
+                h: 1
+            }
+        };
+
+        // If no style provided, return defaults
+        if (!style?.page?.scale) {
+            return defaultScale;
+        }
+
+        // Extract values from style, maintaining structure from style-latex.json
+        return {
+            position: {
+                x: style.page.scale.position?.x || defaultScale.position.x,
+                y: style.page.scale.position?.y || defaultScale.position.y
+            },
+            size: {
+                w: style.page.scale.size?.w || defaultScale.size.w,
+                h: style.page.scale.size?.h || defaultScale.size.h
+            }
+        };
+    }
+
+    // Load template from file or use default
+    loadTemplate(templatePath, defaultTemplate) {
+        try {
+            if (fs.existsSync(templatePath)) {
+                return fs.readFileSync(templatePath, 'utf8');
+            }
+            console.warn(`Template file not found: ${templatePath}, using default template.`);
+            return defaultTemplate;
+        } catch (error) {
+            console.error(`Error loading template: ${error.message}`);
+            return defaultTemplate;
+        }
+    }
+
+    // Define default header template as a fallback
+    getDefaultHeaderTemplate() {
+        return `\\documentclass{standalone}
+\\usepackage{tikz}
+\\usepackage{adjustbox}
+\\usepackage{helvet}  
+\\usepackage{sansmathfonts}  
+\\renewcommand{\\familydefault}{\\sfdefault}  
+\\usetikzlibrary{arrows.meta,calc,decorations.pathmorphing}
+\\usetikzlibrary{shapes.arrows}
+\\usepackage{xcolor}
+{{COLOR_DEFINITIONS}}
+\\begin{document}
+\\begin{tikzpicture}
+\\useasboundingbox ({{BOX_MIN_X}},{{BOX_MIN_Y}}) rectangle ({{BOX_MAX_X}},{{BOX_MAX_Y}});`;
+    }
+
+    // Add this new helper method to the LatexRenderer class
+    getNodeReferenceNotation(nodeName, direction) {
+        // Handle the case when direction is missing or empty
+        if (!direction) {
+            return `(${nodeName})`;
+        }
+        return `(${nodeName}.${direction})`;
+    }
+
+    // Add this new helper method
+    getPositionReferenceNotation(nodeName, direction, useCoordinates, x, y) {
+        if (useCoordinates) {
+            // Use exact coordinates
+            return `(${x},${y})`;
+        } else {
+            // Use node reference notation
+            return this.getNodeReferenceNotation(nodeName, direction);
+        }
+    }
+
+    // New method to load content files
+    loadContentFile(filePath) {
+        if (!filePath) return '';
+        
+        try {
+            if (fs.existsSync(filePath)) {
+                return fs.readFileSync(filePath, 'utf8');
+            }
+            console.warn(`Content file not found: ${filePath}, using empty content.`);
+            return '';
+        } catch (error) {
+            console.error(`Error loading content file: ${error.message}`);
+            return '';
+        }
+    }
+
+    // Add method to draw a grid with labels
+    drawGrid(gridSpacing) {
+        if (!gridSpacing || gridSpacing <= 0) return;
+
+        // gridSpacing is in unscaled coordinates, so convert to scaled
+        const scaledGridSpacingX = gridSpacing * this.scale.position.x;
+        const scaledGridSpacingY = gridSpacing * this.scale.position.y;
+
+        // Find the grid bounds based on the diagram bounds
+        // Use the calculated bounds from the diagram content
+        const minX = Math.floor(this.bounds.minX / scaledGridSpacingX) * scaledGridSpacingX;
+        const maxX = Math.ceil(this.bounds.maxX / scaledGridSpacingX) * scaledGridSpacingX;
+        const minY = Math.floor(this.bounds.minY / scaledGridSpacingY) * scaledGridSpacingY;
+        const maxY = Math.ceil(this.bounds.maxY / scaledGridSpacingY) * scaledGridSpacingY;
+
+        // Grid style
+        const gridStyle = 'dashed,gray,opacity=0.5';
+        
+        // Generate vertical grid lines with labels
+        for (let x = minX; x <= maxX; x += scaledGridSpacingX) {
+            // Draw vertical line
+            this.content.push(`\\draw[${gridStyle}] (${x},${minY}) -- (${x},${maxY});`);
+            
+            // Calculate unscaled coordinate for label
+            const unscaledX = x / this.scale.position.x;
+            // Round to 2 decimal places to avoid floating point issues
+            const formattedX = Math.round(unscaledX * 100) / 100;
+            
+            // Add label at the bottom with unscaled value
+            this.content.push(`\\node[below] at (${x},${minY}) {${formattedX}};`);
+        }
+        
+        // Generate horizontal grid lines with labels
+        for (let y = minY; y <= maxY; y += scaledGridSpacingY) {
+            // Draw horizontal line
+            this.content.push(`\\draw[${gridStyle}] (${minX},${y}) -- (${maxX},${y});`);
+            
+            // Calculate unscaled coordinate for label
+            const unscaledY = y / this.scale.position.y;
+            // Round to 2 decimal places to avoid floating point issues
+            const formattedY = Math.round(unscaledY * 100) / 100;
+            
+            // Add label on the left with unscaled value
+            this.content.push(`\\node[left] at (${minX},${y}) {${formattedY}};`);
+        }
     }
 }
 
