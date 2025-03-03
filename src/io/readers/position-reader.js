@@ -1,4 +1,5 @@
 const fs = require('fs');
+const { parse } = require('csv-parse');
 
 class PositionReader {
     // Add a static property for the delimiter
@@ -9,36 +10,32 @@ class PositionReader {
     static readFromCsv(positionFile) {
         return new Promise((resolve, reject) => {
             const positions = new Map();
+            let xLabels = [];
+            let isFirstRow = true;
 
-            fs.readFile(positionFile, 'utf8', (err, data) => {
-                if (err) {
-                    reject(err);
-                    return;
-                }
+            fs.createReadStream(positionFile)
+                .pipe(parse({
+                    // Don't interpret first row as column names since we need them as coordinates
+                    columns: false,
+                    skip_empty_lines: true,
+                    trim: true
+                }))
+                .on('data', (row) => {
+                    if (isFirstRow) {
+                        // Process header row to get X coordinates
+                        // First column is typically 'r' (row label), rest are x positions
+                        xLabels = row.slice(1).map(x => x.trim());
+                        isFirstRow = false;
+                        return;
+                    }
 
-                // Split the file into lines
-                const lines = data.trim().split(/\r?\n/);
-                if (lines.length === 0) {
-                    resolve(positions);
-                    return;
-                }
+                    if (row.length < 2) return; // Skip if not enough columns
 
-                // Process the header row
-                const headers = lines[0].split(',');
-
-                // The first header is typically 'r' (row label), the rest are x positions
-                const xLabels = headers.slice(1).map(hdr => hdr.trim());
-
-                // Process each data row
-                for (let i = 1; i < lines.length; i++) {
-                    const row = lines[i].split(',');
-                    if (row.length < 2) continue; // Skip if not enough columns
-
-                    // The first value is the y position
+                    // First column is Y coordinate
                     const yLabel = row[0].trim();
                     const yUnscaled = parseFloat(yLabel);
 
-                    // Iterate over the rest of the columns
+                    // Process each cell in the row
                     for (let j = 1; j < row.length; j++) {
                         const cellValue = row[j] ? row[j].trim() : '';
                         if (cellValue) {
@@ -47,7 +44,7 @@ class PositionReader {
 
                             // Check for valid numerical positions
                             if (!isNaN(xUnscaled) && !isNaN(yUnscaled)) {
-                                // Always split by delimiter and process each node name
+                                // Split cell value by delimiter and process each node name
                                 const nodeNames = cellValue.split(this.nodeNameDelimiter);
                                 
                                 // Set position for each non-empty node name
@@ -60,16 +57,18 @@ class PositionReader {
                                         });
                                     }
                                 }
-                                // Optional: console.log(`Position set for node '${nodeName}': (${xUnscaled}, ${yUnscaled})`);
                             } else {
                                 console.warn(`Invalid position for node(s) '${cellValue}': x='${xLabel}', y='${yLabel}'`);
                             }
                         }
                     }
-                }
-
-                resolve(positions);
-            });
+                })
+                .on('end', () => {
+                    resolve(positions);
+                })
+                .on('error', (error) => {
+                    reject(error);
+                });
         });
     }
 }

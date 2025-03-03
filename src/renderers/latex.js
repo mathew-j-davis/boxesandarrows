@@ -399,7 +399,7 @@ ${libraries}
         const objectStyle = this.styleHandler.getCompleteStyle(node.style, 'node', 'object');
         const textStyle = this.styleHandler.getCompleteStyle(node.style, 'node', 'text');
         
-        const style = { ...objectStyle };
+        const style = { ...objectStyle || {} };
 
         // Add text style flags
         Object.entries(textStyle || {}).forEach(([flag, value]) => {
@@ -418,10 +418,16 @@ ${libraries}
 
         // Add colors if specified
         if (node.fillcolor) {
-            style['fill'] = this.getColor(node.fillcolor);
+            style['fill'] = this.styleHandler.registerColor(node.fillcolor);
         }
         if (node.color) {
-            style['draw'] = this.getColor(node.color);
+            style['draw'] = this.styleHandler.registerColor(node.color);
+        }
+
+        // Process raw TikZ attributes if present
+        if (node.attributes) {
+            const attrStyle = this.styleHandler.processAttributes(node.attributes);
+            Object.assign(style, attrStyle || {});
         }
 
         return style;

@@ -1,6 +1,12 @@
 class LatexStyleHandler {
     constructor(styleSheet) {
         this.styleSheet = styleSheet;
+        this.colorDefinitions = new Map();  // Track color definitions
+        this.reservedAttributes = new Set([
+            'width', 'height', 'anchor',
+            'minimum width', 'minimum height',
+            'shape'
+        ]);
     }
 
     /**
@@ -96,6 +102,97 @@ class LatexStyleHandler {
             .join(', ');
             
         return options;
+    }
+
+    /**
+     * Process raw TikZ attributes string into a style object
+     * @param {string} attributeStr - Raw TikZ attributes
+     * @returns {Object} Style object with processed attributes
+     */
+    processAttributes(attributeStr) {
+        if (!attributeStr) return {};
+        
+        const style = { tikz: {} };
+        const attributes = attributeStr.split(',').map(attr => attr.trim());
+        
+        for (const attr of attributes) {
+            // Skip empty attributes
+            if (!attr) continue;
+            
+            // Handle key=value pairs
+            if (attr.includes('=')) {
+                const [key, value] = attr.split('=').map(s => s.trim());
+                
+                // Skip reserved attributes
+                if (this.reservedAttributes.has(key)) continue;
+                
+                // Process color values in draw and fill
+                if ((key === 'draw' || key === 'fill') && value.startsWith('#')) {
+                    style.tikz[key] = this.registerColor(value);
+                } else {
+                    style.tikz[key] = value;
+                }
+            } else {
+                // Handle flag attributes (no value)
+                style.tikz[attr] = true;
+            }
+        }
+        
+        return style;
+    }
+
+    /**
+     * Register a color and return its name
+     * @param {string} colorValue - Color value (e.g., #FFFFFF)
+     * @returns {string} Color name to use in TikZ
+     */
+    registerColor(colorValue) {
+        if (!colorValue.startsWith('#')) return colorValue;
+        
+        const hex = colorValue.replace('#', '').toUpperCase();
+        const colorName = `color${hex}`;
+        
+        if (!this.colorDefinitions.has(colorName)) {
+            this.colorDefinitions.set(colorName, hex);
+        }
+        
+        return colorName;
+    }
+
+    /**
+     * Get all color definitions for the preamble
+     * @returns {string[]} Array of color definition commands
+     */
+    getColorDefinitions() {
+        const definitions = [];
+        for (const [name, hex] of this.colorDefinitions) {
+            definitions.push(`\\definecolor{${name}}{HTML}{${hex}}`);
+        }
+        return definitions;
+    }
+
+    /**
+     * Merge style objects, with the second taking precedence
+     * @param {Object} base - Base style object
+     * @param {Object} override - Override style object
+     * @returns {Object} Merged style object
+     */
+    mergeStyles(base, override) {
+        const result = { ...base };
+        
+        if (override.tikz) {
+            result.tikz = { ...result.tikz, ...override.tikz };
+        }
+        
+        if (override.latex) {
+            result.latex = result.latex || { commands: {} };
+            result.latex.commands = {
+                ...result.latex.commands,
+                ...override.latex.commands
+            };
+        }
+        
+        return result;
     }
 }
 

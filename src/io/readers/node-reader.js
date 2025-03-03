@@ -1,35 +1,15 @@
-const csv = require('csv-parser');
 const fs = require('fs');
+const CsvReader = require('./csv-reader');
 
 class NodeReader {
-
-
-    static readFromCsv(nodeFile, scale, renderer) {
-        return new Promise((resolve, reject) => {
-            const nodes = [];
-
-            fs.createReadStream(nodeFile)
-                .pipe(csv())
-                .on('data', (data) => {
-                    // Check if the row is entirely blank
-                    const values = Object.values(data).map(val => val.trim());
-                    const isEmptyRow = values.every(val => val === '');
-
-                    if (!isEmptyRow) {
-                        const node = this.processNodeRecord(data, scale, renderer);
-                        nodes.push(node);
-
-                    }
-                })
-                .on('end', () => {
-                    resolve(nodes);
-                })
-                .on('error', (error) => {
-                    reject(error);
-                });
-        });
+    constructor(renderer) {
+        this.renderer = renderer;
     }
 
+    static async readFromCsv(nodeFile, scale, renderer) {
+        const records = await CsvReader.readFile(nodeFile);
+        return records.map(record => this.processNodeRecord(record, scale, renderer));
+    }
 
     static processNodeRecord(record, scale, renderer) {
         // Store unscaled position values
@@ -45,12 +25,34 @@ class NodeReader {
         // Get style defaults if available
         const styleDefaults = renderer.styleHandler?.getCompleteStyle(record.style, 'node', 'object') || {};
         
+        // Process attributes if present
+        let tikzAttributes = {};
+        if (record.attributes) {
+            tikzAttributes = renderer.styleHandler.processAttributes(record.attributes);
+        }
+        
+        // Process color attributes if present
+        if (record.color || record.fillcolor || record.textcolor) {
+            if (record.color) tikzAttributes.draw = record.color;
+            if (record.fillcolor) tikzAttributes.fill = record.fillcolor;
+            if (record.textcolor) tikzAttributes.text = record.textcolor;
+        }
+        
+        // Merge styles with attributes taking precedence
+        const mergedStyle = {
+            ...styleDefaults,
+            tikz: {
+                ...styleDefaults.tikz,
+                ...tikzAttributes
+            }
+        };
+        
         // Parse style dimensions if they exist (removing 'cm' suffix)
-        const defaultWidth = styleDefaults['minimum width'] 
-            ? parseFloat(styleDefaults['minimum width'].replace('cm', '')) 
+        const defaultWidth = mergedStyle?.['minimum width']
+            ? parseFloat(mergedStyle['minimum width'].replace('cm', '')) 
             : 1;
-        const defaultHeight = styleDefaults['minimum height']
-            ? parseFloat(styleDefaults['minimum height'].replace('cm', ''))
+        const defaultHeight = mergedStyle?.['minimum height']
+            ? parseFloat(mergedStyle['minimum height'].replace('cm', ''))
             : 1;
 
         // Store unscaled size values with priority: CSV > Style > Default
@@ -90,6 +92,8 @@ class NodeReader {
             heightUnscaled,
             type: record.type || 'default',
             style: record.style,
+            attributes: record.attributes,  // Store raw attributes for reference
+            mergedStyle,  // Store processed style for rendering
             color: record.color,
             fillcolor: record.fillcolor,
             textcolor: record.textcolor,

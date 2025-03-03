@@ -1,9 +1,8 @@
-const { parse } = require('csv-parse/sync');
 const fs = require('fs');
+const CsvReader = require('./csv-reader');
 const { getNodeConnectionPoint } = require('../../geometry/node-connection-point');
 const { parseWaypoints } = require('../../geometry/waypoint-parser');
 const { Direction } = require('../../geometry/direction');
-
 
 const PATH_TYPES = {
     TO: 'to',
@@ -14,6 +13,9 @@ const PATH_TYPES = {
 };
 
 class EdgeReader {
+    constructor(renderer) {
+        this.renderer = renderer;
+    }
 
     static scalePoint(point, scale) {
         return {
@@ -106,163 +108,155 @@ class EdgeReader {
         };
     }
 
-    /**
-     * Read edges from CSV file
-     * @param {string} filePath - Path to edge CSV file
-     * @param {Map} nodesMap - Map of nodes
-     * @returns {Array} Array of edge objects
-     */
-    static readFromCsv(filePath, nodesMap, scale, renderer) {
-        const fileContent = fs.readFileSync(filePath, 'utf-8');
-        const records = parse(fileContent, {
-            columns: true,
-            skip_empty_lines: true
-        });
+    static async readFromCsv(edgeFile, nodes, scale, renderer) {
+        const records = await CsvReader.readFile(edgeFile);
+        return records.map(record => this.processEdgeRecord(record, nodes, scale, renderer));
+    }
 
-        return records.map(
-            record => {
+    static processEdgeRecord(record, nodes, scale, renderer) {
+        // Skip empty rows
+        const values = Object.values(record).map(val => val?.trim() || '');
+        if (values.every(val => val === '')) {
+            return null;
+        }
 
-            // Skip empty rows
-            const values = Object.values(record).map(val => val?.trim() || '');
-            if (values.every(val => val === '')) {
+        try {
+            const fromNode = nodes.get(record.from);
+            const toNode = nodes.get(record.to);
+
+            if (!fromNode || !toNode) {
+                console.error(`Edge references missing node: from='${record.from}' to='${record.to}'`);
                 return null;
             }
 
-            try {
-                const fromNode = nodesMap.get(record.from);
-                const toNode = nodesMap.get(record.to);
+            const { startDirection, endDirection } = this.setConnectionDirections(
+                fromNode, toNode, record.start_direction, record.end_direction
+            );
 
-                if (!fromNode || !toNode) {
-                    console.error(`Edge references missing node: from='${record.from}' to='${record.to}'`);
-                    return null;
-                }
-
-                // // Handle simple edge defaults for arrow styles
-
-                // if (record.type === 's') {
-
-                //     // Validate that we're using one of the supported r-type edge types
-                //     const validEdgePathType = ['--', '-|', '|-', '..'];
-
-                //     if (!validEdgePathType.includes(record.path_style)) {
-                //         console.warn(`Invalid edge path type: ${record.edgePathType}. Using default '--'.`);
-                //         record.edgePathType = '--';
-                //     }
- 
-                // }
-
-                // // Calculate auto connection points if needed
-                // const { validStartDirection, validEndDirection } = this.getAutoConnectionPoints(
-                //     fromNode, toNode, record.start_direction, record.end_direction
-                // );
-                
- 
-                const { startDirection, endDirection } = this.setConnectionDirections(
-                    fromNode, toNode, record.start_direction, record.end_direction
-                );
-
-                // Get edge type, defaulting to 's' for simple if not specified
-                const edgeType = record.type || 's';
+            // Get edge type, defaulting to 's' for simple if not specified
+            const edgeType = record.type || 's';
    
 
-                // Handle start adjustments, defaulting to 0 if fields don't exist
-                const startAdjust = {
-                    x: (record.hasOwnProperty('start_adjust_x') ? parseFloat(record.start_adjust_x) : 0),
-                    y: (record.hasOwnProperty('start_adjust_y') ? parseFloat(record.start_adjust_y) : 0)
-                };
+            // Handle start adjustments, defaulting to 0 if fields don't exist
+            const startAdjust = {
+                x: (record.hasOwnProperty('start_adjust_x') ? parseFloat(record.start_adjust_x) : 0),
+                y: (record.hasOwnProperty('start_adjust_y') ? parseFloat(record.start_adjust_y) : 0)
+            };
 
-                // Handle end adjustments, defaulting to 0 if fields don't exist
-                const endAdjust = {
-                    x: (record.hasOwnProperty('end_adjust_x') ? parseFloat(record.end_adjust_x) : 0),
-                    y: (record.hasOwnProperty('end_adjust_y') ? parseFloat(record.end_adjust_y) : 0)
-                };
+            // Handle end adjustments, defaulting to 0 if fields don't exist
+            const endAdjust = {
+                x: (record.hasOwnProperty('end_adjust_x') ? parseFloat(record.end_adjust_x) : 0),
+                y: (record.hasOwnProperty('end_adjust_y') ? parseFloat(record.end_adjust_y) : 0)
+            };
 
-                // Determine if we should use adjusted points based on whether there are actual adjustments
-                const startAdjusted = Math.abs(startAdjust.x) > 0 || Math.abs(startAdjust.y) > 0;
-                const endAdjusted = Math.abs(endAdjust.x) > 0 || Math.abs(endAdjust.y) > 0;
+            // Determine if we should use adjusted points based on whether there are actual adjustments
+            const startAdjusted = Math.abs(startAdjust.x) > 0 || Math.abs(startAdjust.y) > 0;
+            const endAdjusted = Math.abs(endAdjust.x) > 0 || Math.abs(endAdjust.y) > 0;
 
-                // Use the validated directions from the auto connection points calculation
-                let startPoint = getNodeConnectionPoint(
-                    fromNode,
-                    scale,
-                    startDirection,
-                    startAdjust,
-                    renderer
-                );
+            // Use the validated directions from the auto connection points calculation
+            let startPoint = getNodeConnectionPoint(
+                fromNode,
+                scale,
+                startDirection,
+                startAdjust,
+                renderer
+            );
 
-                let endPoint = getNodeConnectionPoint(
-                    toNode,
-                    scale,
-                    endDirection,
-                    endAdjust,
-                    renderer
-                );
+            let endPoint = getNodeConnectionPoint(
+                toNode,
+                scale,
+                endDirection,
+                endAdjust,
+                renderer
+            );
 
-                // Process waypoints for 'c' type edges only, ignore for 'r' type
-                const waypoints = (record.waypoints) ? 
-                    parseWaypoints(
-                        record.waypoints, 
-                        startPoint,
-                        endPoint
-                    )
-                    .map(wp => this.scaleWaypoint(wp, scale)) : 
-                    [];
+            // Process waypoints for 'c' type edges only, ignore for 'r' type
+            const waypoints = (record.waypoints) ? 
+                parseWaypoints(
+                    record.waypoints, 
+                    startPoint,
+                    endPoint
+                )
+                .map(wp => this.scaleWaypoint(wp, scale)) : 
+                [];
 
-                //Scale the points
-                startPoint = this.scalePoint(startPoint, scale);
-                endPoint = this.scalePoint(endPoint, scale);
+            //Scale the points
+            startPoint = this.scalePoint(startPoint, scale);
+            endPoint = this.scalePoint(endPoint, scale);
 
-                return {
-                    // Store the node references for the renderer
-                    from: fromNode,
-                    to: toNode,
-                    
-                    // Keep original node names for reference
-                    from_name: record.from.replace(/\W/g, '_'),
-                    to_name: record.to.replace(/\W/g, '_'),
-                    
-                    // Store the connection directions
-                    start_direction: startDirection,
-                    end_direction: endDirection,
-                    
-                    // Parse start and end points
-                    start: startPoint,
-                    end: endPoint,
-                    waypoints: waypoints,
-                    
+            // Create base edge object with required fields
+            const edge = {
+                from: fromNode,
+                to: toNode,
+                style: record.style || 'default',
+                label: record.label,
+                start_label: record.start_label,
+                end_label: record.end_label,
+                start_arrow: record.start_arrow,
+                end_arrow: record.end_arrow,
+                attributes: record.attributes, // Store raw TikZ attributes for reference
+                path_type: record.path_type || PATH_TYPES.TO,
+                start_direction: startDirection,
+                end_direction: endDirection,
+                start: startPoint,
+                end: endPoint,
+                waypoints: waypoints,
+                from_name: record.from.replace(/\W/g, '_'),
+                to_name: record.to.replace(/\W/g, '_'),
+                label_justify: record.label_justify,
+                isHtml: record.isHtml === 'true'
+            };
 
-                    path_type: record.path_type || PATH_TYPES.TO,
-                    
-                    // Start label properties
-                    start_label: record.start_label || '',
-                    start_label_segment: record.start_label_segment || undefined,
-                    start_label_position: record.start_label_position || undefined,
-
-                    // End label properties
-                    end_label: record.end_label || '',
-                    end_label_segment: record.end_label_segment || undefined,
-                    end_label_position: record.end_label_position || undefined,
-
-                    start_arrow: record.start_arrow || '',
-                    end_arrow: record.end_arrow || '',
-                    
-                    // Main label properties
-                    label: record.label || '',
-                    label_segment: record.label_segment || undefined,
-                    label_position: record.label_position || undefined,
-
-                    style: record.style,
-                    color: record.color,
-                    type: record.type || '',
-                    label_justify: record.label_justify,
-                    isHtml: record.isHtml === 'true'
-
-                };
-            } catch (error) {
-                console.error(`Error processing row: ${JSON.stringify(record)}`);
-                throw error;
+            // Get style defaults if available
+            const styleDefaults = renderer.styleHandler?.getCompleteStyle(record.style, 'edge', 'object') || {};
+            
+            // Process attributes if present
+            let tikzAttributes = {};
+            if (record.attributes) {
+                tikzAttributes = renderer.styleHandler.processAttributes(record.attributes);
             }
-        }).filter(edge => edge !== null);
+            
+            // Process color attributes if present
+            if (record.color) {
+                tikzAttributes.draw = record.color;
+            }
+            
+            // Merge styles with attributes taking precedence
+            edge.mergedStyle = {
+                ...styleDefaults,
+                tikz: {
+                    ...styleDefaults.tikz,
+                    ...tikzAttributes
+                }
+            };
+
+            // Add optional label positions if specified
+            if (record.label_position) {
+                edge.label_position = parseFloat(record.label_position);
+            }
+            if (record.start_label_position) {
+                edge.start_label_position = parseFloat(record.start_label_position);
+            }
+            if (record.end_label_position) {
+                edge.end_label_position = parseFloat(record.end_label_position);
+            }
+
+            // Add optional label segments if specified
+            if (record.label_segment) {
+                edge.label_segment = parseInt(record.label_segment);
+            }
+            if (record.start_label_segment) {
+                edge.start_label_segment = parseInt(record.start_label_segment);
+            }
+            if (record.end_label_segment) {
+                edge.end_label_segment = parseInt(record.end_label_segment);
+            }
+
+            return edge;
+        } catch (error) {
+            console.error(`Error processing row: ${JSON.stringify(record)}`);
+            throw error;
+        }
     }
 }
 
