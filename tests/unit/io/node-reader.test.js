@@ -21,10 +21,11 @@ describe('NodeReader', () => {
             'minimum height': '2cm'
           }
         }),
-        // This is how NodeReader expects processAttributes to behave - return tikz properties directly
         processAttributes: jest.fn().mockReturnValue({
-          'draw': 'colorABCDEF',
-          'rounded corners': '5pt'
+          tikz: {
+            'draw': 'colorABCDEF',
+            'rounded corners': '5pt'
+          }
         }),
         registerColor: jest.fn().mockImplementation(color => {
           return color.startsWith('#') ? `color${color.replace('#', '')}` : color;
@@ -64,10 +65,10 @@ describe('NodeReader', () => {
       expect(node.height).toBe(3);
     });
     
-    test('should process attributes from the attributes field', () => {
+    test('should process attributes from the tikz_object_attributes field', () => {
       const record = {
         name: 'node1',
-        attributes: 'draw=red, fill=blue, dashed'
+        tikz_object_attributes: 'draw=red, fill=blue, dashed'
       };
       
       NodeReader.processNodeRecord(record, mockScale, mockRenderer);
@@ -83,8 +84,10 @@ describe('NodeReader', () => {
         textcolor: '#0000FF'
       };
       
-      // Set up mock return for processAttributes that matches NodeReader's expectations
-      mockStyleHandler.processAttributes.mockReturnValue({});
+      // Set up mock return for processAttributes
+      mockStyleHandler.processAttributes.mockReturnValue({
+        tikz: {}
+      });
       
       const node = NodeReader.processNodeRecord(record, mockScale, mockRenderer);
       
@@ -103,7 +106,7 @@ describe('NodeReader', () => {
       const record = {
         name: 'node1',
         style: 'custom',
-        attributes: 'fill=green'
+        tikz_object_attributes: 'fill=green'
       };
       
       // Set up mock return values
@@ -111,7 +114,7 @@ describe('NodeReader', () => {
         tikz: { shape: 'rectangle', draw: 'black' }
       });
       mockStyleHandler.processAttributes.mockReturnValue({
-        fill: 'green'  // Direct attribute, not nested under tikz
+        tikz: { fill: 'green' }  // Return with tikz nested
       });
       
       const node = NodeReader.processNodeRecord(record, mockScale, mockRenderer);

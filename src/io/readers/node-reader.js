@@ -25,10 +25,11 @@ class NodeReader {
         // Get style defaults if available
         const styleDefaults = renderer.styleHandler?.getCompleteStyle(record.style, 'node', 'object') || {};
         
-        // Process attributes if present
+        // Process TikZ attributes if present
         let tikzAttributes = {};
-        if (record.attributes) {
-            tikzAttributes = renderer.styleHandler.processAttributes(record.attributes);
+        if (record.tikz_object_attributes) {
+            const processedAttributes = renderer.styleHandler.processAttributes(record.tikz_object_attributes);
+            tikzAttributes = processedAttributes.tikz || {};
         }
         
         // Process color attributes if present
@@ -92,7 +93,7 @@ class NodeReader {
             heightUnscaled,
             type: record.type || 'default',
             style: record.style,
-            attributes: record.attributes,  // Store raw attributes for reference
+            tikz_object_attributes: record.tikz_object_attributes,
             mergedStyle,  // Store processed style for rendering
             color: record.color,
             fillcolor: record.fillcolor,

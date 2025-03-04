@@ -210,10 +210,11 @@ class EdgeReader {
             // Get style defaults if available
             const styleDefaults = renderer.styleHandler?.getCompleteStyle(record.style, 'edge', 'object') || {};
             
-            // Process attributes if present
+            // Process TikZ attributes if present
             let tikzAttributes = {};
-            if (record.attributes) {
-                tikzAttributes = renderer.styleHandler.processAttributes(record.attributes);
+            if (record.tikz_object_attributes) {
+                const processedAttributes = renderer.styleHandler.processAttributes(record.tikz_object_attributes);
+                tikzAttributes = processedAttributes.tikz || {};
             }
             
             // Process color attributes if present
@@ -229,6 +230,9 @@ class EdgeReader {
                     ...tikzAttributes
                 }
             };
+
+            // Store the raw attributes for reference
+            edge.tikz_object_attributes = record.tikz_object_attributes;
 
             // Add optional label positions if specified
             if (record.label_position) {

@@ -49,7 +49,7 @@ describe('Style and Attribute Integration', () => {
     const nodeRecord = {
       name: 'node1',
       style: 'custom',
-      attributes: 'draw=red, dashed',
+      tikz_object_attributes: 'draw=red, dashed',
       x: '10',
       y: '20',
       width: '5',
@@ -73,11 +73,12 @@ describe('Style and Attribute Integration', () => {
       }
     });
     
-    // Mock processAttributes to return direct properties (not nested under tikz)
-    // since this is what NodeReader expects
+    // Mock processAttributes to return tikz nested correctly
     jest.spyOn(styleHandler, 'processAttributes').mockReturnValue({
-      draw: 'red',
-      dashed: true
+      tikz: {
+        draw: 'red',
+        dashed: true
+      }
     });
     
     // Process the node record
@@ -99,7 +100,7 @@ describe('Style and Attribute Integration', () => {
       name: 'node1',
       color: '#FF0000',
       fillcolor: '#00FF00',
-      attributes: 'rounded corners=3pt',
+      tikz_object_attributes: 'rounded corners=3pt',
       x: '10',
       y: '20'
     };
@@ -120,9 +121,11 @@ describe('Style and Attribute Integration', () => {
       }
     });
     
-    // Spy on processAttributes to return direct properties (not nested under tikz)
+    // Spy on processAttributes to return tikz nested correctly
     jest.spyOn(styleHandler, 'processAttributes').mockReturnValue({
-      'rounded corners': '3pt'
+      tikz: {
+        'rounded corners': '3pt'
+      }
     });
     
     // Process the node record
@@ -146,7 +149,7 @@ describe('Style and Attribute Integration', () => {
     const nodeRecord = {
       name: 'node1',
       style: 'custom',
-      attributes: 'draw=red, shape=diamond', // trying to override shape
+      tikz_object_attributes: 'draw=red, shape=diamond', // trying to override shape
       x: '10',
       y: '20'
     };
@@ -162,12 +165,13 @@ describe('Style and Attribute Integration', () => {
     });
     
     // Mock the ACTUAL behavior of processAttributes - it filters out reserved attributes
-    // This is more accurate than our previous mock that returned the shape
     jest.spyOn(styleHandler, 'processAttributes').mockImplementation((attrStr) => {
       // Filter out 'shape' attribute as it would be done in the real implementation
       return {
-        draw: 'red'
-        // shape is ignored because it's in the reservedAttributes set
+        tikz: {
+          draw: 'red'
+          // shape is ignored because it's in the reservedAttributes set
+        }
       };
     });
     
