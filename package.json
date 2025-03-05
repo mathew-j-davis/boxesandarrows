@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "csv-parse": "^5.6.0",
+    "js-yaml": "^4.1.0",
     "minimist": "^1.2.5"
   },
   "devDependencies": {
@@ -30,9 +31,9 @@
     "visualization",
     "graph"
   ],
-    "overrides": {
-     "glob": "^9.0.0"
-    },
+  "overrides": {
+    "glob": "^9.0.0"
+  },
   "author": "Mat Davis",
   "license": "MIT",
   "bugs": {

@@ -1,0 +1,36 @@
+type: edge
+from: node1
+to: node2
+label: Edge 1-2
+style: default
+path_type: to
+
+---
+type: edge
+from: node1
+to: node3
+label: Edge 1-3
+style: default
+start_arrow: none
+end_arrow: >
+path_type: --
+
+---
+type: edge
+from: node2
+to: node3
+label: Edge 2-3
+style: default
+start_arrow: <
+end_arrow: >
+path_type: to
+
+---
+type: edge
+from: node3
+to: node4
+label: Edge 3-4
+style: default
+tikz_object_attributes: dashed
+path_type: ..
+waypoints: s(0.5,0) c(1,-1) e(-0.5,0) 

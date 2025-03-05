@@ -71,11 +71,26 @@ class LatexRenderer extends RendererBase {
             useColor: this.useColor 
         });
 
+        // Ensure we have arrays, even if empty
+        const safeNodes = Array.isArray(nodes) ? nodes : [];
+        const safeEdges = Array.isArray(edges) ? edges : [];
+
         // Render all nodes
-        nodes.forEach(node => this.renderNode(node));
+        safeNodes.forEach(node => this.renderNode(node));
 
         // Render all edges
-        edges.forEach(edge => this.renderEdge(edge));
+        safeEdges.forEach(edge => this.renderEdge(edge));
+
+        // If no content, set default bounding box for an empty diagram
+        if (safeNodes.length === 0 && safeEdges.length === 0) {
+            this.log('No nodes or edges provided, creating empty diagram');
+            this.bounds = {
+                minX: 0,
+                minY: 0,
+                maxX: 10,
+                maxY: 10
+            };
+        }
 
         // Draw grid if specified (add before content so it's behind everything)
         if (options.grid && typeof options.grid === 'number') {

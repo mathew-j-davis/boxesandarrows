@@ -2,9 +2,8 @@
 const fs = require('fs');
 const path = require('path');
 const minimist = require('minimist');
-const NodeReader = require('./io/readers/node-reader');
-const EdgeReader = require('./io/readers/edge-reader');
 const PositionReader = require('./io/readers/position-reader');
+const ReaderManager = require('./io/reader-manager');
 const LatexRenderer = require('./renderers/latex');
 
 class DiagramBuilder {
@@ -25,9 +24,9 @@ class DiagramBuilder {
         // Let renderer define its scaling requirements
         this.scale = this.renderer.getScaleConfig(this.style);
 
-        this.nodes = new Map();
-        this.importedNodes = [];
-        this.importedEdges = [];
+        // Initialize the reader manager
+        this.readerManager = new ReaderManager(this.renderer);
+        
         this.nodePositions = new Map();
         this.invertY = options.invertY || false;
     }
@@ -45,9 +44,6 @@ class DiagramBuilder {
     }
 
     async renderDiagram(outputPath) {
-        // Let renderer handle the full output path
-        //const fullPath = this.renderer.getOutputPath(outputPath);
-        
         // Pass rendering options including grid parameter if set
         const renderOptions = {};
         if (this.options && this.options.grid) {
@@ -57,42 +53,68 @@ class DiagramBuilder {
             renderOptions.grid = parseFloat(this.options.grid);
         }
         
-        await this.renderer.render(this.importedNodes, this.importedEdges, outputPath, renderOptions);
+        const nodes = Array.from(this.readerManager.getNodes().values());
+        const edges = this.readerManager.getEdges();
+        
+        await this.renderer.render(nodes, edges, outputPath, renderOptions);
         
         if (this.verbose) {
             console.log(`Diagram rendered to ${outputPath}`);
         }
     }
 
-    async loadData(nodesPath, edgesPath, positionFile) {
+    async loadData(nodePaths, edgePaths, positionFile, mixedYamlFile) {
         try {
-            // Load nodes first
-            this.importedNodes = await NodeReader.readFromCsv(nodesPath, this.scale, this.renderer);
+            // STEP 1: Process all nodes first
+            this.log('=== STEP 1: Loading all nodes ===');
             
-            // Initialize nodes map
-            this.importedNodes.forEach(node => {
-                node.name = node.name || `Node_${Math.random().toString(36).substr(2, 5)}`;
-                node.label = node.label || node.name;
-                this.nodes.set(node.name, node);
-            });
-
-            // Load positions if provided
+            // Handle node files (CSV or YAML)
+            const nodeFiles = Array.isArray(nodePaths) ? nodePaths : (nodePaths ? [nodePaths] : []);
+            if (nodeFiles.length > 0) {
+                this.log(`Processing nodes from ${nodeFiles.length} dedicated node files`);
+                await this.readerManager.processNodeFiles(nodeFiles, this.scale);
+            }
+            
+            // Process nodes from mixed YAML file if provided
+            if (mixedYamlFile) {
+                this.log(`Processing nodes from mixed YAML file: ${mixedYamlFile}`);
+                await this.readerManager.processNodeFiles([mixedYamlFile], this.scale);
+            }
+            
+            // STEP 2: Load and apply position data
+            this.log('=== STEP 2: Loading and applying position data ===');
             if (positionFile) {
                 await this.loadPositions(positionFile);
             } else {
-                this.log('No position file specified; using positions from node file or default (0,0).');
+                this.log('No position file specified; using positions from node files or default (0,0).');
             }
 
-            // Load edges with the renderer for style interpretation
-            this.importedEdges = await EdgeReader.readFromCsv(
-                edgesPath, 
-                this.nodes, 
-                this.scale,
-                this.renderer  // Pass the renderer instance
-            );
+            // STEP 3: Now that all nodes are loaded and positioned, process edges
+            this.log('=== STEP 3: Processing all edges ===');
+            
+            // Handle edge files (CSV or YAML)
+            const edgeFiles = Array.isArray(edgePaths) ? edgePaths : (edgePaths ? [edgePaths] : []);
+            if (edgeFiles.length > 0) {
+                this.log(`Processing edges from ${edgeFiles.length} dedicated edge files`);
+                await this.readerManager.processEdgeFiles(edgeFiles, this.scale);
+            }
+            
+            // Process edges from mixed YAML file if provided
+            if (mixedYamlFile) {
+                this.log(`Processing edges from mixed YAML file: ${mixedYamlFile}`);
+                await this.readerManager.processEdgeFiles([mixedYamlFile], this.scale);
+            }
 
             if (this.verbose) {
-                console.log(`Successfully loaded ${this.importedNodes.length} nodes and ${this.importedEdges.length} edges with positions from ${positionFile}`);
+                const nodeCount = this.readerManager.getNodes().size;
+                const edgeCount = this.readerManager.getEdges().length;
+                console.log(`Successfully loaded ${nodeCount} nodes and ${edgeCount} edges`);
+                if (positionFile) {
+                    console.log(`Position data loaded from ${positionFile}`);
+                }
+                if (mixedYamlFile) {
+                    console.log(`Mixed data loaded from ${mixedYamlFile}`);
+                }
             }
         } catch (error) {
             console.error('Error loading data:', error);
@@ -103,9 +125,10 @@ class DiagramBuilder {
     async loadPositions(positionFile) {
         this.log(`Loading positions from ${positionFile}`);
         const positions = await PositionReader.readFromCsv(positionFile);
+        const nodes = this.readerManager.getNodes();
         
         positions.forEach((pos, name) => {
-            let node = this.nodes.get(name);
+            let node = nodes.get(name);
             let x = pos.xUnscaled * this.scale.position.x;
             let y = pos.yUnscaled * this.scale.position.y;
             
@@ -132,11 +155,9 @@ class DiagramBuilder {
                     anchorVector: null
                 };
 
-
                 node.anchorVector = this.renderer.getNodeAnchor(node);
 
-                this.nodes.set(name, node);
-                this.importedNodes.push(node);
+                nodes.set(name, node);
                 this.log(`Created new node '${name}' at position (${node.x}, ${node.y})`);
             }
         });
@@ -146,9 +167,20 @@ class DiagramBuilder {
 async function main() {
     const argv = minimist(process.argv.slice(2));
 
-    if (!argv.n || !argv.e) {
-        console.error('Usage: node src/index.js -n <nodes.csv> -e <edges.csv> [-m <positions.csv>] [-s <style.json>] [-o <output/diagram>] [-g <grid_spacing>] [--invert-y] [--verbose]');
-        process.exit(1);
+    // No longer require node and edge files - they're optional now
+    if (argv.help || argv.h) {
+        console.log('Usage: node src/index.js [-n <nodes.csv,nodes.yaml>] [-e <edges.csv,edges.yaml>] [-y <mixed.yaml>] [-m <positions.csv>] [-s <style.json>] [-o <output/diagram>] [-g <grid_spacing>] [--invert-y] [--verbose]');
+        console.log('  -n, --nodes      Comma-separated list of node files (CSV or YAML)');
+        console.log('  -e, --edges      Comma-separated list of edge files (CSV or YAML)');
+        console.log('  -y, --yaml       Mixed YAML file containing both nodes and edges (edges processed after nodes and position map)');
+        console.log('  -m, --map        Position map file (CSV)');
+        console.log('  -s, --style      Style file (JSON)');
+        console.log('  -o, --output     Output file path (default: output/diagram)');
+        console.log('  -g, --grid       Grid spacing (optional)');
+        console.log('  --invert-y       Invert Y coordinates');
+        console.log('  --verbose        Show verbose output');
+        console.log('  -h, --help       Show this help message');
+        process.exit(0);
     }
 
     const builder = new DiagramBuilder({
@@ -159,9 +191,16 @@ async function main() {
     });
 
     try {
-        await builder.loadData(argv.n, argv.e, argv.m);
+        // Parse comma-separated lists of node and edge files
+        const nodeFiles = argv.n ? argv.n.split(',') : [];
+        const edgeFiles = argv.e ? argv.e.split(',') : [];
+        const mixedYamlFile = argv.y || null;
+        
+        await builder.loadData(nodeFiles, edgeFiles, argv.m, mixedYamlFile);
         if (builder.verbose) {
-            console.log(`Loaded ${builder.importedNodes.length} nodes and ${builder.importedEdges.length} edges`);
+            const nodeCount = builder.readerManager.getNodes().size;
+            const edgeCount = builder.readerManager.getEdges().length;
+            console.log(`Loaded ${nodeCount} nodes and ${edgeCount} edges`);
         }
 
         const outputPath = argv.o || 'output/diagram';

@@ -1,0 +1,69 @@
+type: node
+name: nodeA
+label: Node A
+x: -2
+y: 0
+style: default
+tikz_object_attributes: draw=purple, fill=lavender
+
+---
+type: node
+name: nodeB
+label: Node B
+x: -4
+y: -1
+style: default
+tikz_object_attributes: draw=brown, fill=beige
+
+---
+type: node
+name: nodeC
+label: Node C
+x: -4
+y: 1
+style: default
+tikz_object_attributes: draw=teal, fill=cyan
+
+---
+type: edge
+from: nodeA
+to: nodeB
+label: Edge A-B
+style: default
+path_type: to
+start_arrow: <
+end_arrow: >
+
+---
+type: edge
+from: nodeA
+to: nodeC
+label: Edge A-C
+style: default
+path_type: --
+tikz_object_attributes: dotted, thick
+
+---
+type: node
+name: nodeD
+label: Node D
+x: -6
+y: 0
+style: default
+tikz_object_attributes: draw=black, fill=white, thick
+
+---
+type: edge
+from: nodeB
+to: nodeD
+label: Edge B-D
+style: default
+path_type: to
+
+---
+type: edge
+from: nodeC
+to: nodeD
+label: Edge C-D
+style: default
+path_type: to 

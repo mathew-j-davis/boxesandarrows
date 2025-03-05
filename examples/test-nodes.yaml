@@ -1,0 +1,34 @@
+type: node
+name: node1
+label: Node 1
+x: 0
+y: 0
+style: default
+tikz_object_attributes: draw=blue, fill=lightblue
+
+---
+type: node
+name: node2
+label: Node 2
+x: 3
+y: 0
+style: default
+tikz_object_attributes: draw=red, fill=pink
+
+---
+type: node
+name: node3
+label: Node 3
+x: 1.5
+y: 2
+style: default
+tikz_object_attributes: draw=green, fill=lightgreen
+
+---
+type: node
+name: node4
+label: Node 4
+x: 1.5
+y: -2
+style: default
+tikz_object_attributes: draw=orange, fill=yellow 
