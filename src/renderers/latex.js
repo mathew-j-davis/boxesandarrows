@@ -36,6 +36,7 @@ class LatexRenderer extends RendererBase {
         this.postBoilerplateContent = this.loadContentFile(this.postBoilerplatePath);
         
         this.initializeState(style, options);
+        
     }
 
     initializeState(style, options = {}) {
@@ -62,6 +63,9 @@ class LatexRenderer extends RendererBase {
             maxX: -Infinity,
             maxY: -Infinity
         };
+        
+        // Initialize the scale
+        this.scale = this.getScaleConfig(this.style);
     }
 
     async render(nodes, edges, outputPath, options = {}) {
@@ -151,15 +155,47 @@ class LatexRenderer extends RendererBase {
                 if (standardizedAnchor) {
                     style.tikz['anchor'] = standardizedAnchor;
                 }
-            } 
+            }
             
-            // else if (node.anchorVector) {
-            //     // Try to get anchor name from the vector
-            //     const anchorName = Direction.getDirectionNameFromVector(node.anchorVector);
-            //     if (anchorName && anchorName !== 'center') {
-            //         style.tikz['anchor'] = anchorName;
-            //     }
-            // }
+            // Process node's tikz_object_attributes if present
+            if (node.tikz_object_attributes) {
+                const processedAttributes = this.styleHandler.processAttributes(node.tikz_object_attributes);
+                if (processedAttributes.tikz) {
+                    // Merge the processed attributes with the style, giving attributes precedence
+                    style.tikz = {
+                        ...style.tikz,
+                        ...processedAttributes.tikz
+                    };
+                }
+            }
+            
+            // If node has mergedStyle with tikz attributes, use those (gives precedence to processing done by NodeReader)
+            if (node.mergedStyle && node.mergedStyle.tikz) {
+                style.tikz = {
+                    ...style.tikz,
+                    ...node.mergedStyle.tikz
+                };
+            }
+        } else if (node.tikz_object_attributes || (node.mergedStyle && node.mergedStyle.tikz)) {
+            // If no tikz style was found from the style handler but node has tikz attributes
+            style.tikz = {};
+            
+            // Process node's tikz_object_attributes if present
+            if (node.tikz_object_attributes) {
+                const processedAttributes = this.styleHandler.processAttributes(node.tikz_object_attributes);
+                if (processedAttributes.tikz) {
+                    Object.assign(style.tikz, processedAttributes.tikz);
+                }
+            }
+            
+            // If node has mergedStyle with tikz attributes, use those
+            if (node.mergedStyle && node.mergedStyle.tikz) {
+                Object.assign(style.tikz, node.mergedStyle.tikz);
+            }
+            
+            // Set node dimensions
+            style.tikz['minimum width'] = `${node.width}cm`;
+            style.tikz['minimum height'] = `${node.height}cm`;
         }
         
         // Generate TikZ style string
@@ -169,7 +205,8 @@ class LatexRenderer extends RendererBase {
         const nodeId = `${node.name.replace(/\W/g, '_')}`;
 
         let output = '';
-        if (node.hideLabel) {
+        // Check if the node should not display a label
+        if (node.label === undefined || node.label === null || node.label === '') {
             output += `\\node[${styleStr}] (${nodeId}) at ${pos} {};`;
         } else {
             // Get text style and apply formatting
@@ -453,10 +490,8 @@ ${libraries}
     }
 
     getLatexContent() {
-        // Generate color definitions for hex colors
-        const colorDefinitions = Array.from(this.usedColors.entries()).map(([hexCode, colorName]) => {
-            return `\\definecolor{${colorName}}{HTML}{${hexCode.slice(1)}}`;
-        }).join('\n');
+        // Get color definitions from the style handler
+        const colorDefinitions = this.styleHandler.getColorDefinitions().join('\n');
 
         // Calculate bounding box after all nodes and edges have been rendered
         const boxMinX = this.bounds.minX - this.margin.w;

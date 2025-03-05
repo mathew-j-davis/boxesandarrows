@@ -4,7 +4,7 @@ label: Node A
 x: -2
 y: 0
 style: default
-tikz_object_attributes: draw=purple, fill=lavender
+tikz_object_attributes: draw=#ff00ff, fill=#77ccff
 
 ---
 type: node
@@ -13,7 +13,7 @@ label: Node B
 x: -4
 y: -1
 style: default
-tikz_object_attributes: draw=brown, fill=beige
+tikz_object_attributes: draw=#a52a2a, fill=#f0e68c
 
 ---
 type: node
@@ -22,7 +22,7 @@ label: Node C
 x: -4
 y: 1
 style: default
-tikz_object_attributes: draw=teal, fill=cyan
+tikz_object_attributes: draw=#008080, fill=#98fb98
 
 ---
 type: edge
@@ -50,7 +50,7 @@ label: Node D
 x: -6
 y: 0
 style: default
-tikz_object_attributes: draw=black, fill=white, thick
+tikz_object_attributes: draw=#000000, fill=#ffffff, thick
 
 ---
 type: edge

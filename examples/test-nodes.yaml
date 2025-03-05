@@ -4,7 +4,7 @@ label: Node 1
 x: 0
 y: 0
 style: default
-tikz_object_attributes: draw=blue, fill=lightblue
+tikz_object_attributes: draw=#0000FF, fill=#ADD8E6
 
 ---
 type: node
@@ -13,7 +13,7 @@ label: Node 2
 x: 3
 y: 0
 style: default
-tikz_object_attributes: draw=red, fill=pink
+tikz_object_attributes: draw=#FF0000, fill=#FFC0CB
 
 ---
 type: node
@@ -22,7 +22,7 @@ label: Node 3
 x: 1.5
 y: 2
 style: default
-tikz_object_attributes: draw=green, fill=lightgreen
+tikz_object_attributes: draw=#008000, fill=#90EE90
 
 ---
 type: node
@@ -31,4 +31,4 @@ label: Node 4
 x: 1.5
 y: -2
 style: default
-tikz_object_attributes: draw=orange, fill=yellow 
+tikz_object_attributes: draw=#FFA500, fill=#FFFF00 

@@ -44,7 +44,7 @@ class ReaderManager {
             if (fileExtension === 'csv') {
                 newNodes = await NodeReader.readFromCsv(file, safeScale, this.renderer);
             } else if (fileExtension === 'yaml' || fileExtension === 'yml') {
-                newNodes = await NodeYamlReader.readFromYaml(file, safeScale, this.renderer);
+                newNodes = await NodeYamlReader.readFromYaml(file, safeScale, this.renderer, this.nodes);
             } else {
                 console.warn(`Unsupported file format for nodes: ${fileExtension}`);
                 continue;

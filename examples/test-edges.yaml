@@ -31,6 +31,17 @@ from: node3
 to: node4
 label: Edge 3-4
 style: default
-tikz_object_attributes: dashed
+tikz_object_attributes: dashed, draw=#000000
 path_type: ..
 waypoints: s(0.5,0) c(1,-1) e(-0.5,0) 
+
+---
+type: node
+name: label_node
+label: My Label
+relative_to: reference_node
+anchor: south
+offset_x: 0
+offset_y: -0.5
+style: default
+tikz_object_attributes: draw=none 

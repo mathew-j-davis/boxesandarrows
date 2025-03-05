@@ -80,7 +80,7 @@ class NodeReader {
 
         let node = {
             name: record.name,
-            label: record.label || record.name,
+            label: record.hide_label ? null : record.label || record.name,
             label_above: record.label_above,
             label_below: record.label_below,
             x,

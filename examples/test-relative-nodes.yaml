@@ -1,0 +1,78 @@
+type: node
+name: shape
+label: Shape
+x: 0
+y: 2
+style: default
+tikz_object_attributes: draw=#0000ff, fill=#91A9CE
+
+---
+type: node
+name: rectangle
+label: Rectangle
+x: -2
+y: 0
+style: default
+tikz_object_attributes: draw=#00ff00, fill=#90EE90
+
+---
+type: node
+name: circle
+label: Circle
+x: 2
+y: 0
+style: default
+tikz_object_attributes: draw=#ff00ff, fill=#FFB6C1
+
+---
+# Relative positioned nodes
+type: node
+name: shape_label
+label: Abstract Class
+relative_to: shape
+anchor: south
+offset_x: 0
+offset_y: -0.5
+style: default
+tikz_object_attributes: draw=none
+
+---
+type: node
+name: rectangle_label
+label: Extends Shape
+relative_to: rectangle
+anchor: north
+offset_x: 0
+offset_y: 0.5
+style: default
+tikz_object_attributes: draw=none, font=\small\it
+
+---
+type: node
+name: circle_label
+label: Extends Shape
+relative_to: circle
+anchor: north
+offset_x: 0
+offset_y: 0.5
+style: default
+tikz_object_attributes: draw=none, font=\small\it
+
+---
+# Edge connecting the nodes
+type: edge
+from: rectangle
+to: shape
+label: extends
+style: default
+path_type: to
+end_arrow: >
+
+---
+type: edge
+from: circle
+to: shape
+label: extends
+style: default
+path_type: to
+end_arrow: > 

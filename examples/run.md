@@ -8,6 +8,7 @@ This document contains test commands to verify the new YAML functionality, parti
 - `examples/test-edges.yaml`: Contains 4 edges connecting the nodes
 - `examples/test-mixed.yaml`: Contains a mix of 4 nodes and 4 edges in the same file
 - `examples/test-positions.csv`: Contains position updates for some nodes
+- `examples/test-relative-nodes.yaml`: Contains nodes positioned relative to other nodes
 
 ## Test Commands
 
@@ -47,6 +48,12 @@ node src/index.js -y examples/test-mixed.yaml -o output/test-grid -g 1 --verbose
 ```
 This tests the grid option, which adds a grid to the diagram with spacing of 1 unit.
 
+### 7. Test relative node positioning
+```bash
+node src/index.js -y examples/test-relative-nodes.yaml -o output/test-relative --verbose
+```
+This tests the new relative node positioning feature, where nodes can be positioned relative to other nodes using anchor points.
+
 ## Expected Behavior
 
 When using the `-y` parameter with mixed YAML files, the application should:
@@ -56,6 +63,11 @@ When using the `-y` parameter with mixed YAML files, the application should:
 3. Process all edges (from both dedicated edge files and the mixed YAML file)
 
 The verbose output should show the processing steps in this order.
+
+For relative node positioning, the application should:
+1. Process absolute positioned nodes first
+2. Then process relative positioned nodes, calculating their positions based on the reference nodes and anchors
+3. The resulting diagram should show nodes correctly positioned relative to their reference nodes
 
 ## Creating and Viewing Output
 
