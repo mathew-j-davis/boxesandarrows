@@ -1,6 +1,7 @@
 const fs = require('fs');
 const CsvReader = require('./csv-reader');
 const yaml = require('js-yaml');
+const YamlReader = require('./yaml-reader');
 
 class NodeReader {
     constructor(renderer) {
@@ -12,7 +13,7 @@ class NodeReader {
         return records.map(record => this.processNodeRecord(record, scale, renderer));
     }
 
-        /**
+    /**
      * Read nodes from a YAML file
      * @param {string} yamlFile - Path to the YAML file
      * @param {Object} scale - Scale information for positions and sizes
@@ -20,25 +21,10 @@ class NodeReader {
      * @returns {Promise<Array>} - Array of processed node objects
      */
     static async readFromYaml(yamlFile, scale, renderer) {
-        try {
-            // Read YAML file
-            const content = await fs.promises.readFile(yamlFile, 'utf8');
-            const records = yaml.loadAll(content);
-            
-            // Filter for node documents and process them
-            const nodes = records
-                .filter(record => record && record.type === 'node')
-                .map(record => NodeReader.processNodeRecord(record, scale, renderer));
-            
-            if (nodes.length === 0) {
-                console.warn(`No nodes found in YAML file ${yamlFile}`);
-            }
-            
-            return nodes;
-        } catch (error) {
-            console.error(`Error reading YAML file ${yamlFile}:`, error);
-            throw error;
-        }
+        const records = await YamlReader.readFile(yamlFile, { 
+            filter: doc => doc && doc.type === 'node' 
+        });
+        return records.map(record => this.processNodeRecord(record, scale, renderer));
     }
     
     static processNodeRecord(record, scale, renderer) {
