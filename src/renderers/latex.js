@@ -156,89 +156,66 @@ class LatexRenderer extends RendererBase {
         const pos = `(${node.x},${node.y})`;
         this.updateNodeBounds(node);
         
-        // Get the complete style including TikZ and LaTeX attributes
-        const style = this.styleHandler.getCompleteStyle(node.style, 'node', 'object');
+        // Initialize TikZ attributes object - this will hold all the styling
+        const tikzAttributes = {};
         
-        // Clone the tikz object to prevent shared state between nodes
-        if (style.tikz) {
-            style.tikz = { ...style.tikz };
-            
-            // IMPORTANT: Override with node-specific attributes first
-            if (node.shape) {
-                style.tikz['shape'] = node.shape;
-            }
-            
-            // Add anchor information if specified in the node
-            if (node.anchor) {
-                // Standardize the anchor name for consistent TikZ syntax
-                const standardizedAnchor = Direction.standardiseBasicDirectionName(node.anchor);
-                if (standardizedAnchor) {
-                    style.tikz['anchor'] = standardizedAnchor;
-                }
-            }
-            
-            // Apply node dimensions (from CSV)
-            style.tikz['minimum width'] = `${node.width}cm`;
-            style.tikz['minimum height'] = `${node.height}cm`;
-            
-            // Apply node colors (from CSV)
-            if (node.fillcolor) {
-                style.tikz['fill'] = this.styleHandler.registerColor(node.fillcolor);
-            }
-            if (node.color) {
-                style.tikz['draw'] = this.styleHandler.registerColor(node.color);
-            }
-            if (node.textcolor) {
-                style.tikz['text'] = this.styleHandler.registerColor(node.textcolor);
-            }
-            
-            // Then process any tikz_object_attributes or mergedStyles
-            if (node.tikz_object_attributes) {
-                const processedAttributes = this.styleHandler.processAttributes(node.tikz_object_attributes);
-                if (processedAttributes.tikz) {
-                    // Merge the processed attributes with the style, giving attributes precedence
-                    style.tikz = {
-                        ...style.tikz,
-                        ...processedAttributes.tikz
-                    };
-                }
-            }
-            
-            // If node has mergedStyle with tikz attributes, use those (gives precedence to processing done by NodeReader)
-            if (node.mergedStyle && node.mergedStyle.tikz) {
-                style.tikz = {
-                    ...style.tikz,
-                    ...node.mergedStyle.tikz
-                };
-            }
-        } else if (node.tikz_object_attributes || (node.mergedStyle && node.mergedStyle.tikz)) {
-            // If no tikz style was found from the style handler but node has tikz attributes
-            style.tikz = {};
-            
-            // Process node's tikz_object_attributes if present
-            if (node.tikz_object_attributes) {
-                const processedAttributes = this.styleHandler.processAttributes(node.tikz_object_attributes);
-                if (processedAttributes.tikz) {
-                    Object.assign(style.tikz, processedAttributes.tikz);
-                }
-            }
-            
-            // If node has mergedStyle with tikz attributes, use those
-            if (node.mergedStyle && node.mergedStyle.tikz) {
-                Object.assign(style.tikz, node.mergedStyle.tikz);
-            }
-            
-            // Set node dimensions
-            style.tikz['minimum width'] = `${node.width}cm`;
-            style.tikz['minimum height'] = `${node.height}cm`;
+        // 1. Start with base style from style handler (if it exists)
+        const style = this.styleHandler.getCompleteStyle(node.style, 'node', 'object');
+        if (style && style.tikz) {
+            // Copy base style attributes
+            Object.assign(tikzAttributes, style.tikz);
         }
         
-        // Generate TikZ style string
-        let styleStr = this.styleHandler.tikzifyStyle(style);
-
-        // Generate unique node ID for referencing using node.name
+        // 2. Apply mandatory node attributes (important: these override the base style)
+        tikzAttributes['minimum width'] = `${node.width}cm`;
+        tikzAttributes['minimum height'] = `${node.height}cm`;
+        
+        // 3. Apply node-specific attributes from CSV
+        if (node.shape) {
+            tikzAttributes['shape'] = node.shape;
+        }
+        
+        // Apply anchor if specified
+        if (node.anchor) {
+            const standardizedAnchor = Direction.standardiseBasicDirectionName(node.anchor);
+            if (standardizedAnchor) {
+                tikzAttributes['anchor'] = standardizedAnchor;
+            }
+        }
+        
+        // Apply colors if specified
+        if (node.fillcolor) {
+            tikzAttributes['fill'] = this.styleHandler.registerColor(node.fillcolor);
+        }
+        if (node.color) {
+            tikzAttributes['draw'] = this.styleHandler.registerColor(node.color);
+        }
+        if (node.textcolor) {
+            tikzAttributes['text'] = this.styleHandler.registerColor(node.textcolor);
+        }
+        
+        // 4. Process raw TikZ attributes if present (these get highest priority)
+        if (node.tikz_object_attributes) {
+            const processedAttributes = this.styleHandler.processAttributes(node.tikz_object_attributes);
+            if (processedAttributes.tikz) {
+                Object.assign(tikzAttributes, processedAttributes.tikz);
+            }
+        }
+        
+        // NEW STEP: Process all hex colors in tikzAttributes
+        for (const [key, value] of Object.entries(tikzAttributes)) {
+            if (typeof value === 'string' && value.startsWith('#')) {
+                tikzAttributes[key] = this.styleHandler.registerColor(value);
+            }
+        }
+        
+        // 5. Generate TikZ style string from our attributes
+        let styleStr = this.generateTikzOptions(tikzAttributes);
+        
+        // 6. Generate the node output
+        // Generate unique node ID
         const nodeId = `${node.name.replace(/\W/g, '_')}`;
-
+        
         let output = '';
         // Check if the node should not display a label
         if (node.label === undefined || node.label === null || node.label === '') {
@@ -250,26 +227,26 @@ class LatexRenderer extends RendererBase {
             
             // Apply LaTeX formatting
             labelText = this.styleHandler.applyLatexFormatting(labelText, textStyle);
-
-            // Add textcolor if specified on node (this could be moved to the style system)
+            
+            // Add textcolor if specified
             if (node.textcolor) {
                 labelText = `\\textcolor{${this.getColor(node.textcolor)}}{${labelText}}`;
             }
-
+            
             // Add adjustbox
             const labelWithAdjustbox = `{\\adjustbox{max width=${node.width}cm, max height=${node.height}cm}{${labelText}}}`;
-
-            // Handle labels
+            
+            // Handle external labels
             if (node.label_above) {
                 styleStr += (styleStr.length > 0 ? ',' : '') + `label=above:{${this.escapeLaTeX(node.label_above)}}`;
             }
             if (node.label_below) {
                 styleStr += (styleStr.length > 0 ? ',' : '') + `label=below:{${this.escapeLaTeX(node.label_below)}}`;
             }
-
+            
             output += `\\node[${styleStr}] (${nodeId}) at ${pos} ${labelWithAdjustbox};`;
         }
-
+        
         this.content.push(output);
     }
 

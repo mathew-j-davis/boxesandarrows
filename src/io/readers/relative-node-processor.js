@@ -90,4 +90,84 @@ function processRelativeNode(record, nodesMap, scale, renderer, processAbsoluteN
     return node;
 }
 
-module.exports = { processRelativeNode }; 
+/**
+ * Process a node record with relative positioning
+ * @param {Object} node - The node to position relatively
+ * @param {Map} nodesMap - Map of existing nodes (name -> node)
+ * @param {Object} scale - Scale information for positions and sizes
+ * @returns {Object} The positioned node
+ */
+function setNodePositionRelativeToNode(node, nodesMap, scale) {
+    // Validate inputs
+    if (!node.relative_to) {
+        console.warn(`Node ${node.name} has relative positioning but no relative_to specified`);
+        return node;
+    }
+    
+    // Get the reference node from the map
+    const referenceNode = nodesMap.get(node.relative_to);
+    
+    // Ensure reference node exists
+    if (!referenceNode) {
+        console.warn(`Reference node '${node.relative_to}' for node '${node.name}' not found`);
+        return node;
+    }
+    
+    // Get relative direction vector (how we want to position this node)
+    const relVector = Direction.getVector(node.relative);
+    
+    // Get offset values (additional adjustments)
+    const offsetX = (node.offset_x || 0);
+    const offsetY = (node.offset_y || 0);
+
+    // Get unscaled dimensions for the reference node
+    const refWidthUnscaled = referenceNode.widthUnscaled || 1;
+    const refHeightUnscaled = referenceNode.heightUnscaled || 1;
+    
+    // Get anchor vector for the reference node (or use default center)
+    const referenceAnchorVector = referenceNode.anchorVector || Direction.getVector('center');
+    
+    // Calculate the center of the reference node in unscaled coordinates
+    const referenceNodeCenterXUnscaled = referenceNode.xUnscaled + ((0 - referenceAnchorVector.x) * refWidthUnscaled/2);
+    const referenceNodeCenterYUnscaled = referenceNode.yUnscaled + ((0 - referenceAnchorVector.y) * refHeightUnscaled/2);
+    
+    // Store original dimensions if not already set
+    if (node.widthUnscaled === undefined) {
+        node.widthUnscaled = node.width || 1;
+    }
+    if (node.heightUnscaled === undefined) {
+        node.heightUnscaled = node.height || 1;
+    }
+    
+    // Calculate unscaled position
+    node.xUnscaled = referenceNodeCenterXUnscaled + 
+                     relVector.x * (refWidthUnscaled/2) + 
+                     offsetX;
+    node.yUnscaled = referenceNodeCenterYUnscaled + 
+                     relVector.y * (refHeightUnscaled/2) + 
+                     offsetY;
+    
+    // Now apply scaling to get the final scaled positions and dimensions
+    if (scale) {
+        // Apply position scaling
+        node.x = node.xUnscaled * scale.position.x;
+        node.y = node.yUnscaled * scale.position.y;
+        
+        // Apply dimension scaling
+        node.width = node.widthUnscaled * scale.size.w;
+        node.height = node.heightUnscaled * scale.size.h;
+    } else {
+        // If no scale provided, just copy unscaled values
+        node.x = node.xUnscaled;
+        node.y = node.yUnscaled;
+        node.width = node.widthUnscaled;
+        node.height = node.heightUnscaled;
+    }
+    
+    return node;
+}
+
+
+
+
+module.exports = { processRelativeNode, setNodePositionRelativeToNode }; 

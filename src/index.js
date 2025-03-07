@@ -6,6 +6,7 @@ const PositionReader = require('./io/readers/position-reader');
 const ReaderManager = require('./io/reader-manager');
 const LatexRenderer = require('./renderers/latex');
 const ConfigurationManager = require('./configuration-manager');
+const { processRelativeNode } = require('./io/readers/relative-node-processor');
 
 class DiagramBuilder {
     constructor(options = {}) {
@@ -94,7 +95,12 @@ class DiagramBuilder {
                 this.log('No position file specified; using positions from node files or default (0,0).');
             }
 
-            // STEP 3: Now that all nodes are loaded and positioned, process edges
+            // NEW STEP: Scale all node positions uniformly
+            this.log('=== POSITION AND SCALE ALL NODES ===');
+
+            this.positionAndScaleAllNodes();
+
+            // STEP 3: Now that all nodes are loaded, positioned and scaled, process edges
             this.log('=== STEP 3: Processing all edges ===');
             
             // Handle edge files (CSV or YAML)
@@ -134,38 +140,103 @@ class DiagramBuilder {
         
         positions.forEach((pos, name) => {
             let node = nodes.get(name);
-            let x = pos.xUnscaled * this.configManager.getScaleConfig().position.x;
-            let y = pos.yUnscaled * this.configManager.getScaleConfig().position.y;
             
             if (node) {
+                // Store unscaled position (no scaling applied here anymore)
                 node.xUnscaled = pos.xUnscaled;
                 node.yUnscaled = pos.yUnscaled;
-                node.x = x;
-                node.y = y;
-                this.log(`Updated position of node '${name}' to (${node.x}, ${node.y})`);
+                // The x,y values will be set in applyScalingToAllNodes
+                this.log(`Set unscaled position of node '${name}' to (${node.xUnscaled}, ${node.yUnscaled})`);
             } else {
+                // Create new node with unscaled values
                 node = {
                     name: name,
                     label: name,
-                    x: x,
-                    y: y,
+                    // Don't set scaled x,y here - will be set in applyScalingToAllNodes
                     xUnscaled: pos.xUnscaled,
                     yUnscaled: pos.yUnscaled,
-                    height: 1 * this.scale.size.h,
-                    width: 1 * this.scale.size.w,
+                    // Don't apply scaling to dimensions either
                     heightUnscaled: 1,
                     widthUnscaled: 1,
+                    // These will be set in applyScalingToAllNodes
+                    height: undefined,
+                    width: undefined,
+                    x: undefined,
+                    y: undefined,
                     type: 'default',
                     anchor: null,
                     anchorVector: null
                 };
 
-                node.anchorVector = this.renderer.getNodeAnchor(node);
-
                 nodes.set(name, node);
-                this.log(`Created new node '${name}' at position (${node.x}, ${node.y})`);
+                this.log(`Created new node '${name}' with unscaled position (${node.xUnscaled}, ${node.yUnscaled})`);
             }
         });
+    }
+
+    // Method for positioning and scaling all nodes
+    positionAndScaleAllNodes() {
+        const nodes = this.readerManager.getNodes();
+        const scaleConfig = this.configManager.getScaleConfig();
+        
+        // Single pass through all nodes in the order they appear
+        for (const [nodeName, node] of nodes.entries()) {
+            // First handle relative positioning if needed
+            if (node.relative) {
+                const referenceNodeName = node.relative_to;
+                const referenceNode = nodes.get(referenceNodeName);
+                
+                /*
+                                const node = processRelativeNode(
+                    doc, 
+                    nodesMap, 
+                    scale, 
+                    renderer, 
+                    NodeReader.processNodeRecord
+                );
+                */
+
+                if (referenceNode) {
+                    // Process relative position using the reference node
+                    processRelativeNode(node, referenceNode);
+                    this.log(`Positioned relative node '${nodeName}' based on reference '${referenceNodeName}'`);
+                } else {
+                    console.warn(`Warning: Cannot position node '${nodeName}' - reference node '${referenceNodeName}' not found`);
+                    // Set default position for nodes with missing references
+                    node.x = 0;
+                    node.y = 0;
+                }
+            } else {
+                // For non-relative nodes, use unscaled coords (or defaults)
+                if (node.xUnscaled === undefined) {
+                    node.xUnscaled = node.x !== undefined ? node.x : 0;
+                }
+                if (node.yUnscaled === undefined) {
+                    node.yUnscaled = node.y !== undefined ? node.y : 0;
+                }
+                
+                // Apply position scaling
+                node.x = node.xUnscaled * scaleConfig.position.x;
+                node.y = node.yUnscaled * scaleConfig.position.y;
+            }
+            
+            // Apply dimension scaling to all nodes (relative or not)
+            if (node.widthUnscaled === undefined) {
+                node.widthUnscaled = node.width !== undefined ? node.width : 1;
+            }
+            if (node.heightUnscaled === undefined) {
+                node.heightUnscaled = node.height !== undefined ? node.height : 1;
+            }
+            
+            // Apply scaling to dimensions
+            node.width = node.widthUnscaled * scaleConfig.size.w;
+            node.height = node.heightUnscaled * scaleConfig.size.h;
+            
+            // Recalculate anchor vector with scaled dimensions
+            node.anchorVector = this.renderer.getNodeAnchor(node);
+            
+            this.log(`Scaled node '${nodeName}' to (${node.x}, ${node.y}) with dimensions ${node.width}x${node.height}`);
+        }
     }
 }
 
@@ -175,8 +246,8 @@ async function main() {
     // No longer require node and edge files - they're optional now
     if (argv.help || argv.h) {
         console.log('Usage: node src/index.js [-n <nodes.csv,nodes.yaml>] [-e <edges.csv,edges.yaml>] [-y <mixed.yaml>] [-m <positions.csv>] [-s <style.json>] [-o <output/diagram>] [-g <grid_spacing>] [--invert-y] [--verbose]');
-        console.log('  -n, --nodes      Comma-separated list of node files (CSV or YAML)');
-        console.log('  -e, --edges      Comma-separated list of edge files (CSV or YAML)');
+        console.log('  -n, --nodes      Comma-separated list of node files (CSV) or equivalent data in YAML');
+        console.log('  -e, --edges      Comma-separated list of edge files (CSV) or equivalent data in YAML');
         console.log('  -y, --yaml       Mixed YAML file containing both nodes and edges (edges processed after nodes and position map)');
         console.log('  -m, --map        Position map file (CSV)');
         console.log('  -s, --style      Style file (JSON)');
