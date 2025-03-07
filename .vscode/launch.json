@@ -13,9 +13,9 @@
             ],
             "program": "${workspaceFolder}\\src\\index.js",
             "args": [
-                "-n", "./data/nodes.csv",
-                "-e", "./data/edges.csv",
-                "-m", "./data/map.csv",
+                "-n", "./examples/nodes.csv",
+                "-e", "./examples/edges.csv",
+                "-m", "./examples/map.csv",
                 "-s", "style-latex.json",
                 "-g", "1",
                 "--trace-warnings"

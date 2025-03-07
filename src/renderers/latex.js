@@ -10,18 +10,19 @@ class LatexRenderer extends RendererBase {
     constructor(options = {}) {
         super(options);
         
-        // Load style if path provided, otherwise use empty object
+        // Initialize style to empty object if not provided
         const style = options.stylePath ? this.loadStyle(options.stylePath) : {};
+        
+        // Initialize the style handler
         this.styleHandler = new LatexStyleHandler(style);
-        this.scale = this.getScaleConfig(style);
         
-        // Set template paths with defaults
-        this.headerTemplatePath = options.headerTemplatePath || 
-                                  path.join(__dirname, '../templates/latex_header_template.txt');
-        this.footerTemplatePath = options.footerTemplatePath || 
-                                  path.join(__dirname, '../templates/latex_footer_template.txt');
+        // Store document paths with correct paths
+        this.headerTemplatePath = options.headerTemplate || 
+                                 path.join(__dirname, '../templates/latex_header_template.txt');
+        this.footerTemplatePath = options.footerTemplate || 
+                                 path.join(__dirname, '../templates/latex_footer_template.txt');
         
-        // Set additional content file paths
+        // Optional content file paths
         this.definitionsPath = options.definitionsPath || null;
         this.preBoilerplatePath = options.preBoilerplatePath || null;
         this.postBoilerplatePath = options.postBoilerplatePath || null;
@@ -66,6 +67,29 @@ class LatexRenderer extends RendererBase {
         
         // Initialize the scale
         this.scale = this.getScaleConfig(this.style);
+    }
+
+    updateScale(newScale) {
+        // Update scale settings if provided
+        if (newScale) {
+            if (newScale.position) {
+                if (newScale.position.x !== undefined) {
+                    this.scale.position.x = newScale.position.x;
+                }
+                if (newScale.position.y !== undefined) {
+                    this.scale.position.y = newScale.position.y;
+                }
+            }
+            
+            if (newScale.size) {
+                if (newScale.size.w !== undefined) {
+                    this.scale.size.w = newScale.size.w;
+                }
+                if (newScale.size.h !== undefined) {
+                    this.scale.size.h = newScale.size.h;
+                }
+            }
+        }
     }
 
     async render(nodes, edges, outputPath, options = {}) {
@@ -139,17 +163,13 @@ class LatexRenderer extends RendererBase {
         if (style.tikz) {
             style.tikz = { ...style.tikz };
             
-            // Override dimensions with node-specific values
-            style.tikz['minimum width'] = `${node.width}cm`;
-            style.tikz['minimum height'] = `${node.height}cm`;
-            
-            // Override shape if specified in the node
+            // IMPORTANT: Override with node-specific attributes first
             if (node.shape) {
                 style.tikz['shape'] = node.shape;
             }
             
-            // Add anchor information if it's not the default 'center'
-            if (node.anchor)  {
+            // Add anchor information if specified in the node
+            if (node.anchor) {
                 // Standardize the anchor name for consistent TikZ syntax
                 const standardizedAnchor = Direction.standardiseBasicDirectionName(node.anchor);
                 if (standardizedAnchor) {
@@ -157,7 +177,22 @@ class LatexRenderer extends RendererBase {
                 }
             }
             
-            // Process node's tikz_object_attributes if present
+            // Apply node dimensions (from CSV)
+            style.tikz['minimum width'] = `${node.width}cm`;
+            style.tikz['minimum height'] = `${node.height}cm`;
+            
+            // Apply node colors (from CSV)
+            if (node.fillcolor) {
+                style.tikz['fill'] = this.styleHandler.registerColor(node.fillcolor);
+            }
+            if (node.color) {
+                style.tikz['draw'] = this.styleHandler.registerColor(node.color);
+            }
+            if (node.textcolor) {
+                style.tikz['text'] = this.styleHandler.registerColor(node.textcolor);
+            }
+            
+            // Then process any tikz_object_attributes or mergedStyles
             if (node.tikz_object_attributes) {
                 const processedAttributes = this.styleHandler.processAttributes(node.tikz_object_attributes);
                 if (processedAttributes.tikz) {
@@ -728,9 +763,19 @@ ${libraries}
         // Get the complete edge style
         const style = this.styleHandler.getCompleteStyle(edge.style, 'edge', 'object');
         
+        // Process all hex colors in the tikz attributes
+        if (style.tikz) {
+            for (const key in style.tikz) {
+                const value = style.tikz[key];
+                if (typeof value === 'string' && value.startsWith('#')) {
+                    style.tikz[key] = this.styleHandler.registerColor(value);
+                }
+            }
+        }
+        
         // Override color if specified
         if (edge.color && style.tikz) {
-            style.tikz['draw'] = this.getColor(edge.color);
+            style.tikz['draw'] = this.styleHandler.registerColor(edge.color);
         }
 
         // Add arrow style if needed

@@ -1422,3 +1422,8 @@ magick ./output/diagram.pdf -flatten -background white -alpha remove ./output/di
 
 
 node src/index.js -n ./data/nodes.csv -e ./data/edges.csv -m ./data/map.csv -s style-latex.json
+
+
+
+
+handle default size better

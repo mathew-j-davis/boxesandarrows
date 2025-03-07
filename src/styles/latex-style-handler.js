@@ -96,6 +96,13 @@ class LatexStyleHandler {
             .map(([key, value]) => {
                 if (value === true) return key;
                 if (value === false) return null;
+                
+                // Process hex colors
+                if (typeof value === 'string' && value.startsWith('#')) {
+                    // Register and use the registered color name
+                    return `${key}=${this.registerColor(value)}`;
+                }
+                
                 return `${key}=${value}`;
             })
             .filter(Boolean)

@@ -21,8 +21,8 @@
                 "object": {
                     "tikz": {
                         "shape": "rectangle",
-                        "fill": "white",
-                        "draw": "black",
+                        "fill": "#ffffff",
+                        "draw": "#000000",
                         "minimum width": "1cm",
                         "minimum height": "0.5cm",
                         "rounded corners": "0.005cm",
@@ -44,7 +44,7 @@
             "edge": {
                 "object": {
                     "tikz": {
-                        "draw": "black",
+                        "draw": "#000000",
                         "line width": "0.02cm",
                         "rounded corners": "0.05cm"
                     }

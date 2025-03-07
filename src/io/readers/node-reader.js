@@ -13,6 +13,10 @@ class NodeReader {
 
     static processNodeRecord(record, scale, renderer) {
         // Store unscaled position values
+
+        const defaultHeight = 1;
+        const defaultWidth = 1;
+
         const xUnscaled = record.x !== undefined && record.x !== '' ? 
             parseFloat(record.x) : 0;
         const yUnscaled = record.y !== undefined && record.y !== '' ? 
@@ -22,6 +26,7 @@ class NodeReader {
         const x = xUnscaled * scale.position.x;
         const y = yUnscaled * scale.position.y;
 
+        /*
         // Get style defaults if available
         const styleDefaults = renderer.styleHandler?.getCompleteStyle(record.style, 'node', 'object') || {};
         
@@ -55,7 +60,7 @@ class NodeReader {
         const defaultHeight = mergedStyle?.['minimum height']
             ? parseFloat(mergedStyle['minimum height'].replace('cm', ''))
             : 1;
-
+*/
         // Store unscaled size values with priority: CSV > Style > Default
         const widthUnscaled = 
             record.width !== undefined && record.width !== '' 
@@ -70,6 +75,8 @@ class NodeReader {
                 : (record.h !== undefined && record.h !== '' 
                     ? parseFloat(record.h) 
                     : defaultHeight);
+        
+
 
         // Validate scale object structure or use defaults
         const nodeScale = scale?.size || { w: 1, h: 1 };
@@ -94,7 +101,7 @@ class NodeReader {
             type: record.type || 'default',
             style: record.style,
             tikz_object_attributes: record.tikz_object_attributes,
-            mergedStyle,  // Store processed style for rendering
+            //mergedStyle,  // Store processed style for rendering
             color: record.color,
             fillcolor: record.fillcolor,
             textcolor: record.textcolor,

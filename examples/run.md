@@ -73,4 +73,20 @@ For relative node positioning, the application should:
 
 All commands use the `-o` parameter to specify the output file path. The output will be a PDF file at the specified path.
 
-For example, after running the first command, you can find the output at `output/test-nodes.pdf`. 
+For example, after running the first command, you can find the output at `output/test-nodes.pdf`.
+
+# Example Commands
+
+## Run with CSV files and position map
+To generate a diagram using the CSV files and position map:
+
+```bash
+node src/index.js -n examples/nodes.csv -e examples/edges.csv -p examples/map.csv -s style-latex.json -o output/example-output
+```
+
+This command:
+- Loads nodes from `examples/nodes.csv`
+- Loads edges from `examples/edges.csv`
+- Uses positions from `examples/map.csv`
+- Applies styles from `examples/style-latex.json`
+- Outputs the result to `output/example-output.tex` (and generates PDF) 

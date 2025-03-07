@@ -5,6 +5,7 @@ const minimist = require('minimist');
 const PositionReader = require('./io/readers/position-reader');
 const ReaderManager = require('./io/reader-manager');
 const LatexRenderer = require('./renderers/latex');
+const ConfigurationManager = require('./configuration-manager');
 
 class DiagramBuilder {
     constructor(options = {}) {
@@ -14,18 +15,25 @@ class DiagramBuilder {
         // Store all options
         this.options = options;
 
-        // Create renderer based on type
+        // Initialize the configuration manager
+        this.configManager = new ConfigurationManager({
+            verbose: this.verbose
+        });
+
+        // Load configuration from style file if provided
+        if (options.stylePath) {
+            this.configManager.loadConfigFromFile(options.stylePath);
+        }
+
+        // Create renderer based on type and pass the configuration
         const rendererType = options.renderer || 'latex';
         this.renderer = this.createRenderer(rendererType, options);
 
-        // Load style if provided
-        this.style = options.stylePath ? this.renderer.loadStyle(options.stylePath) : {};
-
-        // Let renderer define its scaling requirements
-        this.scale = this.renderer.getScaleConfig(this.style);
-
-        // Initialize the reader manager
-        this.readerManager = new ReaderManager(this.renderer);
+        // Initialize the reader manager and pass the scale configuration
+        this.readerManager = new ReaderManager(
+            this.renderer, 
+            this.configManager.getScaleConfig()
+        );
         
         this.nodePositions = new Map();
         this.invertY = options.invertY || false;
@@ -36,7 +44,8 @@ class DiagramBuilder {
             case 'latex':
                 return new LatexRenderer({
                     ...options,
-                    stylePath: options.stylePath
+                    stylePath: options.stylePath,
+                    pageConfig: this.configManager.getPageConfig()
                 });
             default:
                 throw new Error(`Unknown renderer type: ${type}`);
@@ -44,7 +53,7 @@ class DiagramBuilder {
     }
 
     async renderDiagram(outputPath) {
-        // Pass rendering options including grid parameter if set
+        // Pass rendering options including grid parameter if set on command line
         const renderOptions = {};
         if (this.options && this.options.grid) {
             // Grid spacing is in unscaled coordinates
@@ -57,10 +66,6 @@ class DiagramBuilder {
         const edges = this.readerManager.getEdges();
         
         await this.renderer.render(nodes, edges, outputPath, renderOptions);
-        
-        if (this.verbose) {
-            console.log(`Diagram rendered to ${outputPath}`);
-        }
     }
 
     async loadData(nodePaths, edgePaths, positionFile, mixedYamlFile) {
@@ -129,8 +134,8 @@ class DiagramBuilder {
         
         positions.forEach((pos, name) => {
             let node = nodes.get(name);
-            let x = pos.xUnscaled * this.scale.position.x;
-            let y = pos.yUnscaled * this.scale.position.y;
+            let x = pos.xUnscaled * this.configManager.getScaleConfig().position.x;
+            let y = pos.yUnscaled * this.configManager.getScaleConfig().position.y;
             
             if (node) {
                 node.xUnscaled = pos.xUnscaled;
