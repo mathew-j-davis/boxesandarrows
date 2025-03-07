@@ -123,13 +123,15 @@ class LatexRenderer extends RendererBase {
         // Draw grid if specified (add before content so it's behind everything)
         if (options.grid && typeof options.grid === 'number') {
             // Store content temporarily
-            const contentBackup = [...this.content];
+            //const contentBackup = [...this.content];
             // Clear content to add grid first
-            this.content = [];
-            // Draw grid with specified spacing
+            //this.content = [];
+
+            // Draw grid with specified spacing as overlay
             this.drawGrid(options.grid);
+            
             // Add original content back so grid is behind everything
-            this.content.push(...contentBackup);
+            //this.content.push(...contentBackup);
         }
 
         // Generate the complete LaTeX content

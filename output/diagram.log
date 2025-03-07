@@ -1,10 +1,10 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.9.8)  7 MAR 2025 16:41
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.9.8)  7 MAR 2025 16:59
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
  %&-line parsing enabled.
-**example-output.tex
-(output/example-output.tex
+**diagram.tex
+(output/diagram.tex
 LaTeX2e <2024-06-01> patch level 2
 L3 programming layer <2024-08-16>
 (c:/texlive/2024/texmf-dist/tex/latex/standalone/standalone.cls
@@ -463,9 +463,8 @@ File: ot1xcmss.fd 2021/06/22
 File: l3backend-pdftex.def 2024-05-08 L3 backend support: PDF output (pdfTeX)
 \l__color_backend_stack_int=\count295
 \l__pdf_internal_box=\box67
-)
-No file example-output.aux.
-\openout1 = `example-output.aux'.
+) (output/diagram.aux)
+\openout1 = `diagram.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmssm/m/it on input line 14.
 LaTeX Font Info:    Trying to load font information for OML+cmssm on input line
@@ -523,54 +522,29 @@ File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Liv
 e
 ))
 
-Package pgf Warning: Returning node center instead of a point on node border. D
-id you specify a point identical to the center of node ``b''? on input line 24.
-
-
-
-Package pgf Warning: Returning node center instead of a point on node border. D
-id you specify a point identical to the center of node ``start''? on input line
- 24.
-
-
-Package pgf Warning: Returning node center instead of a point on node border. D
-id you specify a point identical to the center of node ``end''? on input line 2
-5.
-
-
-Package pgf Warning: Returning node center instead of a point on node border. D
-id you specify a point identical to the center of node ``b''? on input line 25.
-
-
-
-Package pgf Warning: Returning node center instead of a point on node border. D
-id you specify a point identical to the center of node ``end''? on input line 2
-8.
-
-
-
 [1
 
-{c:/texlive/2024/texmf-var/fonts/map/pdftex/updmap/pdftex.map}] (output/example
--output.aux)
+{c:/texlive/2024/texmf-var/fonts/map/pdftex/updmap/pdftex.map}] (output/diagram
+.aux)
  ***********
 LaTeX2e <2024-06-01> patch level 2
 L3 programming layer <2024-08-16>
  ***********
  ) 
 Here is how much of TeX's memory you used:
- 14994 strings out of 473579
- 322461 string characters out of 5732264
- 1929960 words of memory out of 5000000
- 37620 multiletter control sequences out of 15000+600000
+ 15012 strings out of 473579
+ 322836 string characters out of 5732264
+ 1945960 words of memory out of 5000000
+ 37636 multiletter control sequences out of 15000+600000
  558980 words of font info for 39 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 102i,7n,107p,417b,730s stack positions out of 10000i,1000n,20000p,200000b,200000s
-<c:/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmss9.pfb>
-Output written on output/example-output.pdf (1 page, 11290 bytes).
+ 102i,7n,107p,410b,730s stack positions out of 10000i,1000n,20000p,200000b,200000s
+<c:/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmss10.pfb><c:/tex
+live/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmss9.pfb>
+Output written on output/diagram.pdf (1 page, 22203 bytes).
 PDF statistics:
- 16 PDF objects out of 1000 (max. 8388607)
- 10 compressed objects within 1 object stream
+ 21 PDF objects out of 1000 (max. 8388607)
+ 13 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  13 words of extra memory for PDF output out of 10000 (max. 10000000)
 

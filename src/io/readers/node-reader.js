@@ -110,7 +110,6 @@ class NodeReader {
             anchorVector: null
         };
 
-        node.anchorVector = renderer.getNodeAnchor(node);
 
         return node;
     }
