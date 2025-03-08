@@ -1,12 +1,63 @@
 class LatexStyleHandler {
-    constructor(styleSheet) {
-        this.styleSheet = styleSheet;
+    constructor() {
+        this.stylesheet = this.getBlankStylesheet();
         this.colorDefinitions = new Map();  // Track color definitions
         this.reservedAttributes = new Set([
             'width', 'height', 'anchor',
             'minimum width', 'minimum height',
             'shape'
         ]);
+    }
+
+    // Get just the page configuration
+    getPage() {
+        return this.stylesheet.page;
+    }
+
+    // Get the scale configuration
+    getPageScale() {
+        return this.stylesheet.page.scale;
+    }
+
+    // Get the scale configuration
+    getPageMargin() {
+        return this.stylesheet.page.margin;
+    }
+
+    /**
+     * Get a blank stylesheet with default values
+     * @returns {Object} Blank stylesheet
+     */
+    getBlankStylesheet() {
+        const blank = { 
+            page: {},
+            style: {}
+        };
+
+        blank.page = this.getBlankPage();
+        blank.style = this.getBlankStyles();
+
+        return blank;
+    }
+
+    getBlankPage() {
+        return {
+            scale: {
+                position: { x: 1, y: 1 },
+                size: { w: 1, h: 1 }
+                },
+            margin:{
+                h: 1,
+                w: 1
+            }
+        };
+    }
+
+    getBlankStyles() {
+        return {
+            node: {},
+            edge: {}
+        };
     }
 
     /**
@@ -22,11 +73,11 @@ class LatexStyleHandler {
         
         // Try the specified style first (or default if none specified)
         const styleToUse = styleName || 'default';
-        let value = this.getValueFromPath(this.styleSheet.style?.[styleToUse]?.[category], pathParts);
+        let value = this.getValueFromPath(this.stylesheet.style?.[styleToUse]?.[category], pathParts);
         
         // If not found, cascade to base
         if (value === undefined) {
-            value = this.getValueFromPath(this.styleSheet.style?.base?.[category], pathParts);
+            value = this.getValueFromPath(this.stylesheet.style?.base?.[category], pathParts);
         }
         
         return value ?? defaultValue;
@@ -51,11 +102,11 @@ class LatexStyleHandler {
      * @param {string} specificCategory - more refined category like 'text_start', 'head_end'
      */
     getCompleteStyle(styleName, styleType, generalCategory, specificCategory = null) {
-        const baseStyle = this.styleSheet?.style?.base?.[styleType]?.[generalCategory] || {};
-        const baseStyleSpecific = this.styleSheet?.style?.base?.[styleType]?.[specificCategory] || {};
+        const baseStyle = this.stylesheet?.style?.base?.[styleType]?.[generalCategory] || {};
+        const baseStyleSpecific = this.stylesheet?.style?.base?.[styleType]?.[specificCategory] || {};
 
-        const selectedStyle = this.styleSheet?.style?.[styleName || 'default']?.[styleType]?.[generalCategory] || {};
-        const selectedStyleSpecific = this.styleSheet?.style?.[styleName || 'default']?.[styleType]?.[specificCategory] || {};
+        const selectedStyle = this.stylesheet?.style?.[styleName || 'default']?.[styleType]?.[generalCategory] || {};
+        const selectedStyleSpecific = this.stylesheet?.style?.[styleName || 'default']?.[styleType]?.[specificCategory] || {};
 
         return {
             ...baseStyle,
@@ -184,7 +235,7 @@ class LatexStyleHandler {
      * @param {Object} override - Override style object
      * @returns {Object} Merged style object
      */
-    mergeStyles(base, override) {
+    getMergedStyle(base, override) {
         const result = { ...base };
         
         if (override.tikz) {
@@ -206,39 +257,39 @@ class LatexStyleHandler {
      * Merge new styles into the existing stylesheet
      * @param {Object} newStyles - New styles to merge
      */
-    mergeStyleSheet(newStyles) {
+    mergeStylesheet(newStyles) {
         if (!newStyles || !newStyles.style) return;
         
         // Initialize style section if it doesn't exist
-        if (!this.styleSheet) {
-            this.styleSheet = {};
+        if (!this.stylesheet) {
+            this.stylesheet = this.getBlankStylesheet;
         }
         
-        if (!this.styleSheet.style) {
-            this.styleSheet.style = {};
+        if (!this.stylesheet.style) {
+            this.stylesheet.style = this.getBlankStyles;
         }
         
         // Merge styles at the style name level
         for (const [styleName, styleData] of Object.entries(newStyles.style)) {
-            if (!this.styleSheet.style[styleName]) {
-                this.styleSheet.style[styleName] = {};
+            if (!this.stylesheet.style[styleName]) {
+                this.stylesheet.style[styleName] = {};
             }
             
             // Deep merge the style data
-            this.styleSheet.style[styleName] = this.deepMergeObjects(
-                this.styleSheet.style[styleName],
+            this.stylesheet.style[styleName] = this.deepMergeObjects(
+                this.stylesheet.style[styleName],
                 styleData
             );
         }
         
         // Handle page configuration if present
         if (newStyles.page) {
-            if (!this.styleSheet.page) {
-                this.styleSheet.page = {};
+            if (!this.stylesheet.page) {
+                this.stylesheet.page = this.getBlankPage();
             }
             
-            this.styleSheet.page = this.deepMergeObjects(
-                this.styleSheet.page,
+            this.stylesheet.page = this.deepMergeObjects(
+                this.stylesheet.page,
                 newStyles.page
             );
         }

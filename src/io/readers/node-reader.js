@@ -4,30 +4,25 @@ const yaml = require('js-yaml');
 const YamlReader = require('./yaml-reader');
 
 class NodeReader {
-    constructor(renderer) {
-        this.renderer = renderer;
-    }
 
-    static async readFromCsv(nodeFile, scale, renderer) {
+    static async readFromCsv(nodeFile) {
         const records = await CsvReader.readFile(nodeFile);
-        return records.map(record => this.processNodeRecord(record, scale, renderer));
+        return records.map(record => this.processNodeRecord(record));
     }
 
     /**
      * Read nodes from a YAML file
      * @param {string} yamlFile - Path to the YAML file
-     * @param {Object} scale - Scale information for positions and sizes
-     * @param {Object} renderer - Renderer with style handling capabilities
      * @returns {Promise<Array>} - Array of processed node objects
      */
-    static async readFromYaml(yamlFile, scale, renderer) {
+    static async readFromYaml(yamlFile) {
         const records = await YamlReader.readFile(yamlFile, { 
             filter: doc => doc && doc.type === 'node' 
         });
-        return records.map(record => this.processNodeRecord(record, scale, renderer));
+        return records.map(record => this.processNodeRecord(record));
     }
     
-    static processNodeRecord(record, scale, renderer) {
+    static processNodeRecord(record) {
         // Store unscaled position values
 
         const defaultHeight = 1;
@@ -39,8 +34,8 @@ class NodeReader {
             parseFloat(record.y) : 0;
 
         // Apply position scaling
-        const x = xUnscaled * scale.position.x;
-        const y = yUnscaled * scale.position.y;
+        const x = null; // xUnscaled * scale.position.x;
+        const y = null; //yUnscaled * scale.position.y;
 
         /*
         // Get style defaults if available
@@ -95,11 +90,11 @@ class NodeReader {
 
 
         // Validate scale object structure or use defaults
-        const nodeScale = scale?.size || { w: 1, h: 1 };
+        //const nodeScale = scale?.size || { w: 1, h: 1 };
 
         // Apply node size scaling with validated scale object
-        const width = widthUnscaled * nodeScale.w;
-        const height = heightUnscaled * nodeScale.h;
+        const width = null; //widthUnscaled * nodeScale.w;
+        const height = null; //heightUnscaled * nodeScale.h;
 
         let node = {
             name: record.name,

@@ -20,7 +20,7 @@ This approach allows the waypoint system to work with unscaled coordinates relat
  * @param {string} [anchor] - Node anchor point (e.g., "north west", "center")
  * @returns {Point2D} The calculated connection point
  */
-function getNodeConnectionPoint(node, scale, direction = null, offset = null, renderer) {
+function getNodeConnectionPoint(node, scale, direction = null, offset = null) {
     if (!node) {
         throw new Error('Node is required');
     }

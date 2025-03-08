@@ -1,4 +1,4 @@
-class RendererBase {
+class Renderer {
     constructor(options = {}) {
         this.verbose = options.verbose || false;
     }
@@ -11,9 +11,7 @@ class RendererBase {
         return JSON.parse(fs.readFileSync(styleFile, 'utf8'));
     }
 
-    getScaleConfig(style) {
-        throw new Error('getScaleConfig must be implemented by renderer');
-    }
+
 
     getOutputPath(basePath) {
         throw new Error('getOutputPath must be implemented by renderer');
@@ -28,4 +26,4 @@ class RendererBase {
     }
 }
 
-module.exports = RendererBase;
+module.exports = Renderer;

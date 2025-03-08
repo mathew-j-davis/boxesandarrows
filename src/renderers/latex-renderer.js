@@ -1,34 +1,18 @@
-const RendererBase = require('./renderer-base');
+const Renderer = require('./renderer');
 const { Point2D } = require('../geometry/basic-points');
 const { Direction } = require('../geometry/direction');
 const { exec } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const LatexStyleHandler = require('../styles/latex-style-handler');
-const LatexPageHandler = require('../styles/latex-page-handler');
 
-class LatexRenderer extends RendererBase {
+class LatexRenderer extends Renderer {
     constructor(options = {}) {
         super(options);
         
-        // Initialize style to empty object if not provided
-        const style = options.styleFile ? this.loadStyle(options.styleFile) : {};
-        
         // Initialize the style handler
-        this.styleHandler = new LatexStyleHandler(style);
+        this.styleHandler = new LatexStyleHandler();
         
-        // Initialize the page handler
-        this.pageHandler = new LatexPageHandler({
-            verbose: options.verbose
-        });
-        
-        // If a style file was provided with page config, initialize the page handler with it
-        if (options.style && options.style.page) {
-            this.pageHandler.updateConfig(options.style);
-        }
-        
-        // Use the pageHandler for scale information
-        this.scale = this.pageHandler.getScaleConfig();
         
         // Store document paths with correct paths
         this.headerTemplatePath = options.headerTemplate || 
@@ -50,28 +34,18 @@ class LatexRenderer extends RendererBase {
         this.preBoilerplateContent = this.loadContentFile(this.preBoilerplatePath);
         this.postBoilerplateContent = this.loadContentFile(this.postBoilerplatePath);
         
-        this.initializeState(style, options);
+        this.initializeState(options);
         
     }
 
-    initializeState(style, options = {}) {
-        this.style = style || {};
+    initializeState(options = {}) {
         this.useColor = options.useColor ?? true;
         this.content = [];
         this.usedColors = new Map();
         this.verbose = options.verbose || false;
         this.log = this.verbose ? console.log.bind(console) : () => {};
         
-        // Add default values when style.page is undefined
-        const pageStyle = this.style.page || {};
-        const marginStyle = pageStyle.margin || {};
-        
-        // Get margins with fallbacks
-        this.margin = {
-            h: marginStyle.h || 1,
-            w: marginStyle.w || 1
-        };
-
+ 
         this.bounds = {
             minX: Infinity,
             minY: Infinity,
@@ -80,14 +54,9 @@ class LatexRenderer extends RendererBase {
         };
     }
 
-    updateScale(newScale) {
-        this.pageHandler.updateConfig({ page: { scale: newScale } });
-        this.scale = this.pageHandler.getScaleConfig();
-    }
-
     async render(nodes, edges, outputPath, options = {}) {
         // Reset all state to initial values
-        this.initializeState(this.style, { 
+        this.initializeState({ 
             verbose: this.verbose, 
             useColor: this.useColor 
         });
@@ -501,10 +470,10 @@ ${libraries}
         const colorDefinitions = this.styleHandler.getColorDefinitions().join('\n');
 
         // Calculate bounding box after all nodes and edges have been rendered
-        const boxMinX = this.bounds.minX - this.margin.w;
-        const boxMinY = this.bounds.minY - this.margin.h;
-        const boxMaxX = this.bounds.maxX + this.margin.w;
-        const boxMaxY = this.bounds.maxY + this.margin.h;
+        const boxMinX = this.bounds.minX - this.styleHandler.getPageMargin().w;
+        const boxMinY = this.bounds.minY - this.styleHandler.getPageMargin().h;
+        const boxMaxX = this.bounds.maxX + this.styleHandler.getPageMargin().w;
+        const boxMaxY = this.bounds.maxY + this.styleHandler.getPageMargin().h;
 
         // Replace placeholders in header template
         let header = this.headerTemplate
@@ -789,13 +758,6 @@ ${libraries}
         this.updateBounds(centerX + node.width/2, centerY + node.height/2);
     }
 
-    getScaleConfig(style) {
-        if (style && style.page) {
-            this.pageHandler.updateConfig(style);
-        }
-        return this.pageHandler.getScaleConfig();
-    }
-
     // Load template from file or use default
     loadTemplate(templatePath, defaultTemplate) {
         try {
@@ -808,23 +770,6 @@ ${libraries}
             console.error(`Error loading template: ${error.message}`);
             return defaultTemplate;
         }
-    }
-
-    // Define default header template as a fallback
-    getDefaultHeaderTemplate() {
-        return `\\documentclass{standalone}
-\\usepackage{tikz}
-\\usepackage{adjustbox}
-\\usepackage{helvet}  
-\\usepackage{sansmathfonts}  
-\\renewcommand{\\familydefault}{\\sfdefault}  
-\\usetikzlibrary{arrows.meta,calc,decorations.pathmorphing}
-\\usetikzlibrary{shapes.arrows}
-\\usepackage{xcolor}
-{{COLOR_DEFINITIONS}}
-\\begin{document}
-\\begin{tikzpicture}
-\\useasboundingbox ({{BOX_MIN_X}},{{BOX_MIN_Y}}) rectangle ({{BOX_MAX_X}},{{BOX_MAX_Y}});`;
     }
 
     // Add this new helper method to the LatexRenderer class
@@ -867,9 +812,12 @@ ${libraries}
     drawGrid(gridSpacing) {
         if (!gridSpacing || gridSpacing <= 0) return;
 
+        // Get scale config
+        const scale = this.styleHandler.getPageScale();
+        
         // gridSpacing is in unscaled coordinates, so convert to scaled
-        const scaledGridSpacingX = gridSpacing * this.scale.position.x;
-        const scaledGridSpacingY = gridSpacing * this.scale.position.y;
+        const scaledGridSpacingX = gridSpacing * scale.position.x;
+        const scaledGridSpacingY = gridSpacing * scale.position.y;
 
         // Find the grid bounds based on the diagram bounds
         // Use the calculated bounds from the diagram content
@@ -887,7 +835,7 @@ ${libraries}
             this.content.push(`\\draw[${gridStyle}] (${x},${minY}) -- (${x},${maxY});`);
             
             // Calculate unscaled coordinate for label
-            const unscaledX = x / this.scale.position.x;
+            const unscaledX = x / scale.position.x;
             // Round to 2 decimal places to avoid floating point issues
             const formattedX = Math.round(unscaledX * 100) / 100;
             
@@ -901,7 +849,7 @@ ${libraries}
             this.content.push(`\\draw[${gridStyle}] (${minX},${y}) -- (${maxX},${y});`);
             
             // Calculate unscaled coordinate for label
-            const unscaledY = y / this.scale.position.y;
+            const unscaledY = y / scale.position.y;
             // Round to 2 decimal places to avoid floating point issues
             const formattedY = Math.round(unscaledY * 100) / 100;
             

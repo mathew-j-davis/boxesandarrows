@@ -167,7 +167,62 @@ function setNodePositionRelativeToNode(node, nodesMap, scale) {
     return node;
 }
 
-
-
+/**
+ * Process a node with relative positioning
+ * @param {Object} node - The node to position
+ * @param {Object} referenceNode - The reference node
+ * @param {Object} scale - Scale configuration
+ * @returns {Object} - The positioned node
+ */
+function processRelativeNode(node, referenceNode, scale) {
+    if (!node || !referenceNode) {
+        console.warn('Cannot process relative node: Missing node or reference node');
+        return node;
+    }
+    
+    // Get the Direction utility if not directly passed
+    const Direction = require('../../geometry/direction');
+    
+    // 1. Get the vector for the node's own anchor (or default to center)
+    const nodeAnchorVector = node.anchorVector || 
+                            (node.anchor ? Direction.getVector(node.anchor) : Direction.getVector('center'));
+    
+    // 2. Get the vector for the reference node's anchor point to use
+    // This is the new part - using relative_to_anchor instead of assuming center
+    const referenceAnchorVector = node.relative_to_anchor ? 
+                                Direction.getVector(node.relative_to_anchor) :  
+                                (referenceNode.anchorVector || Direction.getVector('center'));
+    
+    // 3. Calculate the center position of the reference node
+    // Account for the reference node's own anchor positioning
+    const refNodeAnchorVector = referenceNode.anchorVector || Direction.getVector('center');
+    const refNodeCenterX = referenceNode.x + ((0 - refNodeAnchorVector.x) * referenceNode.width/2);
+    const refNodeCenterY = referenceNode.y + ((0 - refNodeAnchorVector.y) * referenceNode.height/2);
+    
+    // 4. Calculate the position of the specific anchor point on the reference node
+    const refAnchorPointX = refNodeCenterX + (referenceAnchorVector.x * referenceNode.width/2);
+    const refAnchorPointY = refNodeCenterY + (referenceAnchorVector.y * referenceNode.height/2);
+    
+    // 5. Apply any specified offsets
+    const offsetX = node.offset_x !== undefined ? parseFloat(node.offset_x) : 0;
+    const offsetY = node.offset_y !== undefined ? parseFloat(node.offset_y) : 0;
+    
+    // 6. Calculate the position for the node's center based on its anchor
+    // This positions the node's anchor point at the reference anchor point
+    const nodeCenterX = refAnchorPointX - (nodeAnchorVector.x * node.width/2) + offsetX;
+    const nodeCenterY = refAnchorPointY - (nodeAnchorVector.y * node.height/2) + offsetY;
+    
+    // 7. Update the node's position
+    node.x = nodeCenterX + (nodeAnchorVector.x * node.width/2);
+    node.y = nodeCenterY + (nodeAnchorVector.y * node.height/2);
+    
+    // 8. Calculate unscaled coordinates if scale is provided
+    if (scale) {
+        node.xUnscaled = node.x / scale.position.x;
+        node.yUnscaled = node.y / scale.position.y;
+    }
+    
+    return node;
+}
 
 module.exports = { processRelativeNode, setNodePositionRelativeToNode }; 

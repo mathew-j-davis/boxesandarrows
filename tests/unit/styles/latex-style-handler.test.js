@@ -176,7 +176,7 @@ describe('LatexStyleHandler', () => {
     });
   });
 
-  describe('mergeStyles', () => {
+  describe('getMergedStyle', () => {
     test('should merge tikz properties correctly', () => {
       const base = {
         tikz: {
@@ -192,7 +192,7 @@ describe('LatexStyleHandler', () => {
         }
       };
       
-      const result = styleHandler.mergeStyles(base, override);
+      const result = styleHandler.getMergedStyle(base, override);
       
       expect(result.tikz.shape).toBe('rectangle'); // from base
       expect(result.tikz.draw).toBe('red');        // overridden

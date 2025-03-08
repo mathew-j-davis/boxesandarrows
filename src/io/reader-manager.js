@@ -1,8 +1,6 @@
 const path = require('path');
 const NodeReader = require('./readers/node-reader');
 const EdgeReader = require('./readers/edge-reader');
-const StyleYamlReader = require('./readers/style-yaml-reader');
-const PageYamlReader = require('./readers/page-yaml-reader');
 const StyleReader = require('./readers/style-reader');
 
 /**
@@ -11,42 +9,81 @@ const StyleReader = require('./readers/style-reader');
 class ReaderManager {
     /**
      * Create a new ReaderManager
-     * @param {Object} renderer - Renderer with style handling capabilities
+     * @param {Object} styleHandler - Style handler for processing styles
      */
-    constructor(renderer) {
-        this.renderer = renderer;
+    constructor() {
+ 
         this.nodes = new Map();
         this.edges = [];
-        this.pageConfig = null;
     }
 
+    /**
+     * Process style files (JSON or YAML)
+     * @param {Array} styleFiles - Array of file paths to process
+     * @returns {Object} - Processed style definitions
+     */
+    async processStyleFiles(styleFiles, styleHandler) {
+        // Return empty object if no style files provided
+        if (!styleFiles || styleFiles.length === 0) {
+            console.info('No style files provided, using empty style set');
+            return {};
+        }
+        
+        // Process each file
+        for (const file of styleFiles) {
+            // Get file extension
+            const fileExtension = path.extname(file).toLowerCase().replace('.', '');
+            
+            // Process based on file extension
+            try {
+                
+                if (fileExtension === 'json') {
+                    let stylesheet = await StyleReader.readFromJson(file);
+                    styleHandler.mergeStylesheet(stylesheet);
+
+                } else if (fileExtension === 'yaml' || fileExtension === 'yml') {
+                    let styleDocuments = await StyleReader.readFromYaml(file);   
+                    // Process the documents directly with the style handler
+                    styleHandler.processYamlDocuments(styleDocuments);    
+                } else {
+                    console.warn(`Unsupported file format for styles: ${fileExtension}`);
+                    continue;
+                }
+                
+                // Merge the new styles with the consolidated styles
+                
+                    
+            } catch (error) {
+                console.error(`Error processing style file ${file}:`, error);
+            }
+        }
+    }
+    
     /**
      * Process multiple node files (CSV or YAML)
      * @param {Array} nodeFiles - Array of file paths to process
      * @param {Object} scale - Scale information for positions and sizes
      * @returns {Map} - Map of node objects (name -> node)
      */
-    async processNodeFiles(nodeFiles, scale) {
+    async processNodeFiles(nodeFiles) {
         // Return empty Map if no node files provided
         if (!nodeFiles || nodeFiles.length === 0) {
             console.info('No node files provided, using empty node set');
             return new Map();
         }
 
-        // Ensure scale is valid
-        const safeScale = scale || { position: { x: 1, y: 1 }, size: { w: 1, h: 1 } };
-        
         // Process each file
         for (const file of nodeFiles) {
             // Get file extension
             const fileExtension = path.extname(file).toLowerCase().replace('.', '');
             
+
             // Process based on file extension
             let newNodes = [];
             if (fileExtension === 'csv') {
-                newNodes = await NodeReader.readFromCsv(file, safeScale, this.renderer);
+                newNodes = await NodeReader.readFromCsv(file);
             } else if (fileExtension === 'yaml' || fileExtension === 'yml') {
-                newNodes = await NodeReader.readFromYaml(file, safeScale, this.renderer);       
+                newNodes = await NodeReader.readFromYaml(file);       
             } else {
                 console.warn(`Unsupported file format for nodes: ${fileExtension}`);
                 continue;
@@ -80,79 +117,12 @@ class ReaderManager {
     }
     
     /**
-     * Process styles from a YAML file
-     * @param {string} yamlFile - Path to the YAML file
-     * @returns {Object} - Processed style definitions
-     */
-    async processStylesFromYaml(yamlFile) {
-        try {
-            const styles = await StyleYamlReader.readFromYaml(yamlFile, this.renderer);
-            
-            if (styles && styles.style && Object.keys(styles.style).length > 0) {
-                // If the renderer has a style handler, update its styles
-                if (this.renderer && this.renderer.styleHandler) {
-                    // Merge the new styles with existing styles
-                    const existingStyles = this.renderer.styleHandler.styleSheet || {};
-                    
-                    if (!existingStyles.style) {
-                        existingStyles.style = {};
-                    }
-                    
-                    // Merge styles at top level
-                    Object.assign(existingStyles.style, styles.style);
-                    
-                    // Update the style handler
-                    this.renderer.styleHandler.styleSheet = existingStyles;
-                }
-                
-                return styles;
-            }
-            
-            return null;
-        } catch (error) {
-            console.error(`Error processing styles from YAML file ${yamlFile}:`, error);
-            return null;
-        }
-    }
-    
-    /**
-     * Process page configuration from a YAML file
-     * @param {string} yamlFile - Path to the YAML file
-     * @returns {Object} - Processed page configuration
-     */
-    async processPageFromYaml(yamlFile) {
-        try {
-            const pageConfig = await PageYamlReader.readFromYaml(yamlFile);
-            
-            if (pageConfig && Object.keys(pageConfig).length > 0) {
-                // Store the page configuration
-                this.pageConfig = pageConfig;
-                
-                // Update the renderer's scale if possible
-                if (this.renderer && pageConfig.scale) {
-                    // Only update if the renderer has a method to update scale
-                    if (typeof this.renderer.updateScale === 'function') {
-                        this.renderer.updateScale(pageConfig.scale);
-                    }
-                }
-                
-                return pageConfig;
-            }
-            
-            return null;
-        } catch (error) {
-            console.error(`Error processing page configuration from YAML file ${yamlFile}:`, error);
-            return null;
-        }
-    }
-
-    /**
      * Process multiple edge files (CSV or YAML)
      * @param {Array} edgeFiles - Array of file paths to process
      * @param {Object} scale - Scale information for positions
      * @returns {Array} - Array of edge objects
      */
-    async processEdgeFiles(edgeFiles, scale) {
+    async processEdgeFiles(edgeFiles, styleHandler) {
         // Return empty array if no edge files provided
         if (!edgeFiles || edgeFiles.length === 0) {
             console.info('No edge files provided, using empty edge set');
@@ -165,28 +135,33 @@ class ReaderManager {
             return [];
         }
         
-        // Ensure scale is valid
-        const safeScale = scale || { position: { x: 1, y: 1 }, size: { w: 1, h: 1 } };
-        
         // Process each file
         for (const file of edgeFiles) {
             // Get file extension
             const fileExtension = path.extname(file).toLowerCase().replace('.', '');
             
             // Process based on file extension
-            let newEdges = [];
-            if (fileExtension === 'csv') {
-                newEdges = await EdgeReader.readFromCsv(file, this.nodes, safeScale, this.renderer);
-            } else if (fileExtension === 'yaml' || fileExtension === 'yml') {
-                newEdges = await EdgeReader.readFromYaml(file, this.nodes, safeScale, this.renderer);
+            try {
+                let records = [];
+                if (fileExtension === 'csv') {
+                    records = await EdgeReader.readFromCsv(file);
+                } else if (fileExtension === 'yaml' || fileExtension === 'yml') {
+                    records = await EdgeReader.readFromYaml(file);
+                } else {
+                    console.warn(`Unsupported file format for edges: ${fileExtension}`);
+                    continue;
+                }
                 
-            } else {
-                console.warn(`Unsupported file format for edges: ${fileExtension}`);
-                continue;
+                // Now process the records into edges
+                const newEdges = records
+                    .map(record => EdgeReader.processEdgeRecord(record, this.nodes, styleHandler.getPageScale()))
+                    .filter(edge => edge !== null);
+                
+                // Add edges to array
+                this.edges = [...this.edges, ...newEdges];
+            } catch (error) {
+                console.error(`Error processing edge file ${file}:`, error);
             }
-            
-            // Add edges to array, filtering out nulls
-            this.edges = [...this.edges, ...newEdges.filter(edge => edge !== null)];
         }
         
         return this.edges;
@@ -215,75 +190,6 @@ class ReaderManager {
      */
     getNode(nodeName) {
         return this.nodes.get(nodeName);
-    }
-    
-    /**
-     * Get the page configuration
-     * @returns {Object|null} - Page configuration or null if not defined
-     */
-    getPageConfig() {
-        return this.pageConfig;
-    }
-
-    /**
-     * Process style files (JSON or YAML)
-     * @param {Array} styleFiles - Array of file paths to process
-     * @returns {Object} - Processed style definitions
-     */
-    async processStyleFiles(styleFiles) {
-        // Return empty object if no style files provided
-        if (!styleFiles || styleFiles.length === 0) {
-            console.info('No style files provided, using empty style set');
-            return {};
-        }
-        
-        let consolidatedStyles = { style: {} };
-        
-        // Process each file
-        for (const file of styleFiles) {
-            // Get file extension
-            const fileExtension = path.extname(file).toLowerCase().replace('.', '');
-            
-            // Process based on file extension
-            try {
-                let newStyles = {};
-                if (fileExtension === 'json') {
-                    newStyles = await StyleReader.readFromJson(file, this.renderer);
-                } else if (fileExtension === 'yaml' || fileExtension === 'yml') {
-                    newStyles = await StyleReader.readFromYaml(file, this.renderer);       
-                } else {
-                    console.warn(`Unsupported file format for styles: ${fileExtension}`);
-                    continue;
-                }
-                
-                // Merge the new styles with the consolidated styles
-                if (this.renderer && this.renderer.styleHandler) {
-                    // Let the styleHandler handle the merging
-                    this.renderer.styleHandler.mergeStyleSheet(newStyles);
-                    
-                    // Process page config if it exists
-                    if (newStyles.page) {
-                        this.pageConfig = this.pageConfig || {};
-                        this.pageConfig = this.renderer.styleHandler.deepMergeObjects(
-                            this.pageConfig,
-                            newStyles.page
-                        );
-                        
-                        // Update renderer scale if applicable
-                        if (typeof this.renderer.updateScale === 'function' && newStyles.page.scale) {
-                            this.renderer.updateScale(newStyles.page.scale);
-                        }
-                    }
-                } else {
-                    console.warn('No styleHandler available to process styles');
-                }
-            } catch (error) {
-                console.error(`Error processing style file ${file}:`, error);
-            }
-        }
-        
-        // Return the styles from the styleHandler
-        return this.renderer?.styleHandler?.styleSheet || { style: {} };
     }
 }
 

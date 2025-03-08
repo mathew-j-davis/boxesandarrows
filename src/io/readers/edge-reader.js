@@ -14,9 +14,6 @@ const PATH_TYPES = {
 };
 
 class EdgeReader {
-    constructor(renderer) {
-        this.renderer = renderer;
-    }
 
     static scalePoint(point, scale) {
         return {
@@ -109,19 +106,29 @@ class EdgeReader {
         };
     }
 
-    static async readFromCsv(edgeFile, nodes, scale, renderer) {
+    /**
+     * Read edges from a CSV file
+     * @param {string} edgeFile - Path to the CSV file
+     * @returns {Promise<Array>} - Array of edge records
+     */
+    static async readFromCsv(edgeFile) {
         const records = await CsvReader.readFile(edgeFile);
-        return records.map(record => this.processEdgeRecord(record, nodes, scale, renderer));
+        return records;
     }
 
-    static async readFromYaml(yamlFile, nodes, scale, renderer) {
-        const records = await YamlReader.readFile(yamlFile, {
-            filter: doc => doc && doc.type === 'edge'
+    /**
+     * Read edges from a YAML file
+     * @param {string} yamlFile - Path to the YAML file
+     * @returns {Promise<Array>} - Array of edge records
+     */
+    static async readFromYaml(yamlFile) {
+        const records = await YamlReader.readFile(yamlFile, { 
+            filter: doc => doc && doc.type === 'edge' 
         });
-        return records.map(record => this.processEdgeRecord(record, nodes, scale, renderer));
+        return records;
     }
     
-    static processEdgeRecord(record, nodes, scale, renderer) {
+    static processEdgeRecord(record, nodes, scale, styleHandler) {
         // Skip empty rows
         const values = Object.values(record).map(val => val?.trim() || '');
         if (values.every(val => val === '')) {
@@ -167,15 +174,13 @@ class EdgeReader {
                 scale,
                 startDirection,
                 startAdjust,
-                renderer
             );
 
             let endPoint = getNodeConnectionPoint(
                 toNode,
                 scale,
                 endDirection,
-                endAdjust,
-                renderer
+                endAdjust
             );
 
             // Process waypoints for 'c' type edges only, ignore for 'r' type
@@ -216,12 +221,12 @@ class EdgeReader {
             };
 
             // Get style defaults if available
-            const styleDefaults = renderer.styleHandler?.getCompleteStyle(record.style, 'edge', 'object') || {};
+            const styleDefaults = styleHandler?.getCompleteStyle(record.style, 'edge', 'object') || {};
             
             // Process TikZ attributes if present
             let tikzAttributes = {};
             if (record.tikz_object_attributes) {
-                const processedAttributes = renderer.styleHandler.processAttributes(record.tikz_object_attributes);
+                const processedAttributes = styleHandler.processAttributes(record.tikz_object_attributes);
                 tikzAttributes = processedAttributes.tikz || {};
             }
             
