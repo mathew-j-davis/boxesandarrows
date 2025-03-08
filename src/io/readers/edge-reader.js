@@ -3,6 +3,7 @@ const CsvReader = require('./csv-reader');
 const { getNodeConnectionPoint } = require('../../geometry/node-connection-point');
 const { parseWaypoints } = require('../../geometry/waypoint-parser');
 const { Direction } = require('../../geometry/direction');
+const YamlReader = require('./yaml-reader');
 
 const PATH_TYPES = {
     TO: 'to',
@@ -113,6 +114,13 @@ class EdgeReader {
         return records.map(record => this.processEdgeRecord(record, nodes, scale, renderer));
     }
 
+    static async readFromYaml(yamlFile, nodes, scale, renderer) {
+        const records = await YamlReader.readFile(yamlFile, {
+            filter: doc => doc && doc.type === 'edge'
+        });
+        return records.map(record => this.processEdgeRecord(record, nodes, scale, renderer));
+    }
+    
     static processEdgeRecord(record, nodes, scale, renderer) {
         // Skip empty rows
         const values = Object.values(record).map(val => val?.trim() || '');
@@ -262,6 +270,8 @@ class EdgeReader {
             throw error;
         }
     }
+
+
 }
 
 module.exports = EdgeReader; 

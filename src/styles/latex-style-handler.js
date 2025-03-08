@@ -201,6 +201,75 @@ class LatexStyleHandler {
         
         return result;
     }
+
+    /**
+     * Merge new styles into the existing stylesheet
+     * @param {Object} newStyles - New styles to merge
+     */
+    mergeStyleSheet(newStyles) {
+        if (!newStyles || !newStyles.style) return;
+        
+        // Initialize style section if it doesn't exist
+        if (!this.styleSheet) {
+            this.styleSheet = {};
+        }
+        
+        if (!this.styleSheet.style) {
+            this.styleSheet.style = {};
+        }
+        
+        // Merge styles at the style name level
+        for (const [styleName, styleData] of Object.entries(newStyles.style)) {
+            if (!this.styleSheet.style[styleName]) {
+                this.styleSheet.style[styleName] = {};
+            }
+            
+            // Deep merge the style data
+            this.styleSheet.style[styleName] = this.deepMergeObjects(
+                this.styleSheet.style[styleName],
+                styleData
+            );
+        }
+        
+        // Handle page configuration if present
+        if (newStyles.page) {
+            if (!this.styleSheet.page) {
+                this.styleSheet.page = {};
+            }
+            
+            this.styleSheet.page = this.deepMergeObjects(
+                this.styleSheet.page,
+                newStyles.page
+            );
+        }
+    }
+
+    /**
+     * Deep merge of objects for style data
+     * @param {Object} target - Target object
+     * @param {Object} source - Source object
+     * @returns {Object} - Merged object
+     */
+    deepMergeObjects(target, source) {
+        if (!source) return target;
+        if (!target) return { ...source };
+        
+        const output = { ...target };
+        
+        Object.keys(source).forEach(key => {
+            if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+                if (!target[key] || typeof target[key] !== 'object') {
+                    output[key] = { ...source[key] };
+                } else {
+                    output[key] = this.deepMergeObjects(target[key], source[key]);
+                }
+            } else {
+                output[key] = source[key];
+            }
+        });
+        
+        return output;
+    }
 }
 
 module.exports = LatexStyleHandler;

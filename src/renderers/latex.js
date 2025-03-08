@@ -5,16 +5,30 @@ const { exec } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const LatexStyleHandler = require('../styles/latex-style-handler');
+const LatexPageHandler = require('../styles/latex-page-handler');
 
 class LatexRenderer extends RendererBase {
     constructor(options = {}) {
         super(options);
         
         // Initialize style to empty object if not provided
-        const style = options.stylePath ? this.loadStyle(options.stylePath) : {};
+        const style = options.styleFile ? this.loadStyle(options.styleFile) : {};
         
         // Initialize the style handler
         this.styleHandler = new LatexStyleHandler(style);
+        
+        // Initialize the page handler
+        this.pageHandler = new LatexPageHandler({
+            verbose: options.verbose
+        });
+        
+        // If a style file was provided with page config, initialize the page handler with it
+        if (options.style && options.style.page) {
+            this.pageHandler.updateConfig(options.style);
+        }
+        
+        // Use the pageHandler for scale information
+        this.scale = this.pageHandler.getScaleConfig();
         
         // Store document paths with correct paths
         this.headerTemplatePath = options.headerTemplate || 
@@ -64,32 +78,11 @@ class LatexRenderer extends RendererBase {
             maxX: -Infinity,
             maxY: -Infinity
         };
-        
-        // Initialize the scale
-        this.scale = this.getScaleConfig(this.style);
     }
 
     updateScale(newScale) {
-        // Update scale settings if provided
-        if (newScale) {
-            if (newScale.position) {
-                if (newScale.position.x !== undefined) {
-                    this.scale.position.x = newScale.position.x;
-                }
-                if (newScale.position.y !== undefined) {
-                    this.scale.position.y = newScale.position.y;
-                }
-            }
-            
-            if (newScale.size) {
-                if (newScale.size.w !== undefined) {
-                    this.scale.size.w = newScale.size.w;
-                }
-                if (newScale.size.h !== undefined) {
-                    this.scale.size.h = newScale.size.h;
-                }
-            }
-        }
+        this.pageHandler.updateConfig({ page: { scale: newScale } });
+        this.scale = this.pageHandler.getScaleConfig();
     }
 
     async render(nodes, edges, outputPath, options = {}) {
@@ -797,31 +790,10 @@ ${libraries}
     }
 
     getScaleConfig(style) {
-        // Default scale values if style is not provided
-        const defaultScale = {
-            position: { x: 1, y: 1 },
-            size: {
-                w: 1,
-                h: 1
-            }
-        };
-
-        // If no style provided, return defaults
-        if (!style?.page?.scale) {
-            return defaultScale;
+        if (style && style.page) {
+            this.pageHandler.updateConfig(style);
         }
-
-        // Extract values from style, maintaining structure from style-latex.json
-        return {
-            position: {
-                x: style.page.scale.position?.x || defaultScale.position.x,
-                y: style.page.scale.position?.y || defaultScale.position.y
-            },
-            size: {
-                w: style.page.scale.size?.w || defaultScale.size.w,
-                h: style.page.scale.size?.h || defaultScale.size.h
-            }
-        };
+        return this.pageHandler.getScaleConfig();
     }
 
     // Load template from file or use default

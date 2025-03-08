@@ -1,10 +1,9 @@
 const path = require('path');
 const NodeReader = require('./readers/node-reader');
 const EdgeReader = require('./readers/edge-reader');
-const NodeYamlReader = require('./readers/node-yaml-reader');
-const EdgeYamlReader = require('./readers/edge-yaml-reader');
 const StyleYamlReader = require('./readers/style-yaml-reader');
 const PageYamlReader = require('./readers/page-yaml-reader');
+const StyleReader = require('./readers/style-reader');
 
 /**
  * Manager class to handle reading from multiple files in different formats
@@ -179,14 +178,8 @@ class ReaderManager {
             if (fileExtension === 'csv') {
                 newEdges = await EdgeReader.readFromCsv(file, this.nodes, safeScale, this.renderer);
             } else if (fileExtension === 'yaml' || fileExtension === 'yml') {
-                newEdges = await EdgeYamlReader.readFromYaml(file, safeScale, this.nodes, this.renderer);
+                newEdges = await EdgeReader.readFromYaml(file, this.nodes, safeScale, this.renderer);
                 
-                // Also process any style and page documents in the same YAML file
-                // if they haven't been processed already by processNodeFiles
-                if (!this.pageConfig) {
-                    await this.processPageFromYaml(file);
-                }
-                await this.processStylesFromYaml(file);
             } else {
                 console.warn(`Unsupported file format for edges: ${fileExtension}`);
                 continue;
@@ -230,6 +223,67 @@ class ReaderManager {
      */
     getPageConfig() {
         return this.pageConfig;
+    }
+
+    /**
+     * Process style files (JSON or YAML)
+     * @param {Array} styleFiles - Array of file paths to process
+     * @returns {Object} - Processed style definitions
+     */
+    async processStyleFiles(styleFiles) {
+        // Return empty object if no style files provided
+        if (!styleFiles || styleFiles.length === 0) {
+            console.info('No style files provided, using empty style set');
+            return {};
+        }
+        
+        let consolidatedStyles = { style: {} };
+        
+        // Process each file
+        for (const file of styleFiles) {
+            // Get file extension
+            const fileExtension = path.extname(file).toLowerCase().replace('.', '');
+            
+            // Process based on file extension
+            try {
+                let newStyles = {};
+                if (fileExtension === 'json') {
+                    newStyles = await StyleReader.readFromJson(file, this.renderer);
+                } else if (fileExtension === 'yaml' || fileExtension === 'yml') {
+                    newStyles = await StyleReader.readFromYaml(file, this.renderer);       
+                } else {
+                    console.warn(`Unsupported file format for styles: ${fileExtension}`);
+                    continue;
+                }
+                
+                // Merge the new styles with the consolidated styles
+                if (this.renderer && this.renderer.styleHandler) {
+                    // Let the styleHandler handle the merging
+                    this.renderer.styleHandler.mergeStyleSheet(newStyles);
+                    
+                    // Process page config if it exists
+                    if (newStyles.page) {
+                        this.pageConfig = this.pageConfig || {};
+                        this.pageConfig = this.renderer.styleHandler.deepMergeObjects(
+                            this.pageConfig,
+                            newStyles.page
+                        );
+                        
+                        // Update renderer scale if applicable
+                        if (typeof this.renderer.updateScale === 'function' && newStyles.page.scale) {
+                            this.renderer.updateScale(newStyles.page.scale);
+                        }
+                    }
+                } else {
+                    console.warn('No styleHandler available to process styles');
+                }
+            } catch (error) {
+                console.error(`Error processing style file ${file}:`, error);
+            }
+        }
+        
+        // Return the styles from the styleHandler
+        return this.renderer?.styleHandler?.styleSheet || { style: {} };
     }
 }
 

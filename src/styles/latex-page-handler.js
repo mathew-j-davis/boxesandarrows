@@ -1,5 +1,5 @@
-// src/configuration-manager.js
-class ConfigurationManager {
+// src/styles/latex-page-handler.js
+class LatexPageHandler {
     constructor(options = {}) {
         this.verbose = options.verbose || false;
         this.log = this.verbose ? console.log.bind(console) : () => {};
@@ -79,4 +79,4 @@ class ConfigurationManager {
     }
 }
 
-module.exports = ConfigurationManager;
+module.exports = LatexPageHandler;

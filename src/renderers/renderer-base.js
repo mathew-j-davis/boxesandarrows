@@ -3,12 +3,12 @@ class RendererBase {
         this.verbose = options.verbose || false;
     }
 
-    loadStyle(stylePath) {
-        if (!stylePath) {
+    loadStyle(styleFile) {
+        if (!styleFile) {
             return {};
         }
         const fs = require('fs');
-        return JSON.parse(fs.readFileSync(stylePath, 'utf8'));
+        return JSON.parse(fs.readFileSync(styleFile, 'utf8'));
     }
 
     getScaleConfig(style) {
