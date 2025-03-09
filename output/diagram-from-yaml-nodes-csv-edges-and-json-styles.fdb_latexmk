@@ -1,6 +1,6 @@
 # Fdb version 4
-["pdflatex"] 1741488761.77983 "c:/Users/mathew/source/repos/boxesandarrows/output/diagram.tex" "diagram.pdf" "diagram" 1741488767.56869 0
-  "c:/Users/mathew/source/repos/boxesandarrows/output/diagram.tex" 1741488759 3116 cd436db5e0b78f75ebb27015f258d0d1 ""
+["pdflatex"] 1741476818.71677 "c:/Users/mathew/source/repos/boxesandarrows/output/diagram-from-yaml-nodes-csv-edges-and-json-styles.tex" "diagram-from-yaml-nodes-csv-edges-and-json-styles.pdf" "diagram-from-yaml-nodes-csv-edges-and-json-styles" 1741476821.23573 0
+  "c:/Users/mathew/source/repos/boxesandarrows/output/diagram-from-yaml-nodes-csv-edges-and-json-styles.tex" 1741476817 2337 f3bb2871e89c7765a43e212fda745e75 ""
   "c:/texlive/2024/texmf-dist/fonts/map/fontname/texfonts.map" 1725712487 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "c:/texlive/2024/texmf-dist/fonts/tfm/public/cm/cmss10.tfm" 1725709170 1316 b636689f1933f24d1294acdf6041daaa ""
   "c:/texlive/2024/texmf-dist/fonts/tfm/public/cm/cmss8.tfm" 1725709170 1296 d77f431d10d47c8ea2cc18cf45346274 ""
@@ -115,17 +115,16 @@
   "c:/texlive/2024/texmf-dist/tex/latex/standalone/standalone.cls" 1725717382 29032 f9277545472a63d812460310b499511e ""
   "c:/texlive/2024/texmf-dist/tex/latex/tools/shellesc.sty" 1725718262 4121 6039ae6d0916154d7ba5f20a77b9ab2c ""
   "c:/texlive/2024/texmf-dist/tex/latex/varwidth/varwidth.sty" 1725718713 10894 d359a13923460b2a73d4312d613554c8 ""
-  "c:/texlive/2024/texmf-dist/tex/latex/xcolor/svgnam.def" 1725718925 4705 ec4d2f4b7125d5a5145cc9aabae1d54b ""
   "c:/texlive/2024/texmf-dist/tex/latex/xcolor/xcolor.sty" 1725718925 55487 80a65caedd3722f4c20a14a69e785d8f ""
   "c:/texlive/2024/texmf-dist/tex/latex/xkeyval/xkeyval.sty" 1725719043 4937 4ce600ce9bd4ec84d0250eb6892fcf4f ""
   "c:/texlive/2024/texmf-dist/web2c/texmf.cnf" 1725705316 42007 0b741a3c21a5ca32b40e3846e75b3548 ""
   "c:/texlive/2024/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1725719276 5543950 2aa73a438b7054b2327b796fbe5f4275 ""
   "c:/texlive/2024/texmf-var/web2c/pdftex/pdflatex.fmt" 1725719642 8239321 27448e1e822aae59191fb52fc8d82e5a ""
   "c:/texlive/2024/texmf.cnf" 1725719238 713 e69b156964470283e0530f5060668171 ""
-  "diagram.aux" 1741488767 69 5f87cb9125522c22b16950a5b36e2d02 "pdflatex"
-  "diagram.tex" 1741488759 3116 cd436db5e0b78f75ebb27015f258d0d1 ""
+  "diagram-from-yaml-nodes-csv-edges-and-json-styles.aux" 1741476821 69 5f87cb9125522c22b16950a5b36e2d02 "pdflatex"
+  "diagram-from-yaml-nodes-csv-edges-and-json-styles.tex" 1741476817 2337 f3bb2871e89c7765a43e212fda745e75 ""
   (generated)
-  "diagram.aux"
-  "diagram.log"
-  "diagram.pdf"
+  "diagram-from-yaml-nodes-csv-edges-and-json-styles.aux"
+  "diagram-from-yaml-nodes-csv-edges-and-json-styles.log"
+  "diagram-from-yaml-nodes-csv-edges-and-json-styles.pdf"
   (rewritten before read)

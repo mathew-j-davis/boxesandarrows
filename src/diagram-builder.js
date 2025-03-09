@@ -2,7 +2,7 @@
 const PositionReader = require('./io/readers/position-reader');
 const ReaderManager = require('./io/reader-manager');
 const LatexRenderer = require('./renderers/latex-renderer');
-const { processRelativeNode } = require('./io/readers/relative-node-processor');
+const { setPositionRelativeToNode } = require('./io/readers/relative-node-processor');
 
 
 class DiagramBuilder {
@@ -166,30 +166,14 @@ class DiagramBuilder {
         // Single pass through all nodes in the order they appear
         for (const [nodeName, node] of nodes.entries()) {
             // First handle relative positioning if needed
-            if (node.relative) {
+            if (node.relative_to) {
                 const referenceNodeName = node.relative_to;
                 const referenceNode = nodes.get(referenceNodeName);
                 
-                /*
-                                const node = processRelativeNode(
-                    doc, 
-                    nodesMap, 
-                    scale, 
-                    renderer, 
-                    NodeReader.processNodeRecord
-                );
-                */
+                // Process relative position using the reference node
+                setPositionRelativeToNode(node, referenceNode, this.renderer.styleHandler);
+                this.log(`Positioned relative node '${nodeName}' based on reference '${referenceNodeName}'`);
 
-                if (referenceNode) {
-                    // Process relative position using the reference node
-                    processRelativeNode(node, referenceNode);
-                    this.log(`Positioned relative node '${nodeName}' based on reference '${referenceNodeName}'`);
-                } else {
-                    console.warn(`Warning: Cannot position node '${nodeName}' - reference node '${referenceNodeName}' not found`);
-                    // Set default position for nodes with missing references
-                    node.x = 0;
-                    node.y = 0;
-                }
             } else {
                 // For non-relative nodes, use unscaled coords (or defaults)
                 if (node.xUnscaled === undefined) {
@@ -198,13 +182,15 @@ class DiagramBuilder {
                 if (node.yUnscaled === undefined) {
                     node.yUnscaled = node.y !== undefined ? node.y : 0;
                 }
-                
+   
                 // Apply position scaling
                 node.x = node.xUnscaled * scaleConfig.position.x;
                 node.y = node.yUnscaled * scaleConfig.position.y;
             }
             
-            // Apply dimension scaling to all nodes (relative or not)
+                        
+
+    
             if (node.widthUnscaled === undefined) {
                 node.widthUnscaled = node.width !== undefined ? node.width : 1;
             }

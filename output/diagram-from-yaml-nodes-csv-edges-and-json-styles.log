@@ -1,10 +1,10 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.9.8)  9 MAR 2025 13:52
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.9.8)  9 MAR 2025 10:33
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
  %&-line parsing enabled.
-**c:/Users/mathew/source/repos/boxesandarrows/output/diagram.tex
-(c:/Users/mathew/source/repos/boxesandarrows/output/diagram.tex
+**c:/Users/mathew/source/repos/boxesandarrows/output/diagram-from-yaml-nodes-csv-edges-and-json-styles.tex
+(c:/Users/mathew/source/repos/boxesandarrows/output/diagram-from-yaml-nodes-csv-edges-and-json-styles.tex
 LaTeX2e <2024-06-01> patch level 2
 L3 programming layer <2024-08-16>
 (c:/texlive/2024/texmf-dist/tex/latex/standalone/standalone.cls
@@ -371,49 +371,47 @@ File: pgflibraryshapes.geometric.code.tex 2023-01-15 v3.1.10 (3.1.10)
 File: tikzlibraryshapes.arrows.code.tex 2023-01-15 v3.1.10 (3.1.10)
  (c:/texlive/2024/texmf-dist/tex/generic/pgf/libraries/shapes/pgflibraryshapes.arrows.code.tex
 File: pgflibraryshapes.arrows.code.tex 2023-01-15 v3.1.10 (3.1.10)
-)) (c:/texlive/2024/texmf-dist/tex/latex/xcolor/svgnam.def
-File: svgnam.def 2023/11/15 v3.01 Predefined colors according to SVG 1.1 (UK)
-)
-LaTeX Font Info:    Trying to load font information for OT1+xcmss on input line 12.
+))
+LaTeX Font Info:    Trying to load font information for OT1+xcmss on input line 14.
  (c:/texlive/2024/texmf-dist/tex/latex/sansmathfonts/ot1xcmss.fd
 File: ot1xcmss.fd 2021/06/22
 ) (c:/texlive/2024/texmf-dist/tex/latex/l3backend/l3backend-pdftex.def
 File: l3backend-pdftex.def 2024-05-08 L3 backend support: PDF output (pdfTeX)
 \l__color_backend_stack_int=\count295
 \l__pdf_internal_box=\box67
-) (./diagram.aux)
-\openout1 = `diagram.aux'.
+) (./diagram-from-yaml-nodes-csv-edges-and-json-styles.aux)
+\openout1 = `diagram-from-yaml-nodes-csv-edges-and-json-styles.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmssm/m/it on input line 12.
-LaTeX Font Info:    Trying to load font information for OML+cmssm on input line 12.
+LaTeX Font Info:    Checking defaults for OML/cmssm/m/it on input line 14.
+LaTeX Font Info:    Trying to load font information for OML+cmssm on input line 14.
  (c:/texlive/2024/texmf-dist/tex/latex/sansmathfonts/omlcmssm.fd
 File: omlcmssm.fd 2019/04/04
 )
-LaTeX Font Info:    ... okay on input line 12.
-LaTeX Font Info:    Checking defaults for OMS/cmsssy/m/n on input line 12.
-LaTeX Font Info:    Trying to load font information for OMS+cmsssy on input line 12.
+LaTeX Font Info:    ... okay on input line 14.
+LaTeX Font Info:    Checking defaults for OMS/cmsssy/m/n on input line 14.
+LaTeX Font Info:    Trying to load font information for OMS+cmsssy on input line 14.
  (c:/texlive/2024/texmf-dist/tex/latex/sansmathfonts/omscmsssy.fd
 File: omscmsssy.fd 2019/04/04
 )
-LaTeX Font Info:    ... okay on input line 12.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 12.
-LaTeX Font Info:    ... okay on input line 12.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 12.
-LaTeX Font Info:    ... okay on input line 12.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 12.
-LaTeX Font Info:    ... okay on input line 12.
-LaTeX Font Info:    Checking defaults for OMX/cmssex/m/n on input line 12.
-LaTeX Font Info:    Trying to load font information for OMX+cmssex on input line 12.
+LaTeX Font Info:    ... okay on input line 14.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 14.
+LaTeX Font Info:    ... okay on input line 14.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 14.
+LaTeX Font Info:    ... okay on input line 14.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 14.
+LaTeX Font Info:    ... okay on input line 14.
+LaTeX Font Info:    Checking defaults for OMX/cmssex/m/n on input line 14.
+LaTeX Font Info:    Trying to load font information for OMX+cmssex on input line 14.
  (c:/texlive/2024/texmf-dist/tex/latex/sansmathfonts/omxcmssex.fd
 File: omxcmssex.fd 2021/06/22
 )
-LaTeX Font Info:    ... okay on input line 12.
-LaTeX Font Info:    Checking defaults for U/xcmss/m/n on input line 12.
-LaTeX Font Info:    Trying to load font information for U+xcmss on input line 12.
+LaTeX Font Info:    ... okay on input line 14.
+LaTeX Font Info:    Checking defaults for U/xcmss/m/n on input line 14.
+LaTeX Font Info:    Trying to load font information for U+xcmss on input line 14.
  (c:/texlive/2024/texmf-dist/tex/latex/sansmathfonts/uxcmss.fd
 File: uxcmss.fd 2021/06/22
 )
-LaTeX Font Info:    ... okay on input line 12.
+LaTeX Font Info:    ... okay on input line 14.
  (c:/texlive/2024/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
 \scratchcounter=\count296
@@ -436,22 +434,22 @@ File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Live
 
 [1
 
-{c:/texlive/2024/texmf-var/fonts/map/pdftex/updmap/pdftex.map}] (./diagram.aux)
+{c:/texlive/2024/texmf-var/fonts/map/pdftex/updmap/pdftex.map}] (./diagram-from-yaml-nodes-csv-edges-and-json-styles.aux)
  ***********
 LaTeX2e <2024-06-01> patch level 2
 L3 programming layer <2024-08-16>
  ***********
  ) 
 Here is how much of TeX's memory you used:
- 15174 strings out of 473579
- 325405 string characters out of 5732264
- 1933960 words of memory out of 5000000
- 37795 multiletter control sequences out of 15000+600000
+ 15007 strings out of 473579
+ 323350 string characters out of 5732264
+ 1929960 words of memory out of 5000000
+ 37631 multiletter control sequences out of 15000+600000
  558980 words of font info for 39 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 102i,7n,107p,461b,731s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 102i,7n,107p,503b,730s stack positions out of 10000i,1000n,20000p,200000b,200000s
 <c:/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmss9.pfb>
-Output written on diagram.pdf (1 page, 11584 bytes).
+Output written on diagram-from-yaml-nodes-csv-edges-and-json-styles.pdf (1 page, 11513 bytes).
 PDF statistics:
  16 PDF objects out of 1000 (max. 8388607)
  10 compressed objects within 1 object stream

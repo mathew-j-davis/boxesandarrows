@@ -6,7 +6,7 @@
 \renewcommand{\familydefault}{\sfdefault}  
 \usetikzlibrary{arrows.meta,calc,decorations.pathmorphing}
 \usetikzlibrary{shapes.geometric, shapes.arrows}
-\usepackage{xcolor}
+\usepackage[svgnames]{xcolor}
 {{INCLUDE_DEFINITIONS}}
 {{COLOR_DEFINITIONS}}
 \begin{document}

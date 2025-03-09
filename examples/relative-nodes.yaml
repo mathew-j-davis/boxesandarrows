@@ -1,0 +1,115 @@
+---
+# Center square (1)
+type: node
+name: square1
+label: 1
+x: 0
+y: 0
+w: 1
+h: 1
+shape: rectangle
+tikz_object_attributes: fill=lightblue, draw=blue, thick
+---
+# Right of 1 (2)
+type: node
+name: square2
+label: 2
+relative_to: square1
+relative_to_anchor: e
+anchor: w
+offset_x: 1
+w: 1
+h: 1
+shape: rectangle
+tikz_object_attributes: fill=lightgreen, draw=green, thick
+---
+# Below and right of center (3)
+type: node
+name: square3
+label: 3
+relative_to: square2
+relative_to_anchor: s
+anchor: n
+offset_y: -1
+w: 1
+h: 1
+shape: rectangle
+tikz_object_attributes: fill=lightpink, draw=red, thick
+---
+# Left of 1 (4)
+type: node
+name: square4
+label: 4
+relative_to: square1
+relative_to_anchor: w
+anchor: e
+offset_x: -1
+w: 1
+h: 1
+shape: rectangle
+tikz_object_attributes: fill=lightyellow, draw=orange, thick
+---
+# Below and left of center (5)
+type: node
+name: square5
+label: 5
+relative_to: square4
+relative_to_anchor: s
+anchor: n
+offset_y: -1
+w: 1
+h: 1
+shape: rectangle
+tikz_object_attributes: fill=lavender, draw=purple, thick
+---
+# Directly below center (6)
+type: node
+name: square6
+label: 6
+relative_to: square1
+relative_to_anchor: s
+anchor: n
+offset_y: -1
+w: 1
+h: 1
+shape: rectangle
+tikz_object_attributes: fill=lightcyan, draw=teal, thick
+---
+# Above and left of center (7)
+type: node
+name: square4
+label: 7
+relative_to: square4
+relative_to_anchor: n
+anchor: s
+offset_y: 1
+w: 1
+h: 1
+shape: rectangle
+tikz_object_attributes: fill=pink, draw=magenta, thick
+---
+# Directly above center (8)
+type: node
+name: square8
+label: 8
+relative_to: square1
+relative_to_anchor: n
+anchor: s
+offset_y: 1
+w: 1
+h: 1
+shape: rectangle
+tikz_object_attributes: fill=lightsalmon, draw=brown, thick
+---
+# Above and right of center (9)
+type: node
+name: square9
+label: 9
+relative_to: square2
+relative_to_anchor: n
+anchor: s
+offset_y: 1
+w: 1
+h: 1
+shape: rectangle
+tikz_object_attributes: fill=palegreen, draw=darkgreen, thick

@@ -1,4 +1,28 @@
-# Testing the YAML Functionality
+# Testing Boxes and Arrows
+
+```bash
+node src/index.js -n examples/nodes.csv -e examples/edges.csv -m examples/map.csv -s style-latex.json -o output/diagram-from-csv-data-and-json-styles
+```
+
+```bash
+node src/index.js -n examples/nodes.yaml -e examples/edges.csv -p examples/map.csv -s style-latex.json -o output/diagram-from-yaml-nodes-csv-edges-and-json-styles
+```
+
+```bash
+node src/index.js -n examples/nodes.csv -e examples/edges.yaml -m examples/map.csv -s style-latex.json -o output/diagram-from-csv-nodes-yaml-edges-and-json-styles
+```
+
+
+
+```bash
+node src/index.js -n examples/nodes.csv -e examples/edges.csv -m examples/map.csv -s examples/latex-style.yaml -o output/diagram-from-csv-data-and-yaml-styles
+```
+
+```bash
+node src/index.js -n examples/relative-nodes.yaml -o output/grid-squares -g 1 --verbose
+```
+
+## Testing the YAML Functionality
 
 This document contains test commands to verify the new YAML functionality, particularly the `-y` parameter for mixed YAML files.
 

@@ -1,0 +1,23 @@
+\documentclass{standalone}
+\usepackage{tikz}
+\usepackage{adjustbox}
+\usepackage{helvet}  
+\usepackage{sansmathfonts}  
+\renewcommand{\familydefault}{\sfdefault}  
+\usetikzlibrary{arrows.meta,calc,decorations.pathmorphing}
+\usetikzlibrary{shapes.geometric, shapes.arrows}
+\usepackage{xcolor}
+\usepackage[svgnames]{xcolor}
+
+
+\begin{document}
+\begin{tikzpicture}
+\useasboundingbox (-1.5,-2) rectangle (1.5,1.5);
+
+
+
+\node[minimum width=1cm, minimum height=1cm, shape=rectangle, thick] (square1) at (0,0) {\adjustbox{max width=1cm, max height=1cm}{1}};
+\node[minimum width=1cm, minimum height=1cm, shape=rectangle, anchor=north, draw=red, thick] (square3) at (0,0) {\adjustbox{max width=1cm, max height=1cm}{3}};
+
+\end{tikzpicture}
+\end{document}

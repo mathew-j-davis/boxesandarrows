@@ -7,6 +7,20 @@
         {
             "type": "node",
             "request": "launch",
+            "name": "Relative Squares",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}\\src\\index.js",
+            "args": [
+                "-n", "./examples/r2.yaml",
+                "-s", "style-latex.json",
+                "--trace-warnings"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
             "name": "Launch Program",
             "skipFiles": [
                 "<node_internals>/**"

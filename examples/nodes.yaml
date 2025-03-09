@@ -1,0 +1,36 @@
+---
+type: node
+name: group
+label: group
+x: 0
+y: 15
+h: 15
+w: 10
+anchor: nw
+---
+type: node
+name: start
+label: Start
+shape: diamond
+h: 1
+w: 3
+color: "#001122"
+textcolor: "#001122"
+---
+type: node
+name: end
+label: End
+shape: circle
+h: 3
+w: 3
+color: "#001122"
+textcolor: "#001122"
+---
+type: node
+name: b
+label: b
+shape: circle
+h: 1
+w: 1
+color: "#001122"
+textcolor: "#001122"

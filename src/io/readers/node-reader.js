@@ -104,6 +104,8 @@ class NodeReader {
             label_below: record.label_below,
             relative_to: record.relative_to,
             relative_to_anchor: record.relative_to_anchor,
+            relative_offset_x: record.relative_offset_x,
+            relative_offset_y: record.relative_offset_y,
             anchor: record.anchor,
             anchorVector: null,
             shape: record.shape,
@@ -111,6 +113,7 @@ class NodeReader {
             y,
             xUnscaled,
             yUnscaled,
+
             width,
             height,
             widthUnscaled,

@@ -1,11 +1,9 @@
 # Fdb version 4
-["pdflatex"] 1741488761.77983 "c:/Users/mathew/source/repos/boxesandarrows/output/diagram.tex" "diagram.pdf" "diagram" 1741488767.56869 0
-  "c:/Users/mathew/source/repos/boxesandarrows/output/diagram.tex" 1741488759 3116 cd436db5e0b78f75ebb27015f258d0d1 ""
+["pdflatex"] 1741481897.90914 "c:/Users/mathew/source/repos/boxesandarrows/output/r2.tex" "r2.pdf" "r2" 1741481900.07958 0
+  "c:/Users/mathew/source/repos/boxesandarrows/output/r2.tex" 1741481896 775 5c931f163565b4f6d359ecf931d7deab ""
   "c:/texlive/2024/texmf-dist/fonts/map/fontname/texfonts.map" 1725712487 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "c:/texlive/2024/texmf-dist/fonts/tfm/public/cm/cmss10.tfm" 1725709170 1316 b636689f1933f24d1294acdf6041daaa ""
-  "c:/texlive/2024/texmf-dist/fonts/tfm/public/cm/cmss8.tfm" 1725709170 1296 d77f431d10d47c8ea2cc18cf45346274 ""
-  "c:/texlive/2024/texmf-dist/fonts/tfm/public/cm/cmss9.tfm" 1725709170 1320 49357c421c0d469f88b867dd0c3d10e8 ""
-  "c:/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmss9.pfb" 1725705768 24373 a91d375736817a75026663adcb2190c1 ""
+  "c:/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmss10.pfb" 1725705767 24457 5cbb7bdf209d5d1ce9892a9b80a307cc ""
   "c:/texlive/2024/texmf-dist/tex/context/base/mkii/supp-pdf.mkii" 1725715123 71627 94eb9990bed73c364d7f53f960cc8c5b ""
   "c:/texlive/2024/texmf-dist/tex/generic/iftex/ifluatex.sty" 1725713379 492 1994775aa15b0d1289725a0b1bbc2d4c ""
   "c:/texlive/2024/texmf-dist/tex/generic/iftex/iftex.sty" 1725713379 7237 bdd120a32c8fdb4b433cf9ca2e7cd98a ""
@@ -122,10 +120,10 @@
   "c:/texlive/2024/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1725719276 5543950 2aa73a438b7054b2327b796fbe5f4275 ""
   "c:/texlive/2024/texmf-var/web2c/pdftex/pdflatex.fmt" 1725719642 8239321 27448e1e822aae59191fb52fc8d82e5a ""
   "c:/texlive/2024/texmf.cnf" 1725719238 713 e69b156964470283e0530f5060668171 ""
-  "diagram.aux" 1741488767 69 5f87cb9125522c22b16950a5b36e2d02 "pdflatex"
-  "diagram.tex" 1741488759 3116 cd436db5e0b78f75ebb27015f258d0d1 ""
+  "r2.aux" 1741481899 69 5f87cb9125522c22b16950a5b36e2d02 "pdflatex"
+  "r2.tex" 1741481896 775 5c931f163565b4f6d359ecf931d7deab ""
   (generated)
-  "diagram.aux"
-  "diagram.log"
-  "diagram.pdf"
+  "r2.aux"
+  "r2.log"
+  "r2.pdf"
   (rewritten before read)
