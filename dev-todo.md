@@ -1415,6 +1415,8 @@ we ar enot going to use syntax like this anymore :
 
 instead our start point will be defined by 
 
+blend draw and fill
+
 magick ./output/diagram.pdf -flatten -background white -alpha remove ./output/diagram.png
 
 
