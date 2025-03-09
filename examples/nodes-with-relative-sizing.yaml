@@ -1,0 +1,138 @@
+---
+# Base square (explicitly sized)
+type: node
+name: square1
+label: 1
+x: 0
+y: 0
+width: 2
+height: 2
+shape: rectangle
+tikz_object_attributes: draw=red, thick
+---
+# Node with width/height inherited from square1
+type: node
+name: square2
+label: 2
+x: 4
+y: 0
+# Same height as square1 + 0.5
+h_of: square1
+h_offset: 0.5
+# Same width as square1 - 0.3
+w_of: square1
+w_offset: -0.3
+shape: rectangle
+tikz_object_attributes: draw=green, thick
+---
+# Node sized by distance between anchor points
+type: node
+name: square3
+label: 3
+x: 8
+y: 0
+# Height from square1's north to square2's south
+h_from: square1.north
+h_to: square2.south
+# Width from square1's west to square2's east
+w_from: square1.west
+w_to: square2.east
+shape: rectangle
+tikz_object_attributes: draw=blue, thick
+---
+# Combinations - position and size both relative
+type: node
+name: square4
+label: 4
+relative_to: square1
+relative_to_anchor: south
+anchor: north
+relative_offset_y: 1
+# Use square2's height
+h_of: square2
+# Width based on horizontal distance between square1 and square3
+w_from: square1.west
+w_to: square3.east
+w_offset: -1
+shape: rectangle
+tikz_object_attributes: draw=orange, thick
+---
+# Cascading dependence - both position and size depend on other relative nodes
+type: node
+name: square5
+label: 5
+relative_to: square4
+relative_to_anchor: south
+anchor: north
+relative_offset_y: 0.5
+# Height based on the previously calculated relative node
+h_of: square4
+h_offset: -0.5
+# Width based on another previously calculated relative node
+w_of: square3
+w_offset: 0.2
+shape: rectangle
+tikz_object_attributes: draw=purple, thick
+---
+# Size determined by distance between relative nodes
+type: node
+name: square6
+label: 6
+x: 4
+y: -6
+# Height based on distance between two relative nodes
+h_from: square4.south
+h_to: square5.north
+# Width based on distance between corners of another node
+w_from: square3.nw
+w_to: square3.ne
+shape: rectangle
+tikz_object_attributes: draw=brown, thick
+---
+# Complex combination of relative positioning and sizing
+type: node
+name: square7
+label: 7
+relative_to: square6
+relative_to_anchor: east
+anchor: west
+relative_offset_x: 1
+# Height scales with distance between nodes 1 and 2
+h_from: square1.center
+h_to: square2.center
+h_offset: 0.3
+# Width based on another node with offset
+w_of: square6
+w_offset: 0.5
+shape: rectangle
+tikz_object_attributes: draw=LightBlue, thick
+---
+# Nodes with a mix of absolute and relative sizing
+type: node
+name: square8
+label: "8 (fixed w)"
+relative_to: square7 
+relative_to_anchor: ne
+anchor: nw
+# Fixed width
+width: 3
+# Height based on another node
+h_of: square7
+shape: rectangle
+tikz_object_attributes: draw=DarkGreen, thick
+---
+# Demonstrate priority - explicit width/height takes precedence
+type: node
+name: square9
+label: "9 (fixed h/w)"
+relative_to: square8
+relative_to_anchor: south
+anchor: north
+# These will be ignored because explicit width/height is present
+h_of: square1
+w_of: square1
+# Explicit dimensions take precedence
+width: 1.5
+height: 1.5
+shape: rectangle
+tikz_object_attributes: draw=Magenta, thick, fill=LightYellow

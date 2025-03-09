@@ -2,8 +2,8 @@
 const PositionReader = require('./io/readers/position-reader');
 const ReaderManager = require('./io/reader-manager');
 const LatexRenderer = require('./renderers/latex-renderer');
-const { setPositionRelativeToNode } = require('./io/readers/relative-node-processor');
-
+const { setPositionRelativeToNode, setSizeRelativeToNodes } = require('./io/readers/relative-node-processor');
+        
 
 class DiagramBuilder {
     constructor(options = {}) {
@@ -162,10 +162,13 @@ class DiagramBuilder {
     positionAndScaleAllNodes() {
         const nodes = this.readerManager.getNodes();
         const scaleConfig = this.renderer.styleHandler.getPageScale();
-        
-        // Single pass through all nodes in the order they appear
+
+        // Single pass: handle both relative sizing and positioning
         for (const [nodeName, node] of nodes.entries()) {
-            // First handle relative positioning if needed
+            // First handle relative sizing if needed
+            setSizeRelativeToNodes(node, nodes);
+            
+            // Then handle relative positioning if needed
             if (node.relative_to) {
                 const referenceNodeName = node.relative_to;
                 const referenceNode = nodes.get(referenceNodeName);
@@ -188,12 +191,10 @@ class DiagramBuilder {
                 node.y = node.yUnscaled * scaleConfig.position.y;
             }
             
-                        
-
-    
             if (node.widthUnscaled === undefined) {
                 node.widthUnscaled = node.width !== undefined ? node.width : 1;
             }
+            
             if (node.heightUnscaled === undefined) {
                 node.heightUnscaled = node.height !== undefined ? node.height : 1;
             }

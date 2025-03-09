@@ -124,10 +124,19 @@ class NodeReader {
             //mergedStyle,  // Store processed style for rendering
             color: record.color,
             fillcolor: record.fillcolor,
-            textcolor: record.textcolor
+            textcolor: record.textcolor,
 
+            // Add relative sizing fields
+            h_of: record.h_of,
+            h_from: record.h_from,
+            h_to: record.h_to,
+            h_offset: record.h_offset ? parseFloat(record.h_offset) : 0,
+            
+            w_of: record.w_of,
+            w_from: record.w_from,
+            w_to: record.w_to,
+            w_offset: record.w_offset ? parseFloat(record.w_offset) : 0
         };
-
 
         return node;
     }

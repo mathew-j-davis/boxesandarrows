@@ -64,11 +64,12 @@ node src/index.js [-n <nodes.csv,nodes.yaml>] [-e <edges.csv,edges.yaml>] [-y <m
 
 #### Node Definition (CSV)
 ```csv
-name,x,y,width,height,style,label,anchor,label_above,label_below,relative_to,relative_to_anchor,relative_offset_x,relative_offset_y,shape,type,tikz_object_attributes,color,fillcolor,textcolor,hide_label
-node1,0,0,2,1,box,Node 1,center,,,,,,,,default,rounded corners=0.2cm,black,white,black,false
-node2,2,1,2,1,circle,Node 2,north west,,,,,,,,default,draw=thick,blue,lightblue,black,false
-node3,,,2,1,box,Node 3,south west,node1,,,,,,,default,,red,white,black,false
-node4,,,2,1,,Node 4,center,,,node1,north east,1,0,rectangle,default,,green,white,black,false
+name,x,y,width,height,style,label,anchor,label_above,label_below,relative_to,relative_to_anchor,relative_offset_x,relative_offset_y,h_of,h_from,h_to,h_offset,w_of,w_from,w_to,w_offset,shape,type,tikz_object_attributes,color,fillcolor,textcolor,hide_label
+node1,0,0,2,1,box,Node 1,center,,,,,,,,,,,,,,,,default,rounded corners=0.2cm,black,white,black,false
+node2,2,1,2,1,circle,Node 2,north west,,,,,,,,,,,,,,,,default,draw=thick,blue,lightblue,black,false
+node3,,,2,1,box,Node 3,south west,node1,,,,,,,,,,,,,,,default,,red,white,black,false
+node4,,,,,,,center,,,node1,north east,1,0,node1,,,,node2,,,,rectangle,default,,green,white,black,false
+node5,,,,,,,center,,,,,,,node1.north,node2.south,0.5,node3,,,,rectangle,default,,purple,white,black,false
 ```
 
 #### Edge Definition (CSV)
@@ -162,9 +163,9 @@ waypoints: s(1,1) c(2,0) e(-1,1)
 }
 ```
 
-## Relative Positioning
+## Relative Positioning and Sizing
 
-Nodes can be positioned relative to each other:
+Nodes can be positioned and sized relative to other nodes:
 
 ```yaml
 type: node
@@ -186,9 +187,44 @@ anchor: south west
 relative_offset_x: 1
 relative_offset_y: 0
 draw: green
+
+---
+type: node
+name: square3
+# Size based on another node's dimensions
+h_of: square1
+h_offset: 0.5  # Add 0.5 to height
+w_of: square2
+w_offset: -0.2  # Subtract 0.2 from width
+draw: blue
+
+---
+type: node
+name: square4
+# Size based on distance between anchor points
+h_from: square1.north
+h_to: square2.south
+h_offset: 0.1  # Add 0.1 to the calculated height
+w_from: square1.west
+w_to: square2.east
+draw: purple
 ```
 
-This places `square2` so that its south west corner is at the north east corner of `square1`, with an additional offset.
+### Relative Positioning
+When using `relative_to`, a node's position is calculated based on another node. The `relative_to_anchor` specifies which anchor on the reference node to position from, and `anchor` determines which point on the current node to position. Additional `relative_offset_x` and `relative_offset_y` values can fine-tune the placement.
+
+### Relative Sizing
+Nodes can inherit size from other nodes or calculate size based on distances:
+
+- `h_of` / `w_of`: Use height/width directly from another node
+- `h_from`, `h_to` / `w_from`, `w_to`: Calculate height/width as distance between anchor points
+- `h_offset` / `w_offset`: Add an offset to the calculated dimension
+
+Priority for determining dimensions:
+1. Explicit height/width values
+2. Reference node dimensions (h_of/w_of)
+3. Anchor point distances (h_from-h_to/w_from-w_to)
+4. Style defaults
 
 ## Architecture
 

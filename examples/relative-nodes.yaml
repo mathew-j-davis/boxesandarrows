@@ -8,108 +8,103 @@ y: 0
 w: 1
 h: 1
 shape: rectangle
-tikz_object_attributes: fill=lightblue, draw=blue, thick
+tikz_object_attributes: draw=red, thick
 ---
 # Right of 1 (2)
 type: node
 name: square2
 label: 2
 relative_to: square1
-relative_to_anchor: e
-anchor: w
-offset_x: 1
+relative_to_anchor: ne
+anchor: nw
+relative_offset_x: 4
 w: 1
 h: 1
 shape: rectangle
-tikz_object_attributes: fill=lightgreen, draw=green, thick
+tikz_object_attributes: draw=green, thick
 ---
-# Below and right of center (3)
+# Below 2 (3)
 type: node
 name: square3
 label: 3
 relative_to: square2
 relative_to_anchor: s
 anchor: n
-offset_y: -1
 w: 1
 h: 1
 shape: rectangle
-tikz_object_attributes: fill=lightpink, draw=red, thick
+tikz_object_attributes: draw=blue, thick
 ---
-# Left of 1 (4)
+# Left of 3 (4)
 type: node
 name: square4
 label: 4
-relative_to: square1
+relative_to: square3
 relative_to_anchor: w
 anchor: e
-offset_x: -1
 w: 1
 h: 1
 shape: rectangle
-tikz_object_attributes: fill=lightyellow, draw=orange, thick
+tikz_object_attributes: draw=orange, thick
 ---
-# Below and left of center (5)
+# Right of 4 (5)
 type: node
 name: square5
 label: 5
 relative_to: square4
-relative_to_anchor: s
-anchor: n
-offset_y: -1
+relative_to_anchor: w
+anchor: e
 w: 1
 h: 1
 shape: rectangle
-tikz_object_attributes: fill=lavender, draw=purple, thick
+tikz_object_attributes: draw=purple, thick
 ---
-# Directly below center (6)
+# Above 5 (6)
+
 type: node
 name: square6
 label: 6
-relative_to: square1
-relative_to_anchor: s
-anchor: n
-offset_y: -1
-w: 1
-h: 1
-shape: rectangle
-tikz_object_attributes: fill=lightcyan, draw=teal, thick
----
-# Above and left of center (7)
-type: node
-name: square4
-label: 7
-relative_to: square4
+relative_to: square5
 relative_to_anchor: n
 anchor: s
-offset_y: 1
 w: 1
 h: 1
 shape: rectangle
-tikz_object_attributes: fill=pink, draw=magenta, thick
+tikz_object_attributes: draw=green, thick
 ---
-# Directly above center (8)
+# Above 6 (7)
+type: node
+name: square7
+label: 7
+relative_to: square6
+relative_to_anchor: n
+anchor: s
+w: 1
+h: 1
+shape: rectangle
+tikz_object_attributes: draw=red, thick
+---
+# right of 7 (8)
 type: node
 name: square8
 label: 8
-relative_to: square1
-relative_to_anchor: n
-anchor: s
-offset_y: 1
+relative_to: square7
+relative_to_anchor: e
+anchor: w
 w: 1
 h: 1
 shape: rectangle
-tikz_object_attributes: fill=lightsalmon, draw=brown, thick
+tikz_object_attributes: draw=brown, thick
 ---
-# Above and right of center (9)
+# right of 8 (9)
 type: node
 name: square9
 label: 9
-relative_to: square2
-relative_to_anchor: n
-anchor: s
-offset_y: 1
+relative_to: square8
+relative_to_anchor: e
+anchor: w
 w: 1
 h: 1
 shape: rectangle
-tikz_object_attributes: fill=palegreen, draw=darkgreen, thick
+tikz_object_attributes: draw=LightBlue, thick
+

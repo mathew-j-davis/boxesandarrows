@@ -69,4 +69,97 @@ function setPositionRelativeToNode(node, referenceNode, styleHandler) {
     return node;
 }
 
-module.exports = { setPositionRelativeToNode }; 
+/**
+ * Calculate the size of a node relative to other nodes
+ * @param {Object} node - The node to calculate size for
+ * @param {Map} nodesMap - Map of all nodes by name
+ */
+function setSizeRelativeToNodes(node, nodesMap) {
+    // Process height first
+    if (!node.height) {
+        // Try to calculate height from h_of attribute
+        if (node.h_of && nodesMap.has(node.h_of)) {
+            const referenceNode = nodesMap.get(node.h_of);
+            node.heightUnscaled = referenceNode.heightUnscaled + (node.h_offset || 0);
+        }
+        // If no height yet and both h_from and h_to are specified
+        else if (node.h_from && node.h_to) {
+            const fromPoint = getAnchorPoint(node.h_from, nodesMap);
+            const toPoint = getAnchorPoint(node.h_to, nodesMap);
+            
+            if (fromPoint && toPoint) {
+                // Calculate absolute difference in Y coordinates
+                node.heightUnscaled = Math.abs(toPoint.y - fromPoint.y) + (node.h_offset || 0);
+            }
+        }
+        // If still no height, it will use style.h (handled elsewhere) or default
+    }
+
+    // Process width second
+    if (!node.width) {
+        // Try to calculate width from w_of attribute
+        if (node.w_of && nodesMap.has(node.w_of)) {
+            const referenceNode = nodesMap.get(node.w_of);
+            node.widthUnscaled = referenceNode.widthUnscaled + (node.w_offset || 0);
+        }
+        // If no width yet and both w_from and w_to are specified
+        else if (node.w_from && node.w_to) {
+            const fromPoint = getAnchorPoint(node.w_from, nodesMap);
+            const toPoint = getAnchorPoint(node.w_to, nodesMap);
+            
+            if (fromPoint && toPoint) {
+                // Calculate absolute difference in X coordinates
+                node.widthUnscaled = Math.abs(toPoint.x - fromPoint.x) + (node.w_offset || 0);
+            }
+        }
+
+    }
+}
+
+/**
+ * Get the position of an anchor point from a node name or node.anchor specification
+ * @param {string} anchorSpec - Node name or Node.Anchor specification
+ * @param {Map} nodesMap - Map of all nodes by name
+ * @returns {Object|null} - The point with x,y coordinates or null if not found
+ */
+function getAnchorPoint(anchorSpec, nodesMap) {
+    if (!anchorSpec) return null;
+
+    // Parse the anchor spec - either 'nodeName' or 'nodeName.anchor'
+    const parts = anchorSpec.split('.');
+    const nodeName = parts[0];
+    
+    // Look up the node
+    if (!nodesMap.has(nodeName)) return null;
+    
+    const node = nodesMap.get(nodeName);
+    
+    // If no specific anchor is provided, use the node's own anchor or default to 'center'
+    const anchorName = parts.length > 1 ? parts[1] : (node.anchor || 'center');
+    
+    // If the node doesn't have position yet, we can't calculate from it
+    if (typeof node.xUnscaled !== 'number' || typeof node.yUnscaled !== 'number') return null;
+    
+    // Get the anchor direction vector
+    const anchorVector = Direction.getVector(anchorName);
+    
+    if (!anchorVector) return null;
+    
+    // Calculate the anchor point position
+    const x = node.xUnscaled;
+    const y = node.yUnscaled;
+    const width = node.widthUnscaled || 0;
+    const height = node.heightUnscaled || 0;
+    
+    // Calculate the anchor point coordinates
+    return {
+        x: x + (anchorVector.x * width / 2),
+        y: y + (anchorVector.y * height / 2)
+    };
+}
+
+// Export both functions
+module.exports = { 
+    setPositionRelativeToNode,
+    setSizeRelativeToNodes
+}; 

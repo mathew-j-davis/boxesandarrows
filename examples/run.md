@@ -22,6 +22,12 @@ node src/index.js -n examples/nodes.csv -e examples/edges.csv -m examples/map.cs
 node src/index.js -n examples/relative-nodes.yaml -o output/grid-squares -g 1 --verbose
 ```
 
+```bash
+node src/index.js -n examples/nodes-with-relative-sizing.yaml -o output/sizing -g 1 --verbose
+```
+
+examples\nodes-with-relative-sizing.yaml
+
 ## Testing the YAML Functionality
 
 This document contains test commands to verify the new YAML functionality, particularly the `-y` parameter for mixed YAML files.
