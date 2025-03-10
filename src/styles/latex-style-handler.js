@@ -258,40 +258,106 @@ class LatexStyleHandler {
      * @param {Object} newStyles - New styles to merge
      */
     mergeStylesheet(newStyles) {
-        if (!newStyles || !newStyles.style) return;
+        if (!newStyles) {
+            console.log('mergeStylesheet received null or undefined');
+            return;
+        }
+
+        console.log('mergeStylesheet received:', JSON.stringify(newStyles));
         
-        // Initialize style section if it doesn't exist
+        // Initialize stylesheet if needed
         if (!this.stylesheet) {
-            this.stylesheet = this.getBlankStylesheet;
+            this.stylesheet = this.getBlankStylesheet();
         }
         
-        if (!this.stylesheet.style) {
-            this.stylesheet.style = this.getBlankStyles;
-        }
-        
-        // Merge styles at the style name level
-        for (const [styleName, styleData] of Object.entries(newStyles.style)) {
-            if (!this.stylesheet.style[styleName]) {
-                this.stylesheet.style[styleName] = {};
+        // Process styles if present
+        if (newStyles.style) {
+            console.log('Processing style section');
+            
+            if (!this.stylesheet.style) {
+                this.stylesheet.style = this.getBlankStyles();
             }
             
-            // Deep merge the style data
-            this.stylesheet.style[styleName] = this.deepMergeObjects(
-                this.stylesheet.style[styleName],
-                styleData
-            );
+            // Merge styles at the style name level
+            for (const [styleName, styleData] of Object.entries(newStyles.style)) {
+                if (!this.stylesheet.style[styleName]) {
+                    this.stylesheet.style[styleName] = {};
+                }
+                
+                // Deep merge the style data
+                this.stylesheet.style[styleName] = this.deepMergeObjects(
+                    this.stylesheet.style[styleName],
+                    styleData
+                );
+            }
         }
         
         // Handle page configuration if present
         if (newStyles.page) {
+            console.log('Processing page config in mergeStylesheet:', JSON.stringify(newStyles.page));
+            
             if (!this.stylesheet.page) {
+                console.log('No existing page config, creating new');
                 this.stylesheet.page = this.getBlankPage();
             }
             
+            console.log('Before merge, page is:', JSON.stringify(this.stylesheet.page));
             this.stylesheet.page = this.deepMergeObjects(
                 this.stylesheet.page,
                 newStyles.page
             );
+            console.log('After merge, page is:', JSON.stringify(this.stylesheet.page));
+        }
+    }
+
+    /**
+     * Process YAML documents from the style YAML file
+     * @param {Array} documents - Array of YAML documents
+     */
+    processYamlDocuments(documents) {
+        if (!documents || !Array.isArray(documents) || documents.length === 0) return;
+        
+        // Initialize stylesheet structure if needed
+        if (!this.stylesheet) {
+            this.stylesheet = this.getBlankStylesheet();
+        }
+        
+        // Process each document based on its type
+        for (const doc of documents) {
+            if (!doc || !doc.type) continue;
+            
+            // Process page configuration
+            if (doc.type === 'page') {
+                // Create a page object that matches the expected structure
+                const pageConfig = {
+                    page: { 
+                        scale: doc.scale || {},
+                        margin: doc.margin || {}
+                    }
+                };
+                
+                // Merge with existing page config
+                this.mergeStylesheet(pageConfig);
+            }
+            
+            // Process style definitions
+            else if (doc.type === 'style') {
+                const styleName = doc.name || 'base';
+                
+                // Create a style object that matches the expected structure
+                const styleData = { style: {} };
+                styleData.style[styleName] = {};
+                
+                // Copy all properties except type and name
+                for (const [key, value] of Object.entries(doc)) {
+                    if (key !== 'type' && key !== 'name') {
+                        styleData.style[styleName][key] = value;
+                    }
+                }
+                
+                // Merge with existing styles
+                this.mergeStylesheet(styleData);
+            }
         }
     }
 

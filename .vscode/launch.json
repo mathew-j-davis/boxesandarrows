@@ -7,6 +7,126 @@
         {
             "type": "node",
             "request": "launch",
+            "name": "Debug Original Position Tests",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}/src/character-coordinates/position.test.js",
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen",
+            "outFiles": [
+                "${workspaceFolder}/**/*.js"
+            ],
+            "stopOnEntry": false,
+            "runtimeArgs": [
+                "--inspect-brk"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Debug Position Tests",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}/node_modules/jest/bin/jest.js",
+            "args": [
+                "--runTestsByPath",
+                "${workspaceFolder}/tests/unit/character-coordinates/position.test.js",
+                "--verbose"
+            ],
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Debug Mixed YAML",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}/src/index.js",
+            "args": [
+                "-y", "examples/mixed.yaml",
+                "-m", "examples/map.csv",
+                "-o", "output/diagram-from-mixed-yaml",
+                "--trace-warnings"
+            ],
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Debug Relative Sizing",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}/src/index.js",
+            "args": [
+                "-n", "examples/nodes-with-relative-sizing.yaml",
+                "-o", "output/nodes-with-relative-sizing",
+                "-s", "examples/style-latex.yaml",
+                "--trace-warnings"
+            ],
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Debug Relative Positioning",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}/src/index.js",
+            "args": [
+                "-n", "examples/relative-nodes.yaml",
+                "-o", "output/relative-nodes",
+                "-s", "examples/style-latex.yaml",
+                "--trace-warnings"
+            ],
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Test Format Consistency",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}/node_modules/jest/bin/jest.js",
+            "args": [
+                "--runTestsByPath",
+                "${workspaceFolder}/tests/integration/format-consistency.test.js",
+                "--verbose"
+            ],
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Debug YAML Styles",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}/src/index.js",
+            "args": [
+                "-n", "examples/nodes.csv",
+                "-e", "examples/edges.csv",
+                "-m", "examples/map.csv",
+                "-s", "examples/style-latex.yaml",
+                "-o", "output/diagram-from-csv-data-and-yaml-styles",
+                "--trace-warnings"
+            ],
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen"
+        },
+        {
+            "type": "node",
+            "request": "launch",
             "name": "Debug Style Test",
             "skipFiles": [
                 "<node_internals>/**"

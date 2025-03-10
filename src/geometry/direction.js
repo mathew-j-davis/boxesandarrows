@@ -283,6 +283,36 @@ class Direction {
             return direction;
         }
     }
+
+    /**
+     * Get a canonical TikZ anchor name or null if not a valid anchor
+     * 
+     * Unlike standardiseBasicDirectionName, this method is strict and will only
+     * return recognized TikZ anchor names or null. It won't preserve unknown anchors.
+     * This is useful when you need to ensure an anchor name is valid for TikZ.
+     * 
+     * @param {string} anchor - Anchor name to convert (e.g., "ne", "north east", "right")
+     * @returns {string|null} - Canonical TikZ anchor name (e.g., "north east") or null if not recognized
+     */
+    static getStrictAnchorName(anchor) {
+        if (!anchor) {
+            return null;
+        }
+
+        // Get the vector associated with this direction, if any
+        const vector = this.getVector(anchor, false, false);
+        
+        // If we couldn't find a vector, this isn't a recognized anchor
+        if (!vector) {
+            return null;
+        }
+        
+        // Convert the vector to a canonical TikZ anchor name
+        // This gives us standardized names like "north east" instead of "ne"
+        const canonicalName = this.getDirectionNameFromVector(vector);
+        
+        return canonicalName;
+    }
 }
 
 module.exports = { Direction };

@@ -1,0 +1,29 @@
+\documentclass{standalone}
+\usepackage{tikz}
+\usepackage{adjustbox}
+\usepackage{helvet}  
+\usepackage{sansmathfonts}  
+\renewcommand{\familydefault}{\sfdefault}  
+\usetikzlibrary{arrows.meta,calc,decorations.pathmorphing}
+\usetikzlibrary{shapes.geometric, shapes.arrows}
+\usepackage[svgnames]{xcolor}
+
+\definecolor{colorFFFFFF}{HTML}{FFFFFF}
+\begin{document}
+\begin{tikzpicture}
+\useasboundingbox (-2,-4) rectangle (12,4);
+
+
+
+\node[shape=rectangle, fill=colorFFFFFF, draw=red, minimum width=2cm, minimum height=2cm, rounded corners=0.005cm, line width=0.02cm, text opacity=1, font=\footnotesize, inner sep=0pt, thick] (square1) at (0,0) {\adjustbox{max width=2cm, max height=2cm}{\small{\sffamily{1}}}};
+\node[shape=rectangle, fill=colorFFFFFF, draw=green, minimum width=2cm, minimum height=2cm, rounded corners=0.005cm, line width=0.02cm, text opacity=1, font=\footnotesize, inner sep=0pt, anchor=north west, thick] (square2) at (9,1) {\adjustbox{max width=2cm, max height=2cm}{\small{\sffamily{2}}}};
+\node[shape=rectangle, fill=colorFFFFFF, draw=blue, minimum width=2cm, minimum height=2cm, rounded corners=0.005cm, line width=0.02cm, text opacity=1, font=\footnotesize, inner sep=0pt, anchor=north, thick] (square3) at (10,-1) {\adjustbox{max width=2cm, max height=2cm}{\small{\sffamily{3}}}};
+\node[shape=rectangle, fill=colorFFFFFF, draw=orange, minimum width=2cm, minimum height=2cm, rounded corners=0.005cm, line width=0.02cm, text opacity=1, font=\footnotesize, inner sep=0pt, anchor=east, thick] (square4) at (9,-2) {\adjustbox{max width=2cm, max height=2cm}{\small{\sffamily{4}}}};
+\node[shape=rectangle, fill=colorFFFFFF, draw=purple, minimum width=2cm, minimum height=2cm, rounded corners=0.005cm, line width=0.02cm, text opacity=1, font=\footnotesize, inner sep=0pt, anchor=east, thick] (square5) at (7,-2) {\adjustbox{max width=2cm, max height=2cm}{\small{\sffamily{5}}}};
+\node[shape=rectangle, fill=colorFFFFFF, draw=green, minimum width=2cm, minimum height=2cm, rounded corners=0.005cm, line width=0.02cm, text opacity=1, font=\footnotesize, inner sep=0pt, anchor=south, thick] (square6) at (6,-1) {\adjustbox{max width=2cm, max height=2cm}{\small{\sffamily{6}}}};
+\node[shape=rectangle, fill=colorFFFFFF, draw=red, minimum width=2cm, minimum height=2cm, rounded corners=0.005cm, line width=0.02cm, text opacity=1, font=\footnotesize, inner sep=0pt, anchor=south, thick] (square7) at (6,1) {\adjustbox{max width=2cm, max height=2cm}{\small{\sffamily{7}}}};
+\node[shape=rectangle, fill=colorFFFFFF, draw=brown, minimum width=2cm, minimum height=2cm, rounded corners=0.005cm, line width=0.02cm, text opacity=1, font=\footnotesize, inner sep=0pt, anchor=west, thick] (square8) at (7,2) {\adjustbox{max width=2cm, max height=2cm}{\small{\sffamily{8}}}};
+\node[shape=rectangle, fill=colorFFFFFF, draw=LightBlue, minimum width=2cm, minimum height=2cm, rounded corners=0.005cm, line width=0.02cm, text opacity=1, font=\footnotesize, inner sep=0pt, anchor=west, thick] (square9) at (9,2) {\adjustbox{max width=2cm, max height=2cm}{\small{\sffamily{9}}}};
+
+\end{tikzpicture}
+\end{document}

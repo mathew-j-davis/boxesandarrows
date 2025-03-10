@@ -1,122 +1,94 @@
-# Testing Boxes and Arrows
+# Boxes and Arrows Example Commands
+
+This document contains various example commands you can run to test different features of the Boxes and Arrows diagram generator.
+
+## Format Compatibility Tests
+
+These commands demonstrate format compatibility between CSV, YAML, and JSON files. All of these commands should produce identical output.
+
+### Basic CSV with JSON Styles (Reference)
+```bash
+node src/index.js -n examples/nodes.csv -e examples/edges.csv -m examples/map.csv -s examples/style-latex.json -o output/diagram-from-csv-data-and-json-styles
+```
+This is our reference command that uses CSV files for nodes and edges with JSON styles.
+
+### CSV with YAML Styles
+```bash
+node src/index.js -n examples/nodes.csv -e examples/edges.csv -m examples/map.csv -s examples/style-latex.yaml -o output/diagram-from-csv-data-and-yaml-styles
+```
+This demonstrates using YAML format for styles instead of JSON. The output should be identical to the reference.
+
+### YAML Nodes with CSV Edges
+```bash
+node src/index.js -n examples/nodes.yaml -e examples/edges.csv -m examples/map.csv -s examples/style-latex.json -o output/diagram-from-yaml-nodes-csv-edges-and-json-styles
+```
+This demonstrates using YAML for nodes with CSV for edges. The output should be identical to the reference.
+
+### CSV Nodes with YAML Edges
+```bash
+node src/index.js -n examples/nodes.csv -e examples/edges.yaml -m examples/map.csv -s examples/style-latex.json -o output/diagram-from-csv-nodes-yaml-edges-and-json-styles
+```
+This demonstrates using CSV for nodes with YAML for edges. The output should be identical to the reference.
+
+### Single Mixed YAML File
+```bash
+node src/index.js -y examples/mixed.yaml -m examples/map.csv -o output/diagram-from-mixed-yaml
+```
+This demonstrates using a single YAML file that combines nodes, edges, and styles all in one document. The `-y` flag tells the program to read everything from this one file. The output should be identical to the reference.
+
+## Creating the Mixed YAML File
+To create the mixed YAML file, you can concatenate the individual YAML files:
+```bash
+cat examples/nodes.yaml examples/edges.yaml examples/style-latex.yaml > examples/mixed.yaml
+```
+
+## Feature-Specific Examples
+
+These commands demonstrate specific features of the Boxes and Arrows tool. Each one produces unique output.
+
+### Relative Sizing Example
+```bash
+node src/index.js -n examples/nodes-with-relative-sizing.yaml -o output/nodes-with-relative-sizing -s examples/style-latex.yaml
+```
+This example demonstrates how nodes can specify their dimensions relative to other nodes using properties like `w_of`, `h_of`, etc.
+
+### Relative Positioning Example
+```bash
+node src/index.js -n examples/relative-nodes.yaml -o output/relative-nodes -s examples/style-latex.yaml
+```
+This example demonstrates positioning nodes relative to other nodes using properties like `relative_to` and offsets.
+
+## Automated Testing
+
+The examples above have automated tests in `tests/integration/format-consistency.test.js` that:
+
+1. Run each command
+2. Generate the output files
+3. Compare the output against reference files to ensure consistency
+
+### Running the Tests
+
+You can run the tests using:
 
 ```bash
-node src/index.js -n examples/nodes.csv -e examples/edges.csv -m examples/map.csv -s style-latex.json -o output/diagram-from-csv-data-and-json-styles
+# Run all integration tests
+npx jest tests/integration
+
+# Run just the format consistency tests
+npx jest tests/integration/format-consistency.test.js
+```
+
+### How the Tests Work
+
+- **Format Compatibility Tests**: All five format variations are compared against a single reference file, since they should produce identical output.
+- **Feature-Specific Tests**: Each feature test has its own separate reference file, since they produce unique output.
+
+On the first run, reference files are created. On subsequent runs, the output is compared against those references.
+
+```bash
+node src/index.js -n examples/nodes-with-relative-sizing.yaml -o output/nodes-with-relative-sizing -s examples/latex-style.yaml
 ```
 
 ```bash
-node src/index.js -n examples/nodes.yaml -e examples/edges.csv -p examples/map.csv -s style-latex.json -o output/diagram-from-yaml-nodes-csv-edges-and-json-styles
+node src/index.js -n examples/relative-nodes.yaml -o output/relative-nodes -s examples/latex-style.yaml
 ```
-
-```bash
-node src/index.js -n examples/nodes.csv -e examples/edges.yaml -m examples/map.csv -s style-latex.json -o output/diagram-from-csv-nodes-yaml-edges-and-json-styles
-```
-
-
-
-```bash
-node src/index.js -n examples/nodes.csv -e examples/edges.csv -m examples/map.csv -s examples/latex-style.yaml -o output/diagram-from-csv-data-and-yaml-styles
-```
-
-```bash
-node src/index.js -n examples/relative-nodes.yaml -o output/grid-squares -g 1 --verbose
-```
-
-```bash
-node src/index.js -n examples/nodes-with-relative-sizing.yaml -o output/sizing -g 1 --verbose
-```
-
-examples\nodes-with-relative-sizing.yaml
-
-## Testing the YAML Functionality
-
-This document contains test commands to verify the new YAML functionality, particularly the `-y` parameter for mixed YAML files.
-
-## Available Test Files
-
-- `examples/test-nodes.yaml`: Contains 4 nodes with different styles and positions
-- `examples/test-edges.yaml`: Contains 4 edges connecting the nodes
-- `examples/test-mixed.yaml`: Contains a mix of 4 nodes and 4 edges in the same file
-- `examples/test-positions.csv`: Contains position updates for some nodes
-- `examples/test-relative-nodes.yaml`: Contains nodes positioned relative to other nodes
-
-## Test Commands
-
-### 1. Test nodes-only file
-```bash
-node src/index.js -n examples/test-nodes.yaml -o output/test-nodes --verbose
-```
-This tests that nodes are properly loaded from a YAML file.
-
-### 2. Test nodes with edges
-```bash
-node src/index.js -n examples/test-nodes.yaml -e examples/test-edges.yaml -o output/test-nodes-edges --verbose
-```
-This tests loading nodes and edges from separate YAML files.
-
-### 3. Test mixed file
-```bash
-node src/index.js -y examples/test-mixed.yaml -o output/test-mixed --verbose
-```
-This tests the new `-y` parameter, which loads a mixed YAML file containing both nodes and edges.
-
-### 4. Test with position updates
-```bash
-node src/index.js -n examples/test-nodes.yaml -e examples/test-edges.yaml -m examples/test-positions.csv -o output/test-with-positions --verbose
-```
-This tests that position updates are properly applied from the position file and that edges use the updated positions.
-
-### 5. Test everything together
-```bash
-node src/index.js -n examples/test-nodes.yaml -e examples/test-edges.yaml -y examples/test-mixed.yaml -m examples/test-positions.csv -o output/test-all --verbose
-```
-This tests loading nodes and edges from all sources, with position updates.
-
-### 6. Test grid option
-```bash
-node src/index.js -y examples/test-mixed.yaml -o output/test-grid -g 1 --verbose
-```
-This tests the grid option, which adds a grid to the diagram with spacing of 1 unit.
-
-### 7. Test relative node positioning
-```bash
-node src/index.js -y examples/test-relative-nodes.yaml -o output/test-relative --verbose
-```
-This tests the new relative node positioning feature, where nodes can be positioned relative to other nodes using anchor points.
-
-## Expected Behavior
-
-When using the `-y` parameter with mixed YAML files, the application should:
-
-1. Process all nodes first (from both dedicated node files and the mixed YAML file)
-2. Apply position updates if specified
-3. Process all edges (from both dedicated edge files and the mixed YAML file)
-
-The verbose output should show the processing steps in this order.
-
-For relative node positioning, the application should:
-1. Process absolute positioned nodes first
-2. Then process relative positioned nodes, calculating their positions based on the reference nodes and anchors
-3. The resulting diagram should show nodes correctly positioned relative to their reference nodes
-
-## Creating and Viewing Output
-
-All commands use the `-o` parameter to specify the output file path. The output will be a PDF file at the specified path.
-
-For example, after running the first command, you can find the output at `output/test-nodes.pdf`.
-
-# Example Commands
-
-## Run with CSV files and position map
-To generate a diagram using the CSV files and position map:
-
-```bash
-node src/index.js -n examples/nodes.csv -e examples/edges.csv -p examples/map.csv -s style-latex.json -o output/example-output
-```
-
-This command:
-- Loads nodes from `examples/nodes.csv`
-- Loads edges from `examples/edges.csv`
-- Uses positions from `examples/map.csv`
-- Applies styles from `examples/style-latex.json`
-- Outputs the result to `output/example-output.tex` (and generates PDF) 
