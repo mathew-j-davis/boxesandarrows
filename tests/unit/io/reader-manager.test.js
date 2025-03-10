@@ -1,35 +1,34 @@
 const ReaderManager = require('../../../src/io/reader-manager');
 const NodeReader = require('../../../src/io/readers/node-reader');
 const EdgeReader = require('../../../src/io/readers/edge-reader');
-const NodeYamlReader = require('../../../src/io/readers/node-yaml-reader');
-const EdgeYamlReader = require('../../../src/io/readers/edge-yaml-reader');
+const StyleReader = require('../../../src/io/readers/style-reader');
 
 // Mock readers
 jest.mock('../../../src/io/readers/node-reader');
 jest.mock('../../../src/io/readers/edge-reader');
-jest.mock('../../../src/io/readers/node-yaml-reader');
-jest.mock('../../../src/io/readers/edge-yaml-reader');
+jest.mock('../../../src/io/readers/style-reader');
 
 describe('ReaderManager', () => {
   let readerManager;
-  let mockRenderer;
+  let mockStyleHandler;
   let mockScale;
   
   beforeEach(() => {
     // Create mock style handler
-    const mockStyleHandler = {
+    mockStyleHandler = {
       getCompleteStyle: jest.fn(),
       processAttributes: jest.fn(),
-      registerColor: jest.fn()
-    };
-    
-    // Create mock renderer
-    mockRenderer = {
-      styleHandler: mockStyleHandler
+      registerColor: jest.fn(),
+      mergeStylesheet: jest.fn(),
+      processYamlDocuments: jest.fn(),
+      getPageScale: jest.fn().mockReturnValue({
+        position: { x: 1, y: 1 },
+        size: { w: 1, h: 1 }
+      })
     };
     
     // Create reader manager
-    readerManager = new ReaderManager(mockRenderer);
+    readerManager = new ReaderManager();
     
     // Set up scale information
     mockScale = {
@@ -49,9 +48,9 @@ describe('ReaderManager', () => {
         { name: 'node2', x: 30, y: 40 }
       ]);
       
-      const nodes = await readerManager.processNodeFiles(['nodes.csv'], mockScale);
+      const nodes = await readerManager.processNodeFiles(['nodes.csv']);
       
-      expect(NodeReader.readFromCsv).toHaveBeenCalledWith('nodes.csv', mockScale, mockRenderer);
+      expect(NodeReader.readFromCsv).toHaveBeenCalledWith('nodes.csv');
       expect(nodes.size).toBe(2);
       expect(nodes.get('node1')).toBeDefined();
       expect(nodes.get('node2')).toBeDefined();
@@ -60,14 +59,14 @@ describe('ReaderManager', () => {
     
     test('should process YAML node files', async () => {
       // Set up mock response
-      NodeYamlReader.readFromYaml.mockResolvedValue([
+      NodeReader.readFromYaml.mockResolvedValue([
         { name: 'node1', x: 10, y: 20 },
         { name: 'node2', x: 30, y: 40 }
       ]);
       
-      const nodes = await readerManager.processNodeFiles(['nodes.yaml'], mockScale);
+      const nodes = await readerManager.processNodeFiles(['nodes.yaml']);
       
-      expect(NodeYamlReader.readFromYaml).toHaveBeenCalledWith('nodes.yaml', mockScale, mockRenderer);
+      expect(NodeReader.readFromYaml).toHaveBeenCalledWith('nodes.yaml');
       expect(nodes.size).toBe(2);
       expect(nodes.get('node1')).toBeDefined();
       expect(nodes.get('node2')).toBeDefined();
@@ -79,11 +78,11 @@ describe('ReaderManager', () => {
         { name: 'node1', x: 10, y: 20 }
       ]);
       
-      NodeYamlReader.readFromYaml.mockResolvedValue([
+      NodeReader.readFromYaml.mockResolvedValue([
         { name: 'node2', x: 30, y: 40 }
       ]);
       
-      const nodes = await readerManager.processNodeFiles(['nodes.csv', 'nodes.yaml'], mockScale);
+      const nodes = await readerManager.processNodeFiles(['nodes.csv', 'nodes.yaml']);
       
       expect(nodes.size).toBe(2);
       expect(nodes.get('node1')).toBeDefined();
@@ -97,10 +96,10 @@ describe('ReaderManager', () => {
       
       // Mock return values
       NodeReader.readFromCsv.mockResolvedValueOnce([node1]);
-      NodeYamlReader.readFromYaml.mockResolvedValueOnce([node2]);
+      NodeReader.readFromYaml.mockResolvedValueOnce([node2]);
       
       // Process nodes
-      await readerManager.processNodeFiles(['nodes.csv', 'nodes.yaml'], mockScale);
+      await readerManager.processNodeFiles(['nodes.csv', 'nodes.yaml']);
       
       // Verify results
       const mergedNode = readerManager.getNode('node1');
@@ -114,19 +113,19 @@ describe('ReaderManager', () => {
     });
     
     test('should ignore unsupported file formats', async () => {
-      const nodes = await readerManager.processNodeFiles(['nodes.json'], mockScale);
+      const nodes = await readerManager.processNodeFiles(['nodes.json']);
       
       expect(nodes.size).toBe(0);
       expect(NodeReader.readFromCsv).not.toHaveBeenCalled();
-      expect(NodeYamlReader.readFromYaml).not.toHaveBeenCalled();
+      expect(NodeReader.readFromYaml).not.toHaveBeenCalled();
     });
     
     test('should return empty array for empty input', async () => {
-      const nodes = await readerManager.processNodeFiles([], mockScale);
+      const nodes = await readerManager.processNodeFiles([]);
       
       expect(nodes.size).toBe(0);
       expect(NodeReader.readFromCsv).not.toHaveBeenCalled();
-      expect(NodeYamlReader.readFromYaml).not.toHaveBeenCalled();
+      expect(NodeReader.readFromYaml).not.toHaveBeenCalled();
     });
   });
   
@@ -141,9 +140,18 @@ describe('ReaderManager', () => {
         { from: 'node1', to: 'node2' }
       ]);
       
-      const edges = await readerManager.processEdgeFiles(['edges.csv'], mockScale);
+      // Mock EdgeReader.processEdgeRecord
+      EdgeReader.processEdgeRecord = jest.fn().mockImplementation((record) => {
+        return {
+          from: record.from,
+          to: record.to
+        };
+      });
       
-      expect(EdgeReader.readFromCsv).toHaveBeenCalledWith('edges.csv', readerManager.nodes, mockScale, mockRenderer);
+      const edges = await readerManager.processEdgeFiles(['edges.csv'], mockStyleHandler);
+      
+      expect(EdgeReader.readFromCsv).toHaveBeenCalledWith('edges.csv');
+      expect(EdgeReader.processEdgeRecord).toHaveBeenCalled();
       expect(edges.length).toBe(1);
       expect(edges[0].from).toBe('node1');
       expect(edges[0].to).toBe('node2');
@@ -155,13 +163,22 @@ describe('ReaderManager', () => {
       readerManager.nodes.set('node2', { name: 'node2' });
       
       // Set up mock response
-      EdgeYamlReader.readFromYaml.mockResolvedValue([
+      EdgeReader.readFromYaml.mockResolvedValue([
         { from: 'node1', to: 'node2' }
       ]);
       
-      const edges = await readerManager.processEdgeFiles(['edges.yaml'], mockScale);
+      // Mock EdgeReader.processEdgeRecord
+      EdgeReader.processEdgeRecord = jest.fn().mockImplementation((record) => {
+        return {
+          from: record.from,
+          to: record.to
+        };
+      });
       
-      expect(EdgeYamlReader.readFromYaml).toHaveBeenCalledWith('edges.yaml', mockScale, readerManager.nodes, mockRenderer);
+      const edges = await readerManager.processEdgeFiles(['edges.yaml'], mockStyleHandler);
+      
+      expect(EdgeReader.readFromYaml).toHaveBeenCalledWith('edges.yaml');
+      expect(EdgeReader.processEdgeRecord).toHaveBeenCalled();
       expect(edges.length).toBe(1);
       expect(edges[0].from).toBe('node1');
       expect(edges[0].to).toBe('node2');
@@ -177,12 +194,21 @@ describe('ReaderManager', () => {
         { from: 'node1', to: 'node2' }
       ]);
       
-      EdgeYamlReader.readFromYaml.mockResolvedValue([
+      EdgeReader.readFromYaml.mockResolvedValue([
         { from: 'node2', to: 'node1' }
       ]);
       
-      const edges = await readerManager.processEdgeFiles(['edges.csv', 'edges.yaml'], mockScale);
+      // Mock EdgeReader.processEdgeRecord
+      EdgeReader.processEdgeRecord = jest.fn().mockImplementation((record) => {
+        return {
+          from: record.from,
+          to: record.to
+        };
+      });
       
+      const edges = await readerManager.processEdgeFiles(['edges.csv', 'edges.yaml'], mockStyleHandler);
+      
+      expect(EdgeReader.processEdgeRecord).toHaveBeenCalled();
       expect(edges.length).toBe(2);
     });
     
@@ -190,22 +216,22 @@ describe('ReaderManager', () => {
       // Add a node to the map first
       readerManager.nodes.set('node1', { name: 'node1' });
       
-      const edges = await readerManager.processEdgeFiles(['edges.json'], mockScale);
+      const edges = await readerManager.processEdgeFiles(['edges.json'], mockStyleHandler);
       
       expect(edges.length).toBe(0);
       expect(EdgeReader.readFromCsv).not.toHaveBeenCalled();
-      expect(EdgeYamlReader.readFromYaml).not.toHaveBeenCalled();
+      expect(EdgeReader.readFromYaml).not.toHaveBeenCalled();
     });
     
     test('should return empty array for empty input', async () => {
-      const edges = await readerManager.processEdgeFiles([], mockScale);
+      const edges = await readerManager.processEdgeFiles([], mockStyleHandler);
       
       expect(edges.length).toBe(0);
       expect(EdgeReader.readFromCsv).not.toHaveBeenCalled();
     });
     
     test('should not process edges if no nodes are loaded', async () => {
-      const edges = await readerManager.processEdgeFiles(['edges.csv'], mockScale);
+      const edges = await readerManager.processEdgeFiles(['edges.csv'], mockStyleHandler);
       
       expect(edges.length).toBe(0);
       expect(EdgeReader.readFromCsv).not.toHaveBeenCalled();

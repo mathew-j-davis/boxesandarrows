@@ -7,6 +7,23 @@
         {
             "type": "node",
             "request": "launch",
+            "name": "Debug Style Test",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}/node_modules/jest/bin/jest.js",
+            "args": [
+                "--runTestsByPath",
+                "${workspaceFolder}/tests/unit/styles/latex-style-handler.test.js",
+                "--testNamePattern=should merge base and selected styles",
+                "--verbose"
+            ],
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen"
+        },
+        {
+            "type": "node",
+            "request": "launch",
             "name": "Relative Squares",
             "skipFiles": [
                 "<node_internals>/**"

@@ -37,7 +37,9 @@ describe('LatexStyleHandler', () => {
       }
     };
     
-    styleHandler = new LatexStyleHandler(mockStyleSheet);
+    // Initialize StyleHandler and merge the stylesheet
+    styleHandler = new LatexStyleHandler();
+    styleHandler.mergeStylesheet(mockStyleSheet);
   });
 
   describe('getCompleteStyle', () => {
@@ -90,11 +92,12 @@ describe('LatexStyleHandler', () => {
         }
       };
       
-      const localStyleHandler = new LatexStyleHandler(customStyleSheet);
+      const localStyleHandler = new LatexStyleHandler();
+      localStyleHandler.mergeStylesheet(customStyleSheet);
       const result = localStyleHandler.getCompleteStyle('custom', 'node', 'object');
       
-      // The actual implementation in LatexStyleHandler.getCompleteStyle 
-      // uses spread operators on the top-level objects, not deep merging
+      // This test is checking that when style properties are merged,
+      // the custom style's object properties override base style's properties
       expect(result).toEqual({
         tikz: { b: 3, c: 4 },     // custom.tikz completely overrides base.tikz
         other: { y: 2 }           // custom.other completely overrides base.other
