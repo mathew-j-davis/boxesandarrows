@@ -2,3 +2,9 @@ node_modules
 build
 npm-debug.log
 ~$*
+output/*.aux
+output/*.log
+output/*.out
+output/*.pdf
+output/*.tex
+output/*.toc
