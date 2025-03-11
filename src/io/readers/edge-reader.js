@@ -217,7 +217,9 @@ class EdgeReader {
                 from_name: record.from.replace(/\W/g, '_'),
                 to_name: record.to.replace(/\W/g, '_'),
                 label_justify: record.label_justify,
-                isHtml: record.isHtml === 'true'
+
+                // Initialize output storage
+                latex_output: ''
             };
 
             // Get style defaults if available

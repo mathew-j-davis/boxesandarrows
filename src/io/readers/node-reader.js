@@ -135,7 +135,11 @@ class NodeReader {
             w_of: record.w_of,
             w_from: record.w_from,
             w_to: record.w_to,
-            w_offset: record.w_offset ? parseFloat(record.w_offset) : 0
+            w_offset: record.w_offset ? parseFloat(record.w_offset) : 0,
+            
+            // Initialize output storage
+            latex_output: '',
+            text_output: ''
         };
 
         return node;

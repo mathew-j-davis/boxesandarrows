@@ -45,7 +45,6 @@ class LatexRenderer extends Renderer {
         this.verbose = options.verbose || false;
         this.log = this.verbose ? console.log.bind(console) : () => {};
         
- 
         this.bounds = {
             minX: Infinity,
             minY: Infinity,
@@ -65,11 +64,23 @@ class LatexRenderer extends Renderer {
         const safeNodes = Array.isArray(nodes) ? nodes : [];
         const safeEdges = Array.isArray(edges) ? edges : [];
 
-        // Render all nodes
+        // Initialize latex_output property on nodes and edges
+        safeNodes.forEach(node => {
+            node.latex_output = '';
+        });
+        
+        safeEdges.forEach(edge => {
+            edge.latex_output = '';
+        });
+
+        // Render all nodes (store output in node.latex_output)
         safeNodes.forEach(node => this.renderNode(node));
 
-        // Render all edges
+        // Render all edges (store output in edge.latex_output)
         safeEdges.forEach(edge => this.renderEdge(edge));
+        
+        // Collect rendered content from nodes and edges
+        this.collectRenderedContent(safeNodes, safeEdges);
 
         // If no content, set default bounding box for an empty diagram
         if (safeNodes.length === 0 && safeEdges.length === 0) {
@@ -211,7 +222,8 @@ class LatexRenderer extends Renderer {
             output += `\\node[${styleStr}] (${nodeId}) at ${pos} ${labelWithAdjustbox};`;
         }
         
-        this.content.push(output);
+        // Store output in node.latex_output instead of pushing to this.content
+        node.latex_output = output;
     }
 
     renderEdge(edge) {
@@ -344,7 +356,8 @@ class LatexRenderer extends Renderer {
 
         drawCommand += ';';
         console.log('draw command', drawCommand);
-        this.content.push(drawCommand);
+        // Store output in edge.latex_output instead of pushing to this.content
+        edge.latex_output = drawCommand;
     }
 
     generateTikzOptions(styleObj) {
@@ -855,6 +868,25 @@ ${libraries}
             
             // Add label on the left with unscaled value
             this.content.push(`\\node[left] at (${minX},${y}) {${formattedY}};`);
+        }
+    }
+
+    collectRenderedContent(nodes, edges) {
+        // Clear existing content array
+        this.content = [];
+        
+        // Add node outputs to content array
+        for (const node of nodes) {
+            if (node.latex_output) {
+                this.content.push(node.latex_output);
+            }
+        }
+        
+        // Add edge outputs to content array
+        for (const edge of edges) {
+            if (edge.latex_output) {
+                this.content.push(edge.latex_output);
+            }
         }
     }
 }
