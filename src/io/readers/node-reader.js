@@ -138,8 +138,8 @@ class NodeReader {
             w_offset: record.w_offset ? parseFloat(record.w_offset) : 0,
             
             // Initialize output storage
-            latex_output: '',
-            text_output: ''
+            latex_output: ''
+        
         };
 
         return node;
