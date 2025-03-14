@@ -14,7 +14,7 @@ label: Start
 shape: diamond
 h: 1
 w: 3
-color: "#001122"
+edge_color: "#001122"
 textcolor: "#001122"
 ---
 type: node
@@ -23,7 +23,7 @@ label: End
 shape: circle
 h: 3
 w: 3
-color: "#001122"
+edge_color: "#001122"
 textcolor: "#001122"
 ---
 type: node
@@ -32,5 +32,5 @@ label: b
 shape: circle
 h: 1
 w: 1
-color: "#001122"
+edge_color: "#001122"
 textcolor: "#001122"

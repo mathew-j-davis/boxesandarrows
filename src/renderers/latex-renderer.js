@@ -5,6 +5,7 @@ const { exec } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const LatexStyleHandler = require('../styles/latex-style-handler');
+const { BoundingBox } = require('../geometry/bounding-box');
 
 class LatexRenderer extends Renderer {
     constructor(options = {}) {
@@ -162,8 +163,8 @@ class LatexRenderer extends Renderer {
         if (node.fillcolor) {
             tikzAttributes['fill'] = this.styleHandler.registerColor(node.fillcolor);
         }
-        if (node.color) {
-            tikzAttributes['draw'] = this.styleHandler.registerColor(node.color);
+        if (node.edge_color) {
+            tikzAttributes['draw'] = this.styleHandler.registerColor(node.edge_color);
         }
         if (node.textcolor) {
             tikzAttributes['text'] = this.styleHandler.registerColor(node.textcolor);
@@ -461,8 +462,8 @@ ${libraries}
         if (node.fillcolor) {
             style['fill'] = this.styleHandler.registerColor(node.fillcolor);
         }
-        if (node.color) {
-            style['draw'] = this.styleHandler.registerColor(node.color);
+        if (node.edge_color) {
+            style['draw'] = this.styleHandler.registerColor(node.edge_color);
         }
 
         // Process raw TikZ attributes if present
@@ -759,18 +760,23 @@ ${libraries}
     }
 
     updateNodeBounds(node) {
-        // Use the pre-calculated anchor vector
-        const anchorVector = node.anchorVector;
+        // Create a bounding box from the node, which handles anchors correctly
+        const boxResult = BoundingBox.fromNode(node);
         
-        // Calculate the actual center point of the node
-        const centerX = node.x + ((0 - anchorVector.x) * node.width/2);
-        const centerY = node.y + ((0 - anchorVector.y) * node.height/2);
+        // If we couldn't create a bounding box, try to update bounds directly from node coordinates
+        if (!boxResult.success) {
+            // Fallback to using node's coordinates directly
+            this.updateBounds(node.x, node.y);
+            return;
+        }
+        
+        const boundingBox = boxResult.boundingBox;
         
         // Update bounds for all corners of the node
-        this.updateBounds(centerX - node.width/2, centerY - node.height/2);
-        this.updateBounds(centerX + node.width/2, centerY - node.height/2);
-        this.updateBounds(centerX - node.width/2, centerY + node.height/2);
-        this.updateBounds(centerX + node.width/2, centerY + node.height/2);
+        this.updateBounds(boundingBox.left, boundingBox.bottom);
+        this.updateBounds(boundingBox.right, boundingBox.bottom);
+        this.updateBounds(boundingBox.left, boundingBox.top);
+        this.updateBounds(boundingBox.right, boundingBox.top);
     }
 
     // Load template from file or use default

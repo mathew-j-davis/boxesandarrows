@@ -3,6 +3,7 @@ const CsvReader = require('./csv-reader');
 const { getNodeConnectionPoint } = require('../../geometry/node-connection-point');
 const { parseWaypoints } = require('../../geometry/waypoint-parser');
 const { Direction } = require('../../geometry/direction');
+const { BoundingBox } = require('../../geometry/bounding-box');
 const YamlReader = require('./yaml-reader');
 
 const PATH_TYPES = {
@@ -61,32 +62,34 @@ class EdgeReader {
             };
         }
 
-        // Calculate the bounding boxes for both nodes
-        const startBox = {
-            left: startNode.x - (startNode.width || startNode.w || 0)/2,
-            right: startNode.x + (startNode.width || startNode.w || 0)/2,
-            top: startNode.y + (startNode.height || startNode.h || 0)/2,
-            bottom: startNode.y - (startNode.height || startNode.h || 0)/2
-        };
-        
-        const endBox = {
-            left: endNode.x - (endNode.width || endNode.w || 0)/2,
-            right: endNode.x + (endNode.width || endNode.w || 0)/2,
-            top: endNode.y + (endNode.height || endNode.h || 0)/2,
-            bottom: endNode.y - (endNode.height || endNode.h || 0)/2
-        };
+        // Create bounding boxes for both nodes using the new BoundingBox.fromNode method
+        const startBoxResult = BoundingBox.fromNode(startNode);
+        const endBoxResult = BoundingBox.fromNode(endNode);
 
-        // Neither direction is valid, use the full auto-detection logic
+        // If either node couldn't be converted to a bounding box, fall back to center point logic
+        if (!startBoxResult.success || !endBoxResult.success) {
+            // Fallback to simple center-to-center direction
+            const horizontal = endNode.x - startNode.x;
+            const vertical = endNode.y - startNode.y;
+            
+            return {
+                startAnchor: autoSetStartDirection ? Direction.getDirectionName(horizontal, vertical) : startAnchor,
+                endAnchor: autoSetEndDirection ? Direction.getDirectionName(-horizontal, -vertical) : endAnchor
+            };
+        }
+        
+        const startBox = startBoxResult.boundingBox;
+        const endBox = endBoxResult.boundingBox;
+        
         // Check if bounding boxes don't overlap
-        const noHorizontalOverlap = startBox.right < endBox.left || startBox.left > endBox.right;
-        const noVerticalOverlap = startBox.top < endBox.bottom || startBox.bottom > endBox.top;
+        const noOverlap = !startBox.overlaps(endBox);
         
         // Default connection points
         let vertical = 0;
         let horizontal = 0;
         
         // If boxes don't overlap, use the bounding box logic
-        if (noHorizontalOverlap || noVerticalOverlap) {
+        if (noOverlap) {
             if (endBox.left > startBox.right) {
                 horizontal = 1;
             }

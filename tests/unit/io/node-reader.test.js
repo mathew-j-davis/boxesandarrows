@@ -37,7 +37,7 @@ describe('NodeReader', () => {
   y: 40
   width: 4
   height: 3
-  color: "#FF0000"
+  edge_color: "#FF0000"
   fillcolor: "#00FF00"
   tikz_object_attributes: "rounded corners=3pt"
   ---
@@ -109,7 +109,7 @@ describe('NodeReader', () => {
           y: 40,
           width: 4,
           height: 3,
-          color: '#FF0000',
+          edge_color: '#FF0000',
           fillcolor: '#00FF00',
           tikz_object_attributes: 'rounded corners=3pt'
         }
@@ -198,15 +198,15 @@ describe('NodeReader', () => {
     test('should store color attributes correctly', () => {
       const record = {
         name: 'node1',
-        color: '#FF0000', 
+        edge_color: '#FF0000',
         fillcolor: '#00FF00',
         textcolor: '#0000FF'
       };
       
       const node = NodeReader.processNodeRecord(record, mockScale, mockRenderer);
       
-      // Check that the original colors are preserved
-      expect(node.color).toBe('#FF0000');
+      // Check that colors are preserved
+      expect(node.edge_color).toBe('#FF0000');
       expect(node.fillcolor).toBe('#00FF00');
       expect(node.textcolor).toBe('#0000FF');
     });

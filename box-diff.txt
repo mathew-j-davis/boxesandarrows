@@ -1,0 +1,77 @@
+diff --git a/src/geometry/box.js b/src/geometry/box.js
+index 3ee4015..a8a5bd0 100644
+--- a/src/geometry/box.js
++++ b/src/geometry/box.js
+@@ -57,6 +57,72 @@ class Box {
+                point.y >= this.y && 
+                point.y <= this.y + this.height;
+     }
++
++    /**
++     * Creates a bounding box for a node, accounting for its anchor point
++     * @param {Object} node - Node object with x, y, width, height and optional anchor properties
++     * @returns {Box} A bounding box representing the node's bounds
++     */
++    static fromNode(node) {
++        if (!node) {
++            throw new Error('Node is required');
++        }
++
++        const width = node.width || node.w || 0;
++        const height = node.height || node.h || 0;
++        
++        // Get the anchor vector (default to center if not specified)
++        let anchorVector = { x: 0, y: 0 }; // Default to center
++        
++        if (node.anchor) {
++            // Use pre-calculated anchorVector if available
++            if (node.anchorVector) {
++                anchorVector = node.anchorVector;
++            } else {
++                // Otherwise calculate it from the anchor name
++                const standardizedAnchor = Direction.standardiseBasicDirectionName(node.anchor);
++                const vector = Direction.getVector(standardizedAnchor);
++                if (vector) {
++                    anchorVector = vector;
++                }
++            }
++        }
++        
++        // Calculate the top-left corner of the box
++        // For center anchor (0,0), this is (x - width/2, y - height/2)
++        // For other anchors, we adjust based on the anchor vector
++        const topLeftX = node.x - (width/2) - (anchorVector.x * width/2);
++        const topLeftY = node.y - (height/2) - (anchorVector.y * height/2);
++        
++        return new Box(topLeftX, topLeftY, width, height);
++    }
++
++    /**
++     * Check if this box overlaps with another box
++     * @param {Box} other - The other box to check against
++     * @returns {boolean} True if boxes overlap
++     */
++    overlaps(other) {
++        return !(
++            this.x + this.width < other.x ||  // This box is to the left of other
++            other.x + other.width < this.x || // Other box is to the left of this
++            this.y + this.height < other.y || // This box is above other
++            other.y + other.height < this.y   // Other box is above this
++        );
++    }
++
++    /**
++     * Get the left, right, top, bottom coordinates of the box
++     * @returns {Object} Object with left, right, top, bottom properties
++     */
++    getBounds() {
++        return {
++            left: this.x,
++            right: this.x + this.width,
++            top: this.y + this.height,
++            bottom: this.y
++        };
++    }
+ }
+ 
+ module.exports = {

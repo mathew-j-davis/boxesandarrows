@@ -37,41 +37,6 @@ class NodeReader {
         const x = null; // xUnscaled * scale.position.x;
         const y = null; //yUnscaled * scale.position.y;
 
-        /*
-        // Get style defaults if available
-        const styleDefaults = renderer.styleHandler?.getCompleteStyle(record.style, 'node', 'object') || {};
-        
-        // Process TikZ attributes if present
-        let tikzAttributes = {};
-        if (record.tikz_object_attributes) {
-            const processedAttributes = renderer.styleHandler.processAttributes(record.tikz_object_attributes);
-            tikzAttributes = processedAttributes.tikz || {};
-        }
-        
-        // Process color attributes if present
-        if (record.color || record.fillcolor || record.textcolor) {
-            if (record.color) tikzAttributes.draw = record.color;
-            if (record.fillcolor) tikzAttributes.fill = record.fillcolor;
-            if (record.textcolor) tikzAttributes.text = record.textcolor;
-        }
-        
-        // Merge styles with attributes taking precedence
-        const mergedStyle = {
-            ...styleDefaults,
-            tikz: {
-                ...styleDefaults.tikz,
-                ...tikzAttributes
-            }
-        };
-        
-        // Parse style dimensions if they exist (removing 'cm' suffix)
-        const defaultWidth = mergedStyle?.['minimum width']
-            ? parseFloat(mergedStyle['minimum width'].replace('cm', '')) 
-            : 1;
-        const defaultHeight = mergedStyle?.['minimum height']
-            ? parseFloat(mergedStyle['minimum height'].replace('cm', ''))
-            : 1;
-*/
         // Store unscaled size values with priority: CSV > Style > Default
         const widthUnscaled = 
             record.width !== undefined && record.width !== '' 
@@ -122,7 +87,7 @@ class NodeReader {
             style: record.style,
             tikz_object_attributes: record.tikz_object_attributes,
             //mergedStyle,  // Store processed style for rendering
-            color: record.color,
+            edge_color: record.edge_color,
             fillcolor: record.fillcolor,
             textcolor: record.textcolor,
 
