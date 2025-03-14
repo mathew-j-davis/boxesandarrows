@@ -32,7 +32,7 @@
                         "inner sep": "0pt"
                     }
                 },
-                "text": {
+                "label": {
                     "latex": {
                         "flags": {
                             "font": "\\sffamily",
@@ -68,7 +68,7 @@
                         }
                     }
                 },
-                "text": {
+                "label": {
                     "tikz": {
                         "default": {
                             "pos": "0.5"
@@ -122,7 +122,7 @@
                         "text opacity": "1"
                     }
                 },
-                "text": {
+                "label": {
                     "latex": {
                         "flags": {
                             "font": "\\sffamily",

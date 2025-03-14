@@ -1,0 +1,106 @@
+---
+# Base style with hierarchical structure
+type: style
+name: base
+node:
+  object:
+    # Universal attributes (apply to all renderers)
+    universal:
+      width: 10
+      height: 5
+      border:
+        style: "solid"
+        width: 1
+    # Text-specific attributes
+    text:
+      border: "single"
+      characterSet: "ascii"
+    # Graphical attributes (applies to all visual renderers)
+    graphical:
+      fill: "#FFFFFF"
+      stroke: "#000000"
+      opacity: 1.0
+      cornerRadius: 5
+    # Vector-specific attributes (applies to SVG and LaTeX)
+    vector:
+      strokeWidth: 1
+      strokeDashPattern: "solid"
+    # Renderer-specific attributes (highest priority)
+    tikz:
+      shape: "rectangle"
+      minimum width: "1cm"
+      minimum height: "0.5cm"
+      rounded corners: "0.005cm"
+      line width: "0.02cm"
+      text opacity: "1"
+      font: "\\footnotesize"
+      inner sep: "0pt"
+  label:
+    universal:
+      align: "center"
+      margin: 5
+    text:
+      wrap: true
+      maxWidth: 20
+    graphical:
+      color: "#000000"
+      fontSize: 12
+    latex:
+      flags:
+        font: "\\sffamily"
+        size: "\\small"
+---
+# Style for edge elements
+type: style
+name: edge_style
+edge:
+  object:
+    universal:
+      width: 1
+      style: "solid"
+    graphical:
+      stroke: "#000000"
+      opacity: 0.8
+    vector:
+      strokeWidth: 2
+      strokeLinecap: "round"
+    tikz:
+      draw: "#000000"
+      line width: "0.02cm"
+      rounded corners: "0.05cm"
+  arrow:
+    universal:
+      type: "arrow"
+      size: "medium"
+    tikz:
+      default:
+        shape: "Circle"
+        width: "0.2cm"
+        length: "0.2cm"
+      start:
+        shape: "Circle"
+        width: "0.2cm"
+        length: "0.2cm"
+      end:
+        shape: "Triangle"
+        width: "0.2cm"
+        length: "0.2cm"
+  label:
+    universal:
+      align: "center"
+      margin: 3
+    graphical:
+      color: "#000000"
+      fontSize: 10
+    tikz:
+      default:
+        pos: "0.5"
+      start:
+        pos: "0.1"
+      end:
+        pos: "0.9"
+    latex:
+      default:
+        flags:
+          font: "\\sffamily"
+          size: "\\small" 

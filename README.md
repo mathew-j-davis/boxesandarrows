@@ -74,7 +74,7 @@ node5,,,,,,,center,,,,,,,node1.north,node2.south,0.5,node3,,,,rectangle,default,
 
 #### Edge Definition (CSV)
 ```csv
-from,to,style,label,path_type,start_direction,end_direction,start_label,end_label,start_arrow,end_arrow,attributes,label_justify,isHtml,tikz_object_attributes,color,label_position,start_label_position,end_label_position,label_segment,start_label_segment,end_label_segment,start_adjust_x,start_adjust_y,end_adjust_x,end_adjust_y,waypoints
+from,to,style,label,path_type,start_anchor,end_anchor,start_label,end_label,start_arrow,end_arrow,attributes,label_justify,isHtml,tikz_object_attributes,color,label_position,start_label_position,end_label_position,label_segment,start_label_segment,end_label_segment,start_adjust_x,start_adjust_y,end_adjust_x,end_adjust_y,waypoints
 node1,node2,arrow,Connection,--,north,south,Start,End,<,>,dashed,center,false,line width=0.04cm,red,0.5,0.2,0.8,,,,-0.2,0.1,0.2,-0.1,
 node1,node3,default,Curved,..,.,.,,,,>,,,false,,blue,,,,,,,,,,,s(1,1) c(2,0) e(-1,1)
 node2,node4,arrow,,|-,east,west,,,,>,thick,,,,,,,,,,,,,,,
@@ -117,8 +117,8 @@ to: node2
 style: arrow
 label: Connection
 path_type: --
-start_direction: north
-end_direction: south
+start_anchor: north
+end_anchor: south
 start_arrow: <
 end_arrow: >
 color: red

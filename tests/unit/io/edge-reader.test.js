@@ -185,8 +185,8 @@ describe('EdgeReader', () => {
         label: 'Edge 1-2',
         style: 'custom',
         tikz_object_attributes: 'draw=red, dashed',
-        start_direction: 'east',    // Explicitly set direction
-        end_direction: 'west'      // Explicitly set direction
+        start_anchor: 'east',    // Explicitly set anchor
+        end_anchor: 'west'      // Explicitly set anchor
       };
       
       const edge = EdgeReader.processEdgeRecord(record, mockNodes, mockScale, mockStyleHandler);
@@ -196,23 +196,23 @@ describe('EdgeReader', () => {
       expect(edge.label).toBe('Edge 1-2');
       expect(edge.tikz_object_attributes).toBe('draw=red, dashed');
       
-      // Check that explicit directions are preserved
-      expect(edge.start_direction).toBe('east');
-      expect(edge.end_direction).toBe('west');
+      // Check that explicit anchors are preserved
+      expect(edge.start_anchor).toBe('east');
+      expect(edge.end_anchor).toBe('west');
     });
     
-    test('should handle explicit directions', () => {
+    test('should handle explicit anchors', () => {
       const record = {
         from: 'node1',
         to: 'node2',
-        start_direction: 'north',
-        end_direction: 'south'
+        start_anchor: 'north',
+        end_anchor: 'south'
       };
       
       const edge = EdgeReader.processEdgeRecord(record, mockNodes, mockScale, mockStyleHandler);
       
-      expect(edge.start_direction).toBe('north');
-      expect(edge.end_direction).toBe('south');
+      expect(edge.start_anchor).toBe('north');
+      expect(edge.end_anchor).toBe('south');
     });
     
     test('should skip edge if nodes not found', () => {
@@ -280,6 +280,114 @@ describe('EdgeReader', () => {
       expect(edge.mergedStyle.tikz.draw).toBe('green');
       expect(edge.mergedStyle.tikz.dotted).toBe(true);
     });
+
+    test('should process explicit connection directions', () => {
+      // Set up test data
+      const record = {
+        from: 'node1',
+        to: 'node2',
+        start_anchor: 'east',    // Explicitly set anchor
+        end_anchor: 'west'      // Explicitly set anchor
+      };
+      
+      const mockNodes = new Map([
+        ['node1', { 
+          name: 'node1', 
+          x: 10, 
+          y: 20, 
+          w: 5, 
+          h: 5,
+          width: 5,
+          height: 5,
+          xUnscaled: 10,
+          yUnscaled: 20,
+          widthUnscaled: 5,
+          heightUnscaled: 5,
+          anchorVector: { x: 0, y: 0 }
+        }],
+        ['node2', { 
+          name: 'node2', 
+          x: 30, 
+          y: 20, 
+          w: 5, 
+          h: 5,
+          width: 5,
+          height: 5,
+          xUnscaled: 30,
+          yUnscaled: 20,
+          widthUnscaled: 5,
+          heightUnscaled: 5,
+          anchorVector: { x: 0, y: 0 }
+        }]
+      ]);
+      
+      const scale = {
+        position: { x: 1, y: 1 },
+        size: { w: 1, h: 1 }
+      };
+      
+      const edge = EdgeReader.processEdgeRecord(record, mockNodes, scale);
+      
+      expect(edge).toBeDefined();
+      expect(edge.start_anchor).toBe('east');
+      expect(edge.end_anchor).toBe('west');
+      // ... other assertions ...
+    });
+
+    test('should handle different node shapes correctly', () => {
+      // Set up test data
+      const record = {
+        from: 'circle',
+        to: 'rectangle',
+        start_anchor: 'north',
+        end_anchor: 'south'
+      };
+      
+      const mockNodes = new Map([
+        ['circle', { 
+          name: 'circle', 
+          x: 10, 
+          y: 10, 
+          shape: 'circle', 
+          w: 5, 
+          h: 5,
+          width: 5,
+          height: 5,
+          xUnscaled: 10,
+          yUnscaled: 10,
+          widthUnscaled: 5,
+          heightUnscaled: 5,
+          anchorVector: { x: 0, y: 0 }
+        }],
+        ['rectangle', { 
+          name: 'rectangle', 
+          x: 10, 
+          y: 30, 
+          shape: 'rectangle', 
+          w: 10, 
+          h: 5,
+          width: 10,
+          height: 5,
+          xUnscaled: 10,
+          yUnscaled: 30,
+          widthUnscaled: 10,
+          heightUnscaled: 5,
+          anchorVector: { x: 0, y: 0 }
+        }]
+      ]);
+      
+      const scale = {
+        position: { x: 1, y: 1 },
+        size: { w: 1, h: 1 }
+      };
+      
+      const edge = EdgeReader.processEdgeRecord(record, mockNodes, scale);
+      
+      expect(edge).toBeDefined();
+      expect(edge.start_anchor).toBe('north');
+      expect(edge.end_anchor).toBe('south');
+      // ... other assertions ...
+    });
   });
 
   describe('setConnectionDirections', () => {
@@ -289,8 +397,8 @@ describe('EdgeReader', () => {
       
       const result = EdgeReader.setConnectionDirections(startNode, endNode, 'auto', 'auto');
       
-      expect(result.startDirection).toBe('east');
-      expect(result.endDirection).toBe('west');
+      expect(result.startAnchor).toBe('east');
+      expect(result.endAnchor).toBe('west');
     });
     
     test('should auto-calculate directions for vertical placement', () => {
@@ -299,8 +407,8 @@ describe('EdgeReader', () => {
       
       const result = EdgeReader.setConnectionDirections(startNode, endNode, '.', '.');
       
-      expect(result.startDirection).toBe('north');
-      expect(result.endDirection).toBe('south');
+      expect(result.startAnchor).toBe('north');
+      expect(result.endAnchor).toBe('south');
     });
     
     test('should honor explicit directions', () => {
@@ -309,8 +417,8 @@ describe('EdgeReader', () => {
       
       const result = EdgeReader.setConnectionDirections(startNode, endNode, 'south', 'north');
       
-      expect(result.startDirection).toBe('south');
-      expect(result.endDirection).toBe('north');
+      expect(result.startAnchor).toBe('south');
+      expect(result.endAnchor).toBe('north');
     });
     
     test('should auto-calculate one direction and honor the other explicit direction', () => {
@@ -319,8 +427,8 @@ describe('EdgeReader', () => {
       
       const result = EdgeReader.setConnectionDirections(startNode, endNode, 'south', 'auto');
       
-      expect(result.startDirection).toBe('south');
-      expect(result.endDirection).toBe('west');
+      expect(result.startAnchor).toBe('south');
+      expect(result.endAnchor).toBe('west');
     });
   });
 }); 

@@ -198,10 +198,10 @@ class LatexRenderer extends Renderer {
         } else {
             // Get text style and apply formatting
             let labelText = node.label;
-            const textStyle = this.styleHandler.getCompleteStyle(node.style, 'node', 'text');
+            const labelStyle = this.styleHandler.getCompleteStyle(node.style, 'node', 'label');
             
             // Apply LaTeX formatting
-            labelText = this.styleHandler.applyLatexFormatting(labelText, textStyle);
+            labelText = this.styleHandler.applyLatexFormatting(labelText, labelStyle);
             
             // Add textcolor if specified
             if (node.textcolor) {
@@ -249,7 +249,7 @@ class LatexRenderer extends Renderer {
         let drawCommand = `\\draw[${styleStr}]`;
 
         // Add start point based on whether it's adjusted or not
-        drawCommand += ` ${this.getPositionReferenceNotation(edge.from_name, edge.start_direction, edge.startAdjusted, edge.start.x, edge.start.y)}`;
+        drawCommand += ` ${this.getPositionReferenceNotation(edge.from_name, edge.start_anchor, edge.startAdjusted, edge.start.x, edge.start.y)}`;
 
         // Track actual segments (excluding control points)
         let segmentIndex = 0;
@@ -276,7 +276,7 @@ class LatexRenderer extends Renderer {
                 const labels = this.getLabelsForSegment(edge, 1, totalSegments);
                 if (labels.length > 0) {
                     // For 'to' paths, add labels within the to operation
-                    drawCommand += ` ${edge.from_name ? this.getPositionReferenceNotation(edge.from_name, edge.start_direction, edge.startAdjusted, edge.start.x, edge.start.y) : ''} to`;
+                    drawCommand += ` ${edge.from_name ? this.getPositionReferenceNotation(edge.from_name, edge.start_anchor, edge.startAdjusted, edge.start.x, edge.start.y) : ''} to`;
                     
                     // Add each label as a node within the 'to' operation
                     labels.forEach(label => {
@@ -284,14 +284,14 @@ class LatexRenderer extends Renderer {
                     });
                     
                     // Complete the 'to' operation with the destination
-                    drawCommand += ` ${this.getPositionReferenceNotation(edge.to_name, edge.end_direction, edge.endAdjusted, edge.end.x, edge.end.y)}`;
+                    drawCommand += ` ${this.getPositionReferenceNotation(edge.to_name, edge.end_anchor, edge.endAdjusted, edge.end.x, edge.end.y)}`;
                 } else {
                     // If no labels, just use the simple to syntax
-                    drawCommand += ` ${edge.path_type} ${this.getPositionReferenceNotation(edge.to_name, edge.end_direction, edge.endAdjusted, edge.end.x, edge.end.y)}`;
+                    drawCommand += ` ${edge.path_type} ${this.getPositionReferenceNotation(edge.to_name, edge.end_anchor, edge.endAdjusted, edge.end.x, edge.end.y)}`;
                 }
             } else {
                 // For other path types (like '--'), we can use the standard approach
-                drawCommand += ` ${edge.path_type} ${this.getPositionReferenceNotation(edge.to_name, edge.end_direction, edge.endAdjusted, edge.end.x, edge.end.y)}`;
+                drawCommand += ` ${edge.path_type} ${this.getPositionReferenceNotation(edge.to_name, edge.end_anchor, edge.endAdjusted, edge.end.x, edge.end.y)}`;
                 
                 const labels = this.getLabelsForSegment(edge, 1, totalSegments);
                 if (labels.length > 0) {
@@ -339,10 +339,10 @@ class LatexRenderer extends Renderer {
             // did waypoint processing leave an open segment?
             if (currentSegmentTail.length > 0) {
                 // Add end point
-                drawCommand += currentSegmentTail + ` .. ${this.getPositionReferenceNotation(edge.to_name, edge.end_direction, edge.endAdjusted, edge.end.x, edge.end.y)}`;
+                drawCommand += currentSegmentTail + ` .. ${this.getPositionReferenceNotation(edge.to_name, edge.end_anchor, edge.endAdjusted, edge.end.x, edge.end.y)}`;
             } else {
                 // Add end point
-                drawCommand += ` -- ${this.getPositionReferenceNotation(edge.to_name, edge.end_direction, edge.endAdjusted, edge.end.x, edge.end.y)}`;
+                drawCommand += ` -- ${this.getPositionReferenceNotation(edge.to_name, edge.end_anchor, edge.endAdjusted, edge.end.x, edge.end.y)}`;
             }
 
             // Add labels for this segment
@@ -438,12 +438,12 @@ ${libraries}
     getNodeStyle(node) {
         // Get object and text styles
         const objectStyle = this.styleHandler.getCompleteStyle(node.style, 'node', 'object');
-        const textStyle = this.styleHandler.getCompleteStyle(node.style, 'node', 'text');
+        const labelStyle = this.styleHandler.getCompleteStyle(node.style, 'node', 'label');
         
         const style = { ...objectStyle || {} };
 
         // Add text style flags
-        Object.entries(textStyle || {}).forEach(([flag, value]) => {
+        Object.entries(labelStyle || {}).forEach(([flag, value]) => {
             if (value === true) {
                 style[flag] = true;
             }
@@ -641,24 +641,26 @@ ${libraries}
             const position = calculatePosition(segmentIndex, edge.start_label_position ?? 0.1);
             
             if (position !== null) {
-                const textStyle = this.styleHandler.getCompleteStyle(edge.style, 'edge', 'text_start');
+                const labelStyle = this.styleHandler.getCompleteStyle(edge.style, 'edge', 'label_start');
+                
                 labels.push({
-                    text: this.styleHandler.applyLatexFormatting(this.escapeLaTeX(edge.start_label), textStyle),
+                    text: this.styleHandler.applyLatexFormatting(this.escapeLaTeX(edge.start_label), labelStyle),
                     position,
                     justify: edge.label_justify || 'above'
                 });
             }
         }
-
+        
         // End Label
         if (edge.end_label) {
             const segmentIndex = edge.end_label_segment ?? totalSegments;
             const position = calculatePosition(segmentIndex, edge.end_label_position ?? 0.9);
             
             if (position !== null) {
-                const textStyle = this.styleHandler.getCompleteStyle(edge.style, 'edge', 'text_end');
+                const labelStyle = this.styleHandler.getCompleteStyle(edge.style, 'edge', 'label_end');
+                
                 labels.push({
-                    text: this.styleHandler.applyLatexFormatting(this.escapeLaTeX(edge.end_label), textStyle),
+                    text: this.styleHandler.applyLatexFormatting(this.escapeLaTeX(edge.end_label), labelStyle),
                     position,
                     justify: edge.label_justify || 'above'
                 });
@@ -671,11 +673,11 @@ ${libraries}
             const segmentIndex = edge.label_segment ?? defaultSegment;
 
             let lp = 0.5;
-            const edgeTextStyle = this.styleHandler.getCompleteStyle(edge.style, 'edge', 'text');
+            const edgeLabelStyle = this.styleHandler.getCompleteStyle(edge.style, 'edge', 'label');
 
             // Check if we have a position value in the style
-            if (totalSegments == 1 && edgeTextStyle?.tikz?.pos) {
-                lp = edge.label_position ?? edgeTextStyle.tikz.pos;
+            if (totalSegments == 1 && edgeLabelStyle?.tikz?.pos) {
+                lp = edge.label_position ?? edgeLabelStyle.tikz.pos;
             } else {
                 lp = calculatePosition(
                     segmentIndex,
@@ -687,7 +689,7 @@ ${libraries}
             
             if (position !== null) {
                 labels.push({
-                    text: this.styleHandler.applyLatexFormatting(this.escapeLaTeX(edge.label), edgeTextStyle),
+                    text: this.styleHandler.applyLatexFormatting(this.escapeLaTeX(edge.label), edgeLabelStyle),
                     position,
                     justify: edge.label_justify || 'above'
                 });

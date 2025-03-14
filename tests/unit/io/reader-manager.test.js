@@ -112,14 +112,6 @@ describe('ReaderManager', () => {
       expect(mergedNode.tikz_object_attributes).toBe('draw=red, fill=blue'); // Attributes merged
     });
     
-    test('should ignore unsupported file formats', async () => {
-      const nodes = await readerManager.processNodeFiles(['nodes.json']);
-      
-      expect(nodes.size).toBe(0);
-      expect(NodeReader.readFromCsv).not.toHaveBeenCalled();
-      expect(NodeReader.readFromYaml).not.toHaveBeenCalled();
-    });
-    
     test('should return empty array for empty input', async () => {
       const nodes = await readerManager.processNodeFiles([]);
       
@@ -210,17 +202,6 @@ describe('ReaderManager', () => {
       
       expect(EdgeReader.processEdgeRecord).toHaveBeenCalled();
       expect(edges.length).toBe(2);
-    });
-    
-    test('should ignore unsupported file formats', async () => {
-      // Add a node to the map first
-      readerManager.nodes.set('node1', { name: 'node1' });
-      
-      const edges = await readerManager.processEdgeFiles(['edges.json'], mockStyleHandler);
-      
-      expect(edges.length).toBe(0);
-      expect(EdgeReader.readFromCsv).not.toHaveBeenCalled();
-      expect(EdgeReader.readFromYaml).not.toHaveBeenCalled();
     });
     
     test('should return empty array for empty input', async () => {

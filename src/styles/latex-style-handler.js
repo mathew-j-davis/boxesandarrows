@@ -98,8 +98,8 @@ class LatexStyleHandler {
      * Get complete style object for a category/style, with base cascade
      * @param {string} styleName - name of the style, or null/undefined for default
      * @param {string} styleType - 'node', 'edge', etc.
-     * @param {string} generalCategory - 'object', 'text', 'head'
-     * @param {string} specificCategory - more refined category like 'text_start', 'head_end'
+     * @param {string} generalCategory - 'object', 'label', 'head'
+     * @param {string} specificCategory - more refined category like 'label_start', 'head_end'
      */
     getCompleteStyle(styleName, styleType, generalCategory, specificCategory = null) {
         const baseStyle = this.stylesheet?.style?.base?.[styleType]?.[generalCategory] || {};

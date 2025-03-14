@@ -38,8 +38,8 @@ textcolor: "#001122"
 type: edge
 from: start
 to: b
-start_direction: null
-end_direction: null
+start_anchor: null
+end_anchor: null
 label: null
 color: null
 start_arrow: null
@@ -49,8 +49,8 @@ path_type: null
 type: edge
 from: b
 to: end
-start_direction: null
-end_direction: null
+start_anchor: null
+end_anchor: null
 label: null
 color: null
 start_arrow: null
@@ -60,8 +60,8 @@ path_type: null
 type: edge
 from: start
 to: end
-start_direction: s
-end_direction: null
+start_anchor: s
+end_anchor: null
 label: null
 color: null
 start_arrow: null
@@ -71,8 +71,8 @@ path_type: null
 type: edge
 from: start
 to: end
-start_direction: s
-end_direction: null
+start_anchor: s
+end_anchor: null
 label: null
 color: null
 start_arrow: null
@@ -82,8 +82,8 @@ path_type: "--"
 type: edge
 from: start
 to: end
-start_direction: s
-end_direction: null
+start_anchor: s
+end_anchor: null
 label: null
 color: null
 start_arrow: null
@@ -93,8 +93,8 @@ path_type: "|-"
 type: edge
 from: start
 to: end
-start_direction: s
-end_direction: null
+start_anchor: s
+end_anchor: null
 label: null
 color: null
 start_arrow: null
@@ -130,7 +130,7 @@ node:
       text opacity: 1
       font: \footnotesize
       inner sep: 0pt
-  text:
+  label:
     latex:
       flags:
         font: \sffamily
@@ -155,7 +155,7 @@ edge:
         shape: Triangle
         width: 0.2cm
         length: 0.2cm
-  text:
+  label:
     tikz:
       default:
         pos: "0.5"
@@ -194,7 +194,7 @@ node:
       draw: "white!0"
       line width: 0.00cm
       text opacity: 1
-  text:
+  label:
     latex:
       flags:
         font: \sffamily

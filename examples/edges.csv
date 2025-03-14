@@ -1,4 +1,4 @@
-from,to,type,start_direction,end_direction,label,color,start_arrow,end_arrow,path_type
+from,to,type,start_anchor,end_anchor,label,color,start_arrow,end_arrow,path_type
 start,b,c,,,,,,,
 b,end,c,,,,,,,
 start,end,c,s,,,,,,

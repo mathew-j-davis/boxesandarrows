@@ -30,42 +30,50 @@ class EdgeReader {
         };
     }
 
-    static shouldAutoSetDirection(direction){
+    static shouldAutoSetAnchor(anchor){
 
-        if (direction == '.' || direction == 'auto'){
+        if (anchor == '.' || anchor == 'auto'){
             return true;
         }
         return false;
     }
 
-    static setConnectionDirections (startNode, endNode, startDirection = null, endDirection = null) {
-        // Normalize direction strings if they are basic directions we recognize
-        startDirection = Direction.standardiseBasicDirectionName(startDirection);
-        endDirection = Direction.standardiseBasicDirectionName(endDirection);
+    /**
+     * Set connection directions based on node positions or explicit directions
+     * @param {Object} startNode - Starting node
+     * @param {Object} endNode - Ending node
+     * @param {string|null} startAnchor - Explicit start anchor
+     * @param {string|null} endAnchor - Explicit end anchor
+     * @returns {Object} - Object with startAnchor and endAnchor
+     */
+    static setConnectionDirections(startNode, endNode, startAnchor, endAnchor) {
+        // Normalize anchor strings if they are basic directions we recognize
+        startAnchor = Direction.standardiseBasicDirectionName(startAnchor);
+        endAnchor = Direction.standardiseBasicDirectionName(endAnchor);
         
-        let autoSetStartDirection = this.shouldAutoSetDirection(startDirection);
-        let autoSetEndDirection = this.shouldAutoSetDirection(endDirection);
+        let autoSetStartDirection = this.shouldAutoSetAnchor(startAnchor);
+        let autoSetEndDirection = this.shouldAutoSetAnchor(endAnchor);
 
         if (!autoSetStartDirection && !autoSetEndDirection){
             return {
-                startDirection: startDirection,
-                endDirection: endDirection
+                startAnchor: startAnchor,
+                endAnchor: endAnchor
             };
         }
 
         // Calculate the bounding boxes for both nodes
         const startBox = {
-            left: startNode.x - startNode.width/2,
-            right: startNode.x + startNode.width/2,
-            top: startNode.y + startNode.height/2,
-            bottom: startNode.y - startNode.height/2
+            left: startNode.x - (startNode.width || startNode.w || 0)/2,
+            right: startNode.x + (startNode.width || startNode.w || 0)/2,
+            top: startNode.y + (startNode.height || startNode.h || 0)/2,
+            bottom: startNode.y - (startNode.height || startNode.h || 0)/2
         };
         
         const endBox = {
-            left: endNode.x - endNode.width/2,
-            right: endNode.x + endNode.width/2,
-            top: endNode.y + endNode.height/2,
-            bottom: endNode.y - endNode.height/2
+            left: endNode.x - (endNode.width || endNode.w || 0)/2,
+            right: endNode.x + (endNode.width || endNode.w || 0)/2,
+            top: endNode.y + (endNode.height || endNode.h || 0)/2,
+            bottom: endNode.y - (endNode.height || endNode.h || 0)/2
         };
 
         // Neither direction is valid, use the full auto-detection logic
@@ -79,18 +87,17 @@ class EdgeReader {
         
         // If boxes don't overlap, use the bounding box logic
         if (noHorizontalOverlap || noVerticalOverlap) {
-
-            if (endBox.left > startBox.right ){
+            if (endBox.left > startBox.right) {
                 horizontal = 1;
             }
-            else if (startBox.left > endBox.right){
+            else if (startBox.left > endBox.right) {
                 horizontal = -1;
             }
 
-            if (endBox.bottom > startBox.top){
+            if (endBox.bottom > startBox.top) {
                 vertical = 1;
             }
-            else if ( endBox.top < startBox.bottom){
+            else if (endBox.top < startBox.bottom) {
                 vertical = -1;
             }
         }
@@ -101,8 +108,8 @@ class EdgeReader {
         }
 
         return {
-            startDirection: autoSetStartDirection ? Direction.getDirectionName(horizontal, vertical) : startDirection,
-            endDirection: autoSetEndDirection ? Direction.getDirectionName(-horizontal, -vertical) : endDirection
+            startAnchor: autoSetStartDirection ? Direction.getDirectionName(horizontal, vertical) : startAnchor,
+            endAnchor: autoSetEndDirection ? Direction.getDirectionName(-horizontal, -vertical) : endAnchor
         };
     }
 
@@ -144,8 +151,8 @@ class EdgeReader {
                 return null;
             }
 
-            const { startDirection, endDirection } = this.setConnectionDirections(
-                fromNode, toNode, record.start_direction, record.end_direction
+            const { startAnchor, endAnchor } = this.setConnectionDirections(
+                fromNode, toNode, record.start_anchor, record.end_anchor
             );
 
             // Get edge type, defaulting to 's' for simple if not specified
@@ -172,14 +179,14 @@ class EdgeReader {
             let startPoint = getNodeConnectionPoint(
                 fromNode,
                 scale,
-                startDirection,
+                startAnchor,
                 startAdjust,
             );
 
             let endPoint = getNodeConnectionPoint(
                 toNode,
                 scale,
-                endDirection,
+                endAnchor,
                 endAdjust
             );
 
@@ -209,8 +216,8 @@ class EdgeReader {
                 end_arrow: record.end_arrow,
                 attributes: record.attributes, // Store raw TikZ attributes for reference
                 path_type: record.path_type || PATH_TYPES.TO,
-                start_direction: startDirection,
-                end_direction: endDirection,
+                start_anchor: startAnchor,
+                end_anchor: endAnchor,
                 start: startPoint,
                 end: endPoint,
                 waypoints: waypoints,
