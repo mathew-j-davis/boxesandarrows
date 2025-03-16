@@ -1,5 +1,6 @@
 const LatexStyleHandler = require('../../src/styles/latex-style-handler');
 const NodeReader = require('../../src/io/readers/node-reader');
+const Node = require('../../src/io/models/node');
 
 describe('Style and Attribute Integration', () => {
   let styleHandler;

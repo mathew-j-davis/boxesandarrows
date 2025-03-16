@@ -2,6 +2,7 @@ const fs = require('fs');
 const CsvReader = require('./csv-reader');
 const yaml = require('js-yaml');
 const YamlReader = require('./yaml-reader');
+const Node = require('../models/node');
 
 class NodeReader {
 
@@ -61,10 +62,11 @@ class NodeReader {
         const width = null; //widthUnscaled * nodeScale.w;
         const height = null; //heightUnscaled * nodeScale.h;
 
-        let node = {
+        let nodeProperties = {
             name: record.name,
 
-            label: record.hide_label ? null : record.label || record.name,
+            label: record.label,
+            hide_label: record.hide_label,
             label_above: record.label_above,
             label_below: record.label_below,
             relative_to: record.relative_to,
@@ -102,12 +104,14 @@ class NodeReader {
             w_to: record.w_to,
             w_offset: record.w_offset ? parseFloat(record.w_offset) : 0,
             
+            // Store the original record(s)
+            records: [{ ...record }],
+            
             // Initialize output storage
             latex_output: ''
-        
         };
 
-        return node;
+        return new Node(nodeProperties);
     }
 }
 

@@ -1,6 +1,7 @@
-const NodeReader = require('../../../src/io/readers/node-reader');
 const fs = require('fs').promises;
 const YamlReader = require('../../../src/io/readers/yaml-reader');
+const Node = require('../../../src/io/models/node');
+const NodeReader = require('../../../src/io/readers/node-reader');
 
 // Mock dependencies
 jest.mock('../../../src/io/readers/csv-reader', () => ({
@@ -165,20 +166,18 @@ describe('NodeReader', () => {
       const record = {
         name: 'node1',
         label: 'Node 1',
-        x: '10',
-        y: '20',
+        x: '10.5',
+        y: '20.3',
         width: '5',
         height: '3'
       };
       
-      const node = NodeReader.processNodeRecord(record, mockScale, mockRenderer);
+      const node = NodeReader.processNodeRecord(record);
       
       expect(node.name).toBe('node1');
       expect(node.label).toBe('Node 1');
-      // These will be null since the code now disables direct position setting
-      // We should check unscaled values instead
-      expect(node.xUnscaled).toBe(10);
-      expect(node.yUnscaled).toBe(20);
+      expect(node.xUnscaled).toBe(10.5);
+      expect(node.yUnscaled).toBe(20.3);
       expect(node.widthUnscaled).toBe(5);
       expect(node.heightUnscaled).toBe(3);
     });
@@ -211,6 +210,26 @@ describe('NodeReader', () => {
       expect(node.textcolor).toBe('#0000FF');
     });
     
+    test('should store the original record in the records array', () => {
+      const record = {
+        name: 'node1',
+        label: 'Test Node',
+        edge_color: '#FF0000',
+        fillcolor: '#00FF00',
+        custom_field: 'custom value'
+      };
+      
+      const node = NodeReader.processNodeRecord(record, mockScale, mockRenderer);
+      
+      // Check that the original record is stored in the records array
+      expect(node.records).toBeInstanceOf(Array);
+      expect(node.records.length).toBe(1);
+      expect(node.records[0]).toEqual(record);
+      
+      // Verify that custom fields are preserved
+      expect(node.records[0].custom_field).toBe('custom value');
+    });
+    
     test('should store style information in node object', () => {
       const record = {
         name: 'node1',
@@ -240,6 +259,102 @@ describe('NodeReader', () => {
       expect(node.h_offset).toBe(2);
       expect(node.w_of).toBe('node3');
       expect(node.w_offset).toBe(1.5);
+    });
+
+    test('Node.mergeNodes should combine nodes and append records', () => {
+      const record1 = {
+        name: 'node1',
+        label: 'First Label',
+        edge_color: '#FF0000',
+        tikz_object_attributes: 'draw=red',
+        width: '3',
+        height: '2'
+      };
+      
+      const record2 = {
+        name: 'node1',
+        width: '5',
+        height: '3',
+        fillcolor: '#00FF00',
+        tikz_object_attributes: 'fill=blue'
+      };
+      
+      const node1 = NodeReader.processNodeRecord(record1);
+      const node2 = NodeReader.processNodeRecord(record2);
+      
+      const mergedNode = Node.mergeNodes(node1, node2);
+      
+      // Check that properties from both nodes are present, with node2 taking priority
+      expect(mergedNode.name).toBe('node1');
+      // Both records provide a name, but only record1 has a label
+      expect(mergedNode.label).toBe('First Label');
+      expect(mergedNode.edge_color).toBe('#FF0000'); // From node1 (not overridden)
+      expect(mergedNode.fillcolor).toBe('#00FF00');  // From node2
+      expect(mergedNode.widthUnscaled).toBe(5);      // From node2 (overrides node1)
+      expect(mergedNode.heightUnscaled).toBe(3);     // From node2 (overrides node1)
+      
+      // Check that tikz_object_attributes are concatenated
+      expect(mergedNode.tikz_object_attributes).toBe('draw=red, fill=blue');
+      
+      // Check that records from both nodes are present
+      expect(mergedNode.records).toHaveLength(2);
+      expect(mergedNode.records[0]).toEqual(record1);
+      expect(mergedNode.records[1]).toEqual(record2);
+    });
+
+    test('Node instance merge should combine with another node', () => {
+      const record1 = {
+        name: 'node1',
+        label: 'First Label',
+        edge_color: '#FF0000',
+        tikz_object_attributes: 'draw=red',
+        width: '3',
+        height: '2'
+      };
+      
+      const record2 = {
+        name: 'node1',
+        width: '5',
+        height: '3',
+        fillcolor: '#00FF00',
+        tikz_object_attributes: 'fill=blue'
+      };
+      
+      const node1 = NodeReader.processNodeRecord(record1);
+      const node2 = NodeReader.processNodeRecord(record2);
+      
+      // Merge node2 into node1
+      node1.merge(node2);
+      
+      // Check that properties from both nodes are present, with node2 taking priority
+      expect(node1.name).toBe('node1');
+      // Both records provide a name, but only record1 has a label
+      expect(node1.label).toBe('First Label');
+      expect(node1.edge_color).toBe('#FF0000'); // From original (not overridden)
+      expect(node1.fillcolor).toBe('#00FF00');  // From node2
+      expect(node1.widthUnscaled).toBe(5);      // From node2 (overrides original)
+      expect(node1.heightUnscaled).toBe(3);     // From node2 (overrides original)
+      
+      // Check that tikz_object_attributes are concatenated
+      expect(node1.tikz_object_attributes).toBe('draw=red, fill=blue');
+      
+      // Check that records from both nodes are present
+      expect(node1.records).toHaveLength(2);
+      expect(node1.records[0]).toEqual(record1);
+      expect(node1.records[1]).toEqual(record2);
+    });
+
+    test('should handle node with hide_label flag', () => {
+      const record = {
+        name: 'node1',
+        hide_label: true
+      };
+      
+      const node = NodeReader.processNodeRecord(record);
+      
+      expect(node.name).toBe('node1');
+      expect(node.hide_label).toBe(true);
+      expect(node.label).toBeUndefined();
     });
   });
 }); 

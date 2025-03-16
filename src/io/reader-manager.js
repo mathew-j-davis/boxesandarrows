@@ -2,6 +2,7 @@ const path = require('path');
 const NodeReader = require('./readers/node-reader');
 const EdgeReader = require('./readers/edge-reader');
 const StyleReader = require('./readers/style-reader');
+const Node = require('./models/node');
 
 /**
  * Manager class to handle reading from multiple files in different formats
@@ -95,16 +96,8 @@ class ReaderManager {
                     const existingNode = this.nodes.get(newNode.name);
                     console.info(`Merging duplicate node: ${newNode.name}`);
                     
-                    // Merge node properties, with new node taking priority
-                    const mergedNode = {
-                        ...existingNode,
-                        ...newNode
-                    };
-                    
-                    // Special handling for tikz_object_attributes - concatenate if both exist
-                    if (existingNode.tikz_object_attributes && newNode.tikz_object_attributes) {
-                        mergedNode.tikz_object_attributes = `${existingNode.tikz_object_attributes}, ${newNode.tikz_object_attributes}`;
-                    }
+                    // Use Node.mergeNodes to merge the nodes
+                    const mergedNode = Node.mergeNodes(existingNode, newNode);
                     
                     this.nodes.set(newNode.name, mergedNode);
                 } else {

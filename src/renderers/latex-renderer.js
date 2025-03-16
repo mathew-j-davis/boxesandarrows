@@ -194,11 +194,11 @@ class LatexRenderer extends Renderer {
         
         let output = '';
         // Check if the node should not display a label
-        if (node.label === undefined || node.label === null || node.label === '') {
+        if (node.hide_label === true) {
             output += `\\node[${styleStr}] (${nodeId}) at ${pos} {};`;
         } else {
             // Get text style and apply formatting
-            let labelText = node.label;
+            let labelText = node.label || node.name;
             const labelStyle = this.styleHandler.getCompleteStyle(node.style, 'node', 'label');
             
             // Apply LaTeX formatting
