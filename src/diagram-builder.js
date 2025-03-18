@@ -3,6 +3,7 @@ const PositionReader = require('./io/readers/position-reader');
 const ReaderManager = require('./io/reader-manager');
 const LatexRenderer = require('./renderers/latex-renderer');
 const { setPositionRelativeToNode, setSizeRelativeToNodes } = require('./io/readers/relative-node-processor');
+const Node = require('./io/models/node');
         
 
 class DiagramBuilder {
@@ -86,7 +87,15 @@ class DiagramBuilder {
                 this.log(`Processing nodes from mixed YAML file: ${mixedYamlFile}`);
                 await this.readerManager.processNodeFiles([mixedYamlFile]);
             }
+
+            // Merge all node records after loading from all sources
+            this.log('Merging all node records');
+            const mergedRecords = this.readerManager.mergeNodeRecords();
             
+            // Create Node objects from merged records
+            this.log('Creating Node objects from merged records');
+            this.readerManager.createNodesFromRecords(mergedRecords);
+
             // Load and apply position data
             if (positionFile) {
                 await this.loadPositions(positionFile);
@@ -117,6 +126,61 @@ class DiagramBuilder {
         }
     }
 
+    // async loadPositions(positionFile) {
+    //     this.log(`Loading positions from ${positionFile}`);
+    //     const positions = await PositionReader.readFromCsv(positionFile);
+        
+    //     // Look for existing nodes in the allNodeRecords collection
+    //     positions.forEach((pos, name) => {
+    //         // Find if the node exists in the collection
+    //         const existingNodeIndex = this.readerManager.allNodeRecords.findIndex(node => node.name === name);
+            
+    //         if (existingNodeIndex >= 0) {
+    //             // Update the existing node record
+    //             const existingNode = this.readerManager.allNodeRecords[existingNodeIndex];
+    //             existingNode.xUnscaled = pos.xUnscaled;
+    //             existingNode.yUnscaled = pos.yUnscaled;
+    //             this.log(`Set unscaled position of node '${name}' to (${existingNode.xUnscaled}, ${existingNode.yUnscaled})`);
+    //         } else {
+    //             // Create new node with unscaled values
+    //             const newNode = new Node({
+    //                 name: name,
+    //                 label: name,
+    //                 // Don't set scaled x,y here - will be set in applyScalingToAllNodes
+    //                 xUnscaled: pos.xUnscaled,
+    //                 yUnscaled: pos.yUnscaled,
+    //                 // Don't apply scaling to dimensions either
+    //                 heightUnscaled: 1,
+    //                 widthUnscaled: 1,
+    //                 // These will be set in applyScalingToAllNodes
+    //                 height: undefined,
+    //                 width: undefined,
+    //                 x: undefined,
+    //                 y: undefined,
+    //                 type: 'default',
+    //                 anchor: null,
+    //                 anchorVector: null,
+    //                 // Initialize records array
+    //                 records: [{ 
+    //                     name: name, 
+    //                     x: pos.xUnscaled, 
+    //                     y: pos.yUnscaled 
+    //                 }]
+    //             });
+
+    //             // Add to the collection
+    //             this.readerManager.allNodeRecords.push(newNode);
+    //             this.log(`Created new node '${name}' with unscaled position (${pos.xUnscaled}, ${pos.yUnscaled})`);
+    //         }
+    //     });
+    // }
+
+
+
+
+
+
+    
     async loadPositions(positionFile) {
         this.log(`Loading positions from ${positionFile}`);
         const positions = await PositionReader.readFromCsv(positionFile);
@@ -157,7 +221,6 @@ class DiagramBuilder {
             }
         });
     }
-
     // Method for positioning and scaling all nodes
     positionAndScaleAllNodes() {
         const nodes = this.readerManager.getNodes();

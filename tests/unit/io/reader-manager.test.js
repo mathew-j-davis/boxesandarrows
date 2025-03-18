@@ -2,6 +2,7 @@ const ReaderManager = require('../../../src/io/reader-manager');
 const NodeReader = require('../../../src/io/readers/node-reader');
 const EdgeReader = require('../../../src/io/readers/edge-reader');
 const StyleReader = require('../../../src/io/readers/style-reader');
+const Node = require('../../../src/io/models/node');
 
 // Mock readers
 jest.mock('../../../src/io/readers/node-reader');
@@ -41,83 +42,213 @@ describe('ReaderManager', () => {
   });
   
   describe('processNodeFiles', () => {
-    test('should process CSV node files', async () => {
+    test('should process CSV node files and collect raw records without merging', async () => {
       // Set up mock response
-      NodeReader.readFromCsv.mockResolvedValue([
+      NodeReader.readRecordsFromCsv = jest.fn().mockResolvedValue([
         { name: 'node1', x: 10, y: 20 },
         { name: 'node2', x: 30, y: 40 }
       ]);
       
-      const nodes = await readerManager.processNodeFiles(['nodes.csv']);
+      const nodeRecords = await readerManager.processNodeFiles(['nodes.csv']);
       
-      expect(NodeReader.readFromCsv).toHaveBeenCalledWith('nodes.csv');
-      expect(nodes.size).toBe(2);
-      expect(nodes.get('node1')).toBeDefined();
-      expect(nodes.get('node2')).toBeDefined();
-      expect(nodes.get('node1').x).toBe(10);
+      expect(NodeReader.readRecordsFromCsv).toHaveBeenCalledWith('nodes.csv');
+      expect(nodeRecords.length).toBe(2);
+      expect(nodeRecords[0].name).toBe('node1');
+      expect(nodeRecords[1].name).toBe('node2');
+      expect(readerManager.allNodeRecords.length).toBe(2);
+      
+      // The nodes map should still be empty at this point
+      expect(readerManager.nodes.size).toBe(0);
     });
     
-    test('should process YAML node files', async () => {
+    test('should process YAML node files and collect raw records without merging', async () => {
       // Set up mock response
-      NodeReader.readFromYaml.mockResolvedValue([
+      NodeReader.readRecordsFromYaml = jest.fn().mockResolvedValue([
         { name: 'node1', x: 10, y: 20 },
         { name: 'node2', x: 30, y: 40 }
       ]);
       
-      const nodes = await readerManager.processNodeFiles(['nodes.yaml']);
+      const nodeRecords = await readerManager.processNodeFiles(['nodes.yaml']);
       
-      expect(NodeReader.readFromYaml).toHaveBeenCalledWith('nodes.yaml');
-      expect(nodes.size).toBe(2);
-      expect(nodes.get('node1')).toBeDefined();
-      expect(nodes.get('node2')).toBeDefined();
+      expect(NodeReader.readRecordsFromYaml).toHaveBeenCalledWith('nodes.yaml');
+      expect(nodeRecords.length).toBe(2);
+      expect(nodeRecords[0].name).toBe('node1');
+      expect(nodeRecords[1].name).toBe('node2');
+      expect(readerManager.allNodeRecords.length).toBe(2);
+      
+      // The nodes map should still be empty at this point
+      expect(readerManager.nodes.size).toBe(0);
     });
     
-    test('should process both CSV and YAML node files', async () => {
+    test('should process both CSV and YAML node files and collect all raw records', async () => {
       // Set up mock responses
-      NodeReader.readFromCsv.mockResolvedValue([
+      NodeReader.readRecordsFromCsv = jest.fn().mockResolvedValue([
         { name: 'node1', x: 10, y: 20 }
       ]);
       
-      NodeReader.readFromYaml.mockResolvedValue([
+      NodeReader.readRecordsFromYaml = jest.fn().mockResolvedValue([
         { name: 'node2', x: 30, y: 40 }
       ]);
       
-      const nodes = await readerManager.processNodeFiles(['nodes.csv', 'nodes.yaml']);
+      const nodeRecords = await readerManager.processNodeFiles(['nodes.csv', 'nodes.yaml']);
       
-      expect(nodes.size).toBe(2);
-      expect(nodes.get('node1')).toBeDefined();
-      expect(nodes.get('node2')).toBeDefined();
+      expect(nodeRecords.length).toBe(2);
+      expect(nodeRecords[0].name).toBe('node1');
+      expect(nodeRecords[1].name).toBe('node2');
+      expect(readerManager.allNodeRecords.length).toBe(2);
+      
+      // The nodes map should still be empty at this point
+      expect(readerManager.nodes.size).toBe(0);
     });
     
-    test('should handle duplicate node names by merging properties', async () => {
+    test('should collect duplicate node records without merging them', async () => {
       // Set up test data
       const node1 = { name: 'node1', label: 'Node 1', x: 10, y: 20, tikz_object_attributes: 'draw=red' };
       const node2 = { name: 'node1', label: 'Updated Node 1', height: 5, tikz_object_attributes: 'fill=blue' };
       
       // Mock return values
-      NodeReader.readFromCsv.mockResolvedValueOnce([node1]);
-      NodeReader.readFromYaml.mockResolvedValueOnce([node2]);
+      NodeReader.readRecordsFromCsv = jest.fn().mockResolvedValueOnce([node1]);
+      NodeReader.readRecordsFromYaml = jest.fn().mockResolvedValueOnce([node2]);
       
       // Process nodes
-      await readerManager.processNodeFiles(['nodes.csv', 'nodes.yaml']);
+      const nodeRecords = await readerManager.processNodeFiles(['nodes.csv', 'nodes.yaml']);
       
-      // Verify results
-      const mergedNode = readerManager.getNode('node1');
-      expect(mergedNode).toBeDefined();
-      expect(mergedNode.name).toBe('node1');
-      expect(mergedNode.label).toBe('Updated Node 1'); // YAML value takes priority
-      expect(mergedNode.x).toBe(10); // Original value preserved
-      expect(mergedNode.y).toBe(20); // Original value preserved
-      expect(mergedNode.height).toBe(5); // YAML value added
-      expect(mergedNode.tikz_object_attributes).toBe('draw=red, fill=blue'); // Attributes merged
+      // Verify results - both records should be in the collection
+      expect(nodeRecords.length).toBe(2);
+      expect(nodeRecords[0].name).toBe('node1');
+      expect(nodeRecords[1].name).toBe('node1');
+      expect(readerManager.allNodeRecords.length).toBe(2);
+      expect(readerManager.allNodeRecords[0].label).toBe('Node 1');
+      expect(readerManager.allNodeRecords[1].label).toBe('Updated Node 1');
+      
+      // The nodes map should still be empty at this point
+      expect(readerManager.nodes.size).toBe(0);
     });
     
     test('should return empty array for empty input', async () => {
-      const nodes = await readerManager.processNodeFiles([]);
+      const nodeRecords = await readerManager.processNodeFiles([]);
       
+      expect(nodeRecords.length).toBe(0);
+      expect(readerManager.allNodeRecords.length).toBe(0);
+      expect(NodeReader.readRecordsFromCsv).not.toHaveBeenCalled();
+      expect(NodeReader.readRecordsFromYaml).not.toHaveBeenCalled();
+    });
+  });
+  
+  describe('mergeNodeRecords', () => {
+    test('should merge raw node records', async () => {
+      // Set up test data
+      const record1 = { name: 'node1', label: 'Node 1', x: 10, y: 20, tikz_object_attributes: 'draw=red' };
+      const record2 = { name: 'node2', label: 'Node 2', x: 30, y: 40 };
+      
+      // Add to allNodeRecords
+      readerManager.allNodeRecords = [record1, record2];
+      
+      // Merge records
+      const mergedRecords = readerManager.mergeNodeRecords();
+      
+      // Verify results
+      expect(mergedRecords.size).toBe(2);
+      expect(mergedRecords.get('node1')).toBeDefined();
+      expect(mergedRecords.get('node2')).toBeDefined();
+      expect(mergedRecords.get('node1').label).toBe('Node 1');
+      expect(mergedRecords.get('node2').label).toBe('Node 2');
+      
+      // The nodes map should still be empty at this point
+      expect(readerManager.nodes.size).toBe(0);
+    });
+    
+    test('should merge duplicate node records', async () => {
+      // Set up test data
+      const record1 = { name: 'node1', label: 'Node 1', x: 10, y: 20, tikz_object_attributes: 'draw=red' };
+      const record2 = { name: 'node1', label: 'Updated Node 1', height: 5, tikz_object_attributes: 'fill=blue' };
+      
+      // Add to allNodeRecords
+      readerManager.allNodeRecords = [record1, record2];
+      
+      // Merge records
+      const mergedRecords = readerManager.mergeNodeRecords();
+      
+      // Verify results
+      expect(mergedRecords.size).toBe(1); // Only 1 record after merging
+      const mergedRecord = mergedRecords.get('node1');
+      expect(mergedRecord).toBeDefined();
+      expect(mergedRecord.label).toBe('Updated Node 1'); // Second record's value takes priority
+      expect(mergedRecord.x).toBe(10); // Original value preserved
+      expect(mergedRecord.y).toBe(20); // Original value preserved
+      expect(mergedRecord.height).toBe(5); // Second record's value added
+      // Tikz attributes should be merged
+      expect(mergedRecord.tikz_object_attributes).toBe('draw=red, fill=blue');
+      
+      // The nodes map should still be empty at this point
+      expect(readerManager.nodes.size).toBe(0);
+    });
+    
+    test('should handle empty allNodeRecords', async () => {
+      // Ensure allNodeRecords is empty
+      readerManager.allNodeRecords = [];
+      
+      // Merge records
+      const mergedRecords = readerManager.mergeNodeRecords();
+      
+      // Verify results
+      expect(mergedRecords.size).toBe(0);
+      expect(readerManager.nodes.size).toBe(0);
+    });
+  });
+  
+  describe('createNodesFromRecords', () => {
+    beforeEach(() => {
+      // Mock NodeReader.processNodeRecord
+      NodeReader.processNodeRecord = jest.fn().mockImplementation((record) => {
+        // Create a new Node with the record properties
+        return new Node(record);
+      });
+    });
+    
+    afterEach(() => {
+      // Restore mocks
+      jest.restoreAllMocks();
+    });
+    
+    test('should create Node objects from merged records', () => {
+      // Set up test data
+      const mergedRecords = new Map();
+      mergedRecords.set('node1', { name: 'node1', label: 'Node 1', x: 10, y: 20 });
+      mergedRecords.set('node2', { name: 'node2', label: 'Node 2', x: 30, y: 40 });
+      
+      // Create nodes
+      const nodes = readerManager.createNodesFromRecords(mergedRecords);
+      
+      // Verify NodeReader.processNodeRecord was called for each record
+      expect(NodeReader.processNodeRecord).toHaveBeenCalledTimes(2);
+      expect(NodeReader.processNodeRecord).toHaveBeenCalledWith(
+        expect.objectContaining({ name: 'node1', label: 'Node 1' })
+      );
+      expect(NodeReader.processNodeRecord).toHaveBeenCalledWith(
+        expect.objectContaining({ name: 'node2', label: 'Node 2' })
+      );
+      
+      // Verify results
+      expect(nodes.size).toBe(2);
+      expect(nodes.get('node1')).toBeDefined();
+      expect(nodes.get('node2')).toBeDefined();
+      expect(nodes.get('node1').name).toBe('node1');
+      expect(nodes.get('node1').label).toBe('Node 1');
+      expect(nodes.get('node2').name).toBe('node2');
+      expect(nodes.get('node2').label).toBe('Node 2');
+    });
+    
+    test('should handle empty merged records', () => {
+      // Set up test data
+      const mergedRecords = new Map();
+      
+      // Create nodes
+      const nodes = readerManager.createNodesFromRecords(mergedRecords);
+      
+      // Verify results
       expect(nodes.size).toBe(0);
-      expect(NodeReader.readFromCsv).not.toHaveBeenCalled();
-      expect(NodeReader.readFromYaml).not.toHaveBeenCalled();
+      expect(NodeReader.processNodeRecord).not.toHaveBeenCalled();
     });
   });
   

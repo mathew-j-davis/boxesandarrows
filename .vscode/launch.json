@@ -7,6 +7,23 @@
         {
             "type": "node",
             "request": "launch",
+            "name": "Debug relative sizing YAML",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}/src/index.js",
+            "args": [
+                "-n", "examples/nodes-with-relative-sizing.yaml",
+                "-o", "output/nodes-with-relative-sizing",
+
+                "--trace-warnings"
+            ],
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen"
+        }, 
+        {
+            "type": "node",
+            "request": "launch",
             "name": "Debug Original Position Tests",
             "skipFiles": [
                 "<node_internals>/**"

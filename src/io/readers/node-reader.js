@@ -11,6 +11,21 @@ class NodeReader {
         return records.map(record => this.processNodeRecord(record));
     }
 
+    static async readRecordsFromCsv(nodeFile) {
+        return await CsvReader.readFile(nodeFile);
+    }
+
+        /**
+     * Read nodes from a YAML file
+     * @param {string} yamlFile - Path to the YAML file
+     * @returns {Promise<Array>} - Array of node records
+     */
+    static async readRecordsFromYaml(yamlFile) {
+        return await YamlReader.readFile(yamlFile, { 
+            filter: doc => doc && doc.type === 'node' 
+        });
+    }
+
     /**
      * Read nodes from a YAML file
      * @param {string} yamlFile - Path to the YAML file
@@ -26,8 +41,8 @@ class NodeReader {
     static processNodeRecord(record) {
         // Store unscaled position values
 
-        const defaultHeight = 1;
-        const defaultWidth = 1;
+        // const defaultHeight = 1;
+        // const defaultWidth = 1;
 
         const xUnscaled = record.x !== undefined && record.x !== '' ? 
             parseFloat(record.x) : 0;
@@ -44,14 +59,14 @@ class NodeReader {
                 ? parseFloat(record.width) 
                 : (record.w !== undefined && record.w !== '' 
                     ? parseFloat(record.w) 
-                    : defaultWidth);
+                    : undefined);
                     
         const heightUnscaled = 
             record.height !== undefined && record.height !== '' 
                 ? parseFloat(record.height) 
                 : (record.h !== undefined && record.h !== '' 
                     ? parseFloat(record.h) 
-                    : defaultHeight);
+                    : undefined);
         
 
 

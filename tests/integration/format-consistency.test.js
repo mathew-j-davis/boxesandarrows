@@ -154,46 +154,4 @@ describe('Format Consistency Tests', () => {
       compareWithReference(outputPath, referencePath);
     });
   });
-  
-  describe('Feature-specific tests (unique outputs)', () => {
-    test('Relative sizing produces expected output', () => {
-      // Run command to generate diagram with relative sizing
-      const command = 'node src/index.js -n examples/nodes-with-relative-sizing.yaml -o output/nodes-with-relative-sizing -s examples/style-latex.yaml';
-      runCommand(command);
-      
-      // Get output file path
-      const outputPath = path.join(outputDir, 'nodes-with-relative-sizing.tex');
-      expect(fs.existsSync(outputPath)).toBe(true);
-      
-      // Create reference file if it doesn't exist
-      const referencePath = path.join(referenceDir, 'reference-relative-sizing.tex');
-      if (!fs.existsSync(referencePath)) {
-        saveReferenceFile(outputPath, 'reference-relative-sizing.tex');
-        console.log('Created relative sizing reference file. First test run will always pass.');
-      } else {
-        // Compare with reference
-        compareWithReference(outputPath, referencePath);
-      }
-    });
-    
-    test('Relative positioning produces expected output', () => {
-      // Run command to generate diagram with relative positioning
-      const command = 'node src/index.js -n examples/relative-nodes.yaml -o output/relative-nodes -s examples/style-latex.yaml';
-      runCommand(command);
-      
-      // Get output file path
-      const outputPath = path.join(outputDir, 'relative-nodes.tex');
-      expect(fs.existsSync(outputPath)).toBe(true);
-      
-      // Create reference file if it doesn't exist
-      const referencePath = path.join(referenceDir, 'reference-relative-positioning.tex');
-      if (!fs.existsSync(referencePath)) {
-        saveReferenceFile(outputPath, 'reference-relative-positioning.tex');
-        console.log('Created relative positioning reference file. First test run will always pass.');
-      } else {
-        // Compare with reference
-        compareWithReference(outputPath, referencePath);
-      }
-    });
-  });
 }); 

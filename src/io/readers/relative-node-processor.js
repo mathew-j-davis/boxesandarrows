@@ -75,8 +75,12 @@ function setPositionRelativeToNode(node, referenceNode, styleHandler) {
  * @param {Map} nodesMap - Map of all nodes by name
  */
 function setSizeRelativeToNodes(node, nodesMap) {
+    
+    const defaultHeight = 1;
+    const defaultWidth = 1;
+    
     // Process height first
-    if (!node.height) {
+    if (!node.heightUnscaled) {
         // Try to calculate height from h_of attribute
         if (node.h_of && nodesMap.has(node.h_of)) {
             const referenceNode = nodesMap.get(node.h_of);
@@ -92,11 +96,13 @@ function setSizeRelativeToNodes(node, nodesMap) {
                 node.heightUnscaled = Math.abs(toPoint.y - fromPoint.y) + (node.h_offset || 0);
             }
         }
-        // If still no height, it will use style.h (handled elsewhere) or default
+        if (!node.heightUnscaled) {
+            node.heightUnscaled = defaultHeight;
+        }
     }
 
     // Process width second
-    if (!node.width) {
+    if (!node.widthUnscaled) {
         // Try to calculate width from w_of attribute
         if (node.w_of && nodesMap.has(node.w_of)) {
             const referenceNode = nodesMap.get(node.w_of);
@@ -113,7 +119,11 @@ function setSizeRelativeToNodes(node, nodesMap) {
             }
         }
 
+        if (!node.widthUnscaled) {
+            node.widthUnscaled = defaultWidth;
+        }
     }
+
 }
 
 /**

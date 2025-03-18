@@ -4,4 +4,5 @@ npm-debug.log
 ~$*
 output/**/*
 output/**/*.*
-!output/output\empty-file-so-git-can-see-directory.txt
+!output/output/empty-file-so-git-can-see-directory.txt
+!output/output/_empty-file-so-git-can-see-directory.txt

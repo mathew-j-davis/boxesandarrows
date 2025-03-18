@@ -13,9 +13,10 @@ class ReaderManager {
      * @param {Object} styleHandler - Style handler for processing styles
      */
     constructor() {
- 
         this.nodes = new Map();
         this.edges = [];
+        // New collection for storing all node records without merging
+        this.allNodeRecords = [];
     }
 
     /**
@@ -61,16 +62,16 @@ class ReaderManager {
     }
     
     /**
-     * Process multiple node files (CSV or YAML)
+     * Process multiple node files (CSV or YAML) and store without merging
      * @param {Array} nodeFiles - Array of file paths to process
-     * @param {Object} scale - Scale information for positions and sizes
-     * @returns {Map} - Map of node objects (name -> node)
+     * @returns {Array} - Array of all node records (without merging)
      */
     async processNodeFiles(nodeFiles) {
-        // Return empty Map if no node files provided
+        // Return empty array if no node files provided
         if (!nodeFiles || nodeFiles.length === 0) {
             console.info('No node files provided, using empty node set');
-            return new Map();
+            this.allNodeRecords = [];
+            return [];
         }
 
         // Process each file
@@ -78,32 +79,78 @@ class ReaderManager {
             // Get file extension
             const fileExtension = path.extname(file).toLowerCase().replace('.', '');
             
-
             // Process based on file extension
-            let newNodes = [];
+            let records = [];
             if (fileExtension === 'csv') {
-                newNodes = await NodeReader.readFromCsv(file);
+                records = await NodeReader.readRecordsFromCsv(file);
             } else if (fileExtension === 'yaml' || fileExtension === 'yml') {
-                newNodes = await NodeReader.readFromYaml(file);       
+                records = await NodeReader.readRecordsFromYaml(file);       
             } else {
                 console.warn(`Unsupported file format for nodes: ${fileExtension}`);
                 continue;
             }
                 
-            // Add nodes to map, merging duplicates with new properties taking priority
-            for (const newNode of newNodes) {
-                if (this.nodes.has(newNode.name)) {
-                    const existingNode = this.nodes.get(newNode.name);
-                    console.info(`Merging duplicate node: ${newNode.name}`);
+            // Add all records to the collection without merging
+            this.allNodeRecords = [...this.allNodeRecords, ...records];
+        }
+        
+        return this.allNodeRecords;
+    }
+    
+    /**
+     * Merge all collected node records and update the nodes map
+     * @returns {Map} - Map of merged node records (name -> record)
+     */
+    mergeNodeRecords() {
+        // Map to store merged records
+        const mergedRecords = new Map();
+        
+        // Process all collected node records
+        for (const record of this.allNodeRecords) {
+            const nodeName = record.name;
+            
+            if (mergedRecords.has(nodeName)) {
+                const existingRecord = mergedRecords.get(nodeName);
+                console.info(`Merging duplicate node record: ${nodeName}`);
+                
+                // Merge records (later records overwrite earlier ones)
+                for (const [key, value] of Object.entries(record)) {
+                    // Skip empty or undefined values
+                    if (value === undefined || value === '') {
+                        continue;
+                    }
                     
-                    // Use Node.mergeNodes to merge the nodes
-                    const mergedNode = Node.mergeNodes(existingNode, newNode);
-                    
-                    this.nodes.set(newNode.name, mergedNode);
-                } else {
-                    this.nodes.set(newNode.name, newNode);
+                    // Special handling for tikz_object_attributes to combine them
+                    if (key === 'tikz_object_attributes' && existingRecord[key]) {
+                        existingRecord[key] = `${existingRecord[key]}, ${value}`;
+                    } else {
+                        // For all other properties, newer value overwrites
+                        existingRecord[key] = value;
+                    }
                 }
+            } else {
+                // Create a new record
+                mergedRecords.set(nodeName, { ...record });
             }
+        }
+        
+        return mergedRecords;
+    }
+    
+    /**
+     * Create Node objects from merged records
+     * @param {Map} mergedRecords - Map of merged node records
+     * @returns {Map} - Map of Node objects
+     */
+    createNodesFromRecords(mergedRecords) {
+        // Clear the existing nodes map to start fresh
+        this.nodes.clear();
+        
+        // First create all Node objects to ensure references exist
+        for (const [nodeName, record] of mergedRecords.entries()) {
+            // Use NodeReader to properly process the record with all unscaled dimensions
+            const node = NodeReader.processNodeRecord(record);
+            this.nodes.set(nodeName, node);
         }
         
         return this.nodes;
