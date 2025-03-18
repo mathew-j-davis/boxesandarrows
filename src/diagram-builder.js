@@ -175,7 +175,7 @@ class DiagramBuilder {
         // Single pass: handle both relative sizing and positioning
         for (const [nodeName, node] of nodes.entries()) {
             // First handle relative sizing if needed
-            setSizeRelativeToNodes(node, nodes);
+            setSizeRelativeToNodes(node, nodes, scaleConfig);
             
             // Then handle relative positioning if needed
             if (node.relative_to) {

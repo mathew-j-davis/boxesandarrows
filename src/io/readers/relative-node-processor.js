@@ -73,11 +73,16 @@ function setPositionRelativeToNode(node, referenceNode, styleHandler) {
  * Calculate the size of a node relative to other nodes
  * @param {Object} node - The node to calculate size for
  * @param {Map} nodesMap - Map of all nodes by name
+ * @param {Object} scaleConfig - Configuration for scaling
  */
-function setSizeRelativeToNodes(node, nodesMap) {
+function setSizeRelativeToNodes(node, nodesMap, scaleConfig) {
     
     const defaultHeight = 1;
     const defaultWidth = 1;
+    
+    // Get scale factors
+    const widthScale = scaleConfig?.size?.w || 1;
+    const heightScale = scaleConfig?.size?.h || 1;
     
     // Process height first
     if (!node.heightUnscaled) {
@@ -92,8 +97,12 @@ function setSizeRelativeToNodes(node, nodesMap) {
             const toPoint = getAnchorPoint(node.h_to, nodesMap);
             
             if (fromPoint && toPoint) {
-                // Calculate absolute difference in Y coordinates
-                node.heightUnscaled = Math.abs(toPoint.y - fromPoint.y) + (node.h_offset || 0);
+                // Calculate absolute difference in Y coordinates (using scaled values)
+                const scaledHeight = Math.abs(toPoint.y - fromPoint.y);
+                // Convert back to unscaled value
+                node.heightUnscaled = scaledHeight / heightScale;
+                // Add the offset (which is already in unscaled units)
+                node.heightUnscaled += (node.h_offset || 0);
             }
         }
         if (!node.heightUnscaled) {
@@ -114,8 +123,12 @@ function setSizeRelativeToNodes(node, nodesMap) {
             const toPoint = getAnchorPoint(node.w_to, nodesMap);
             
             if (fromPoint && toPoint) {
-                // Calculate absolute difference in X coordinates
-                node.widthUnscaled = Math.abs(toPoint.x - fromPoint.x) + (node.w_offset || 0);
+                // Calculate absolute difference in X coordinates (using scaled values)
+                const scaledWidth = Math.abs(toPoint.x - fromPoint.x);
+                // Convert back to unscaled value
+                node.widthUnscaled = scaledWidth / widthScale;
+                // Add the offset (which is already in unscaled units)
+                node.widthUnscaled += (node.w_offset || 0);
             }
         }
 
@@ -123,7 +136,6 @@ function setSizeRelativeToNodes(node, nodesMap) {
             node.widthUnscaled = defaultWidth;
         }
     }
-
 }
 
 /**
@@ -155,16 +167,21 @@ function getAnchorPoint(anchorSpec, nodesMap) {
     
     if (!anchorVector) return null;
     
-    // Calculate the anchor point position
-    const x = node.xUnscaled;
-    const y = node.yUnscaled;
-    const width = node.widthUnscaled || 0;
-    const height = node.heightUnscaled || 0;
+    // Calculate the anchor point position based on unscaled values
+    const xUnscaled = node.xUnscaled;
+    const yUnscaled = node.yUnscaled;
+    const widthUnscaled = node.widthUnscaled || 0;
+    const heightUnscaled = node.heightUnscaled || 0;
     
-    // Calculate the anchor point coordinates
+    // Calculate the anchor point coordinates (unscaled)
+    const xPointUnscaled = xUnscaled + (anchorVector.x * widthUnscaled / 2);
+    const yPointUnscaled = yUnscaled + (anchorVector.y * heightUnscaled / 2);
+    
+    // Return the scaled coordinates for consistent usage with h_from/h_to calculations
+    const scale = node.scale || 1;
     return {
-        x: x + (anchorVector.x * width / 2),
-        y: y + (anchorVector.y * height / 2)
+        x: xPointUnscaled * scale,
+        y: yPointUnscaled * scale
     };
 }
 
