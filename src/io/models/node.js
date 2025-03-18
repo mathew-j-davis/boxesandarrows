@@ -91,6 +91,12 @@ class Node {
             return { calculated: false };
         }
 
+        // Check if adjustments are provided
+        const hasAdjustments = !!(
+            anchor_adjust_x !== undefined || 
+            anchor_adjust_y !== undefined
+        );
+
         // If x and y are directly provided, they override everything else
         // These are already in unscaled coordinates, we need to calculate scaled values
         if (x !== undefined && y !== undefined) {
@@ -110,8 +116,9 @@ class Node {
                 y: scaledY,
                 xUnscaled: x,
                 yUnscaled: y,
-                positionType: 'coordinates',
-                position: `(${x},${y})`
+                positionCoordinates: `(${scaledX},${scaledY})`,
+                positionCoordinatesUnscaled: `(${x},${y})`,
+                isAdjusted: false
             };
         }
 
@@ -136,24 +143,29 @@ class Node {
                         position: null 
                     };
                 }
+                
+                // Create anchored position string
+                const positionAnchored = `${anchor_node}.${anchor}`;
+                
                 return { 
                     calculated: true,
                     success: true,
-                    positionType: 'anchor',
-                    anchorType: 'not recognised',
                     anchor: anchor,
                     nodeRef: anchor_node,
-                    position: anchor_node + "." + anchor
+                    positionAnchored: positionAnchored,
+                    isAdjusted: false
                 };
             }
             // Otherwise use the anchor on the current node
+            // Create anchored position string
+            const positionAnchored = `${node.name}.${anchor}`;
+            
             return { 
                 calculated: true,
                 success: true,
-                positionType: 'anchor',
-                anchorType: 'not recognised',
                 anchor: anchor,
-                position: node.name + "." + anchor
+                positionAnchored: positionAnchored,
+                isAdjusted: false
             };
         }
 
@@ -168,6 +180,10 @@ class Node {
             };
         }
 
+        // Create anchored position string
+        const nodeName = targetNode.name || (targetNode === node ? 'this' : 'unknown');
+        const positionAnchored = `${nodeName}.${canonicalAnchor}`;
+
         // Calculate position based on anchor using the SCALED dimensions
         const scaledPosition = Node.getAnchorPosition(targetNode, canonicalAnchor);
         if (!scaledPosition) {
@@ -179,46 +195,85 @@ class Node {
             };
         }
 
-        // Apply adjustments if provided (scaled adjustments)
+        // Initial position without adjustments
         let scaledX = scaledPosition.x;
         let scaledY = scaledPosition.y;
         
+        // Store the initial unadjusted values
+        const unadjustedScaledX = scaledX;
+        const unadjustedScaledY = scaledY;
+        
+        // Apply adjustments if provided (scaled adjustments)
+        let scaledAdjustX = 0;
+        let scaledAdjustY = 0;
+        
         if (anchor_adjust_x !== undefined && scaleConfig) {
-            scaledX += anchor_adjust_x * scaleConfig.position.x;
+            scaledAdjustX = anchor_adjust_x * scaleConfig.position.x;
+            scaledX += scaledAdjustX;
         } else if (anchor_adjust_x !== undefined) {
-            scaledX += anchor_adjust_x;
+            scaledAdjustX = anchor_adjust_x;
+            scaledX += scaledAdjustX;
         }
         
         if (anchor_adjust_y !== undefined && scaleConfig) {
-            scaledY += anchor_adjust_y * scaleConfig.position.y;
+            scaledAdjustY = anchor_adjust_y * scaleConfig.position.y;
+            scaledY += scaledAdjustY;
         } else if (anchor_adjust_y !== undefined) {
-            scaledY += anchor_adjust_y;
+            scaledAdjustY = anchor_adjust_y;
+            scaledY += scaledAdjustY;
         }
 
         // Convert back to unscaled coordinates if we have scaling config
         let xUnscaled, yUnscaled;
+        let unadjustedXUnscaled, unadjustedYUnscaled;
+        let unscaledAdjustX = anchor_adjust_x || 0;
+        let unscaledAdjustY = anchor_adjust_y || 0;
         
         if (scaleConfig) {
             xUnscaled = scaledX / scaleConfig.position.x;
             yUnscaled = scaledY / scaleConfig.position.y;
+            
+            unadjustedXUnscaled = unadjustedScaledX / scaleConfig.position.x;
+            unadjustedYUnscaled = unadjustedScaledY / scaleConfig.position.y;
         } else {
             // If no scaling, unscaled == scaled
             xUnscaled = scaledX;
             yUnscaled = scaledY;
+            
+            unadjustedXUnscaled = unadjustedScaledX;
+            unadjustedYUnscaled = unadjustedScaledY;
         }
 
         return { 
             calculated: true,
             success: true,
-            positionType: 'coordinates',
-            anchorType: 'direction',
             anchor: canonicalAnchor,
             nodeRef: targetNode.name,
-            x: scaledX,      // The scaled coordinates
-            y: scaledY,      // The scaled coordinates
-            xUnscaled: xUnscaled, // The unscaled coordinates
-            yUnscaled: yUnscaled, // The unscaled coordinates
-            position: `(${xUnscaled},${yUnscaled})` // String representation (unscaled)
+            
+            // Coordinate values (post-adjustment)
+            x: scaledX,
+            y: scaledY,
+            xUnscaled: xUnscaled,
+            yUnscaled: yUnscaled,
+            
+            // String representations
+            positionAnchored: positionAnchored,
+            positionCoordinates: `(${scaledX},${scaledY})`,
+            positionCoordinatesUnscaled: `(${xUnscaled},${yUnscaled})`,
+            
+            // Adjustment information
+            isAdjusted: hasAdjustments,
+            adjustments: hasAdjustments ? {
+                // Adjustment values
+                scaled: { x: scaledAdjustX, y: scaledAdjustY },
+                unscaled: { x: unscaledAdjustX, y: unscaledAdjustY },
+                
+                // Pre-adjustment coordinates
+                preAdjustment: {
+                    scaled: { x: unadjustedScaledX, y: unadjustedScaledY },
+                    unscaled: { x: unadjustedXUnscaled, y: unadjustedYUnscaled }
+                }
+            } : null
         };
     }
 
