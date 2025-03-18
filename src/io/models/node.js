@@ -112,8 +112,8 @@ class Node {
             return { 
                 calculated: true,
                 success: true,
-                x: scaledX,
-                y: scaledY,
+                xScaled: scaledX,
+                yScaled: scaledY,
                 xUnscaled: x,
                 yUnscaled: y,
                 positionCoordinates: `(${scaledX},${scaledY})`,
@@ -196,12 +196,12 @@ class Node {
         }
 
         // Initial position without adjustments
-        let scaledX = scaledPosition.x;
-        let scaledY = scaledPosition.y;
+        let xScaled = scaledPosition.xScaled;
+        let yScaled = scaledPosition.yScaled;
         
         // Store the initial unadjusted values
-        const unadjustedScaledX = scaledX;
-        const unadjustedScaledY = scaledY;
+        const unadjustedScaledX = xScaled;
+        const unadjustedScaledY = yScaled;
         
         // Apply adjustments if provided (scaled adjustments)
         let scaledAdjustX = 0;
@@ -209,18 +209,18 @@ class Node {
         
         if (anchor_adjust_x !== undefined && scaleConfig) {
             scaledAdjustX = anchor_adjust_x * scaleConfig.position.x;
-            scaledX += scaledAdjustX;
+            xScaled += scaledAdjustX;
         } else if (anchor_adjust_x !== undefined) {
             scaledAdjustX = anchor_adjust_x;
-            scaledX += scaledAdjustX;
+            xScaled += scaledAdjustX;
         }
         
         if (anchor_adjust_y !== undefined && scaleConfig) {
             scaledAdjustY = anchor_adjust_y * scaleConfig.position.y;
-            scaledY += scaledAdjustY;
+            yScaled += scaledAdjustY;
         } else if (anchor_adjust_y !== undefined) {
             scaledAdjustY = anchor_adjust_y;
-            scaledY += scaledAdjustY;
+            yScaled += scaledAdjustY;
         }
 
         // Convert back to unscaled coordinates if we have scaling config
@@ -230,15 +230,15 @@ class Node {
         let unscaledAdjustY = anchor_adjust_y || 0;
         
         if (scaleConfig) {
-            xUnscaled = scaledX / scaleConfig.position.x;
-            yUnscaled = scaledY / scaleConfig.position.y;
+            xUnscaled = xScaled / scaleConfig.position.x;
+            yUnscaled = yScaled / scaleConfig.position.y;
             
             unadjustedXUnscaled = unadjustedScaledX / scaleConfig.position.x;
             unadjustedYUnscaled = unadjustedScaledY / scaleConfig.position.y;
         } else {
             // If no scaling, unscaled == scaled
-            xUnscaled = scaledX;
-            yUnscaled = scaledY;
+            xUnscaled = xScaled;
+            yUnscaled = yScaled;
             
             unadjustedXUnscaled = unadjustedScaledX;
             unadjustedYUnscaled = unadjustedScaledY;
@@ -251,14 +251,14 @@ class Node {
             nodeRef: targetNode.name,
             
             // Coordinate values (post-adjustment)
-            x: scaledX,
-            y: scaledY,
+            xScaled: xScaled,
+            yScaled: yScaled,
             xUnscaled: xUnscaled,
             yUnscaled: yUnscaled,
             
             // String representations
             positionAnchored: positionAnchored,
-            positionCoordinates: `(${scaledX},${scaledY})`,
+            positionCoordinates: `(${xScaled},${yScaled})`,
             positionCoordinatesUnscaled: `(${xUnscaled},${yUnscaled})`,
             
             // Adjustment information
@@ -289,8 +289,8 @@ class Node {
         }
         
         // Node's center coordinates
-        const centerX = node.x !== undefined ? node.x : (node.xUnscaled || 0);
-        const centerY = node.y !== undefined ? node.y : (node.yUnscaled || 0);
+        const centerX = node.xScaled !== undefined ? node.xScaled : (node.xUnscaled || 0);
+        const centerY = node.yScaled !== undefined ? node.yScaled : (node.yUnscaled || 0);
         
         // Node's dimensions
         const width = node.width !== undefined ? node.width : (node.widthUnscaled || 0);
@@ -308,8 +308,8 @@ class Node {
         
         // Calculate position based on center and dimensions
         return {
-            x: centerX + (vector.x * halfWidth),
-            y: centerY + (vector.y * halfHeight)
+            xScaled: centerX + (vector.x * halfWidth),
+            yScaled: centerY + (vector.y * halfHeight)
         };
     }
 }

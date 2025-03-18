@@ -129,7 +129,7 @@ class LatexRenderer extends Renderer {
 
     // Core rendering methods
     renderNode(node) {
-        const pos = `(${node.x},${node.y})`;
+        const pos = `(${node.xScaled},${node.yScaled})`;
         this.updateNodeBounds(node);
         
         // Initialize TikZ attributes object - this will hold all the styling
@@ -377,13 +377,13 @@ class LatexRenderer extends Renderer {
 
     calculateControlPoint(node, direction, controlLength) {
         if (!direction || !controlLength) {
-            return new Point2D(node.x, node.y);
+            return new Point2D(node.xScaled, node.yScaled);
         }
 
         const directionVector = Direction.getVector(direction);
         return new Point2D(
-            node.x + (directionVector.x * controlLength),
-            node.y + (directionVector.y * controlLength)
+            node.xScaled + (directionVector.x * controlLength),
+            node.yScaled + (directionVector.y * controlLength)
         );
     }
 
@@ -766,7 +766,7 @@ ${libraries}
         // If we couldn't create a bounding box, try to update bounds directly from node coordinates
         if (!boxResult.success) {
             // Fallback to using node's coordinates directly
-            this.updateBounds(node.x, node.y);
+            this.updateBounds(node.xScaled, node.yScaled);
             return;
         }
         

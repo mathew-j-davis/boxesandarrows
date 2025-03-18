@@ -49,9 +49,9 @@ class NodeReader {
         const yUnscaled = record.y !== undefined && record.y !== '' ? 
             parseFloat(record.y) : 0;
 
-        // Apply position scaling
-        const x = null; // xUnscaled * scale.position.x;
-        const y = null; //yUnscaled * scale.position.y;
+        // Apply position scaling - initialize as undefined for proper scaling later
+        const xScaled = undefined; 
+        const yScaled = undefined;
 
         // Store unscaled size values with priority: CSV > Style > Default
         const widthUnscaled = 
@@ -68,14 +68,9 @@ class NodeReader {
                     ? parseFloat(record.h) 
                     : undefined);
         
-
-
-        // Validate scale object structure or use defaults
-        //const nodeScale = scale?.size || { w: 1, h: 1 };
-
-        // Apply node size scaling with validated scale object
-        const width = null; //widthUnscaled * nodeScale.w;
-        const height = null; //heightUnscaled * nodeScale.h;
+        // Initialize as undefined for proper scaling later
+        const width = undefined;
+        const height = undefined;
 
         let nodeProperties = {
             name: record.name,
@@ -91,8 +86,8 @@ class NodeReader {
             anchor: record.anchor,
             anchorVector: null,
             shape: record.shape,
-            x,
-            y,
+            xScaled,
+            yScaled,
             xUnscaled,
             yUnscaled,
 
@@ -115,7 +110,7 @@ class NodeReader {
             h_offset: record.h_offset ? parseFloat(record.h_offset) : 0,
             
             w_of: record.w_of,
-            w_from: record.w_from,
+            w_from: record.w_from, 
             w_to: record.w_to,
             w_offset: record.w_offset ? parseFloat(record.w_offset) : 0,
             

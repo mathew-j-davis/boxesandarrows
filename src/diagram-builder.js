@@ -126,61 +126,6 @@ class DiagramBuilder {
         }
     }
 
-    // async loadPositions(positionFile) {
-    //     this.log(`Loading positions from ${positionFile}`);
-    //     const positions = await PositionReader.readFromCsv(positionFile);
-        
-    //     // Look for existing nodes in the allNodeRecords collection
-    //     positions.forEach((pos, name) => {
-    //         // Find if the node exists in the collection
-    //         const existingNodeIndex = this.readerManager.allNodeRecords.findIndex(node => node.name === name);
-            
-    //         if (existingNodeIndex >= 0) {
-    //             // Update the existing node record
-    //             const existingNode = this.readerManager.allNodeRecords[existingNodeIndex];
-    //             existingNode.xUnscaled = pos.xUnscaled;
-    //             existingNode.yUnscaled = pos.yUnscaled;
-    //             this.log(`Set unscaled position of node '${name}' to (${existingNode.xUnscaled}, ${existingNode.yUnscaled})`);
-    //         } else {
-    //             // Create new node with unscaled values
-    //             const newNode = new Node({
-    //                 name: name,
-    //                 label: name,
-    //                 // Don't set scaled x,y here - will be set in applyScalingToAllNodes
-    //                 xUnscaled: pos.xUnscaled,
-    //                 yUnscaled: pos.yUnscaled,
-    //                 // Don't apply scaling to dimensions either
-    //                 heightUnscaled: 1,
-    //                 widthUnscaled: 1,
-    //                 // These will be set in applyScalingToAllNodes
-    //                 height: undefined,
-    //                 width: undefined,
-    //                 x: undefined,
-    //                 y: undefined,
-    //                 type: 'default',
-    //                 anchor: null,
-    //                 anchorVector: null,
-    //                 // Initialize records array
-    //                 records: [{ 
-    //                     name: name, 
-    //                     x: pos.xUnscaled, 
-    //                     y: pos.yUnscaled 
-    //                 }]
-    //             });
-
-    //             // Add to the collection
-    //             this.readerManager.allNodeRecords.push(newNode);
-    //             this.log(`Created new node '${name}' with unscaled position (${pos.xUnscaled}, ${pos.yUnscaled})`);
-    //         }
-    //     });
-    // }
-
-
-
-
-
-
-    
     async loadPositions(positionFile) {
         this.log(`Loading positions from ${positionFile}`);
         const positions = await PositionReader.readFromCsv(positionFile);
@@ -193,14 +138,14 @@ class DiagramBuilder {
                 // Store unscaled position (no scaling applied here anymore)
                 node.xUnscaled = pos.xUnscaled;
                 node.yUnscaled = pos.yUnscaled;
-                // The x,y values will be set in applyScalingToAllNodes
+                // The xScaled,yScaled values will be set in applyScalingToAllNodes
                 this.log(`Set unscaled position of node '${name}' to (${node.xUnscaled}, ${node.yUnscaled})`);
             } else {
                 // Create new node with unscaled values
                 node = {
                     name: name,
                     label: name,
-                    // Don't set scaled x,y here - will be set in applyScalingToAllNodes
+                    // Don't set scaled xScaled,yScaled here - will be set in applyScalingToAllNodes
                     xUnscaled: pos.xUnscaled,
                     yUnscaled: pos.yUnscaled,
                     // Don't apply scaling to dimensions either
@@ -209,8 +154,8 @@ class DiagramBuilder {
                     // These will be set in applyScalingToAllNodes
                     height: undefined,
                     width: undefined,
-                    x: undefined,
-                    y: undefined,
+                    xScaled: undefined,
+                    yScaled: undefined,
                     type: 'default',
                     anchor: null,
                     anchorVector: null
@@ -221,6 +166,7 @@ class DiagramBuilder {
             }
         });
     }
+
     // Method for positioning and scaling all nodes
     positionAndScaleAllNodes() {
         const nodes = this.readerManager.getNodes();
@@ -243,15 +189,15 @@ class DiagramBuilder {
             } else {
                 // For non-relative nodes, use unscaled coords (or defaults)
                 if (node.xUnscaled === undefined) {
-                    node.xUnscaled = node.x !== undefined ? node.x : 0;
+                    node.xUnscaled = 0;
                 }
                 if (node.yUnscaled === undefined) {
-                    node.yUnscaled = node.y !== undefined ? node.y : 0;
+                    node.yUnscaled = 0;
                 }
    
                 // Apply position scaling
-                node.x = node.xUnscaled * scaleConfig.position.x;
-                node.y = node.yUnscaled * scaleConfig.position.y;
+                node.xScaled = node.xUnscaled * scaleConfig.position.x;
+                node.yScaled = node.yUnscaled * scaleConfig.position.y;
             }
             
             if (node.widthUnscaled === undefined) {
@@ -269,7 +215,7 @@ class DiagramBuilder {
             // Recalculate anchor vector with scaled dimensions
             node.anchorVector = this.renderer.getNodeAnchor(node);
             
-            this.log(`Scaled node '${nodeName}' to (${node.x}, ${node.y}) with dimensions ${node.width}x${node.height}`);
+            this.log(`Scaled node '${nodeName}' to (${node.xScaled}, ${node.yScaled}) with dimensions ${node.width}x${node.height}`);
         }
     }
 }

@@ -160,9 +160,9 @@ class BoundingBox {
             const halfWidth = width / 2;
             const halfHeight = height / 2;
             
-            const left = node.x - halfWidth - (anchorVector.x * halfWidth);
+            const left = node.xScaled - halfWidth - (anchorVector.x * halfWidth);
             const right = left + width;
-            const bottom = node.y - halfHeight - (anchorVector.y * halfHeight);
+            const bottom = node.yScaled - halfHeight - (anchorVector.y * halfHeight);
             const top = bottom + height;
             
             return { 

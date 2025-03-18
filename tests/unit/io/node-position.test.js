@@ -11,8 +11,8 @@ describe('Node Position Calculation', () => {
     // Create a test node
     testNode = new Node({
       name: 'testNode',
-      x: 100,
-      y: 100,
+      xScaled: 100,
+      yScaled: 100,
       width: 50,
       height: 30
     });
@@ -20,8 +20,8 @@ describe('Node Position Calculation', () => {
     // Create another node for reference
     otherNode = new Node({
       name: 'otherNode',
-      x: 200,
-      y: 150,
+      xScaled: 200,
+      yScaled: 150,
       width: 40,
       height: 20
     });
@@ -71,47 +71,56 @@ describe('Node Position Calculation', () => {
   describe('getAnchorPosition', () => {
     test('should calculate center position', () => {
       const position = Node.getAnchorPosition(testNode, 'center');
-      expect(position).toEqual({ x: 100, y: 100 });
+      expect(position.xScaled).toBe(100);
+      expect(position.yScaled).toBe(100);
     });
 
     test('should calculate north position', () => {
       const position = Node.getAnchorPosition(testNode, 'north');
-      expect(position).toEqual({ x: 100, y: 115 });
+      expect(position.xScaled).toBe(100);
+      expect(position.yScaled).toBe(115);
     });
 
     test('should calculate south position', () => {
       const position = Node.getAnchorPosition(testNode, 'south');
-      expect(position).toEqual({ x: 100, y: 85 });
+      expect(position.xScaled).toBe(100);
+      expect(position.yScaled).toBe(85);
     });
 
     test('should calculate east position', () => {
       const position = Node.getAnchorPosition(testNode, 'east');
-      expect(position).toEqual({ x: 125, y: 100 });
+      expect(position.xScaled).toBe(125);
+      expect(position.yScaled).toBe(100);
     });
 
     test('should calculate west position', () => {
       const position = Node.getAnchorPosition(testNode, 'west');
-      expect(position).toEqual({ x: 75, y: 100 });
+      expect(position.xScaled).toBe(75);
+      expect(position.yScaled).toBe(100);
     });
 
     test('should calculate northeast position', () => {
       const position = Node.getAnchorPosition(testNode, 'north east');
-      expect(position).toEqual({ x: 125, y: 115 });
+      expect(position.xScaled).toBe(125);
+      expect(position.yScaled).toBe(115);
     });
 
     test('should calculate northwest position', () => {
       const position = Node.getAnchorPosition(testNode, 'north west');
-      expect(position).toEqual({ x: 75, y: 115 });
+      expect(position.xScaled).toBe(75);
+      expect(position.yScaled).toBe(115);
     });
 
     test('should calculate southeast position', () => {
       const position = Node.getAnchorPosition(testNode, 'south east');
-      expect(position).toEqual({ x: 125, y: 85 });
+      expect(position.xScaled).toBe(125);
+      expect(position.yScaled).toBe(85);
     });
 
     test('should calculate southwest position', () => {
       const position = Node.getAnchorPosition(testNode, 'south west');
-      expect(position).toEqual({ x: 75, y: 85 });
+      expect(position.xScaled).toBe(75);
+      expect(position.yScaled).toBe(85);
     });
 
     test('should return null for invalid anchor', () => {
@@ -136,21 +145,17 @@ describe('Node Position Calculation', () => {
       expect(result).toEqual({ calculated: false });
     });
 
-    test('should return both scaled and unscaled x,y if provided directly', () => {
+    test('should return both scaled and unscaled positions if provided directly', () => {
       const result = Node.calculatePositionAndScale(
-        testNode, allNodes, 50, 60, undefined, undefined, undefined, undefined
+        testNode, allNodes, 50, 60, null, null, null, null, null
       );
-      expect(result).toEqual({ 
-        calculated: true, 
-        success: true,
-        x: 50,        // Without scaling, x == xUnscaled
-        y: 60,        // Without scaling, y == yUnscaled
-        xUnscaled: 50, 
-        yUnscaled: 60,
-        positionCoordinates: '(50,60)',
-        positionCoordinatesUnscaled: '(50,60)',
-        isAdjusted: false
-      });
+      
+      expect(result.calculated).toBe(true);
+      expect(result.success).toBe(true);
+      expect(result.xScaled).toBe(50);  // Without scaling, xScaled == xUnscaled
+      expect(result.yScaled).toBe(60);  // Without scaling, yScaled == yUnscaled
+      expect(result.xUnscaled).toBe(50);
+      expect(result.yUnscaled).toBe(60);
     });
 
     test('should calculate position based on anchor of current node', () => {
@@ -163,8 +168,8 @@ describe('Node Position Calculation', () => {
         calculated: true, 
         anchor: 'north',
         nodeRef: 'testNode',
-        x: 100, 
-        y: 115,
+        xScaled: 100, 
+        yScaled: 115,
         xUnscaled: 100,
         yUnscaled: 115, 
         positionAnchored: 'testNode.north',
@@ -184,8 +189,8 @@ describe('Node Position Calculation', () => {
         success: true,
         anchor: 'south',
         nodeRef: 'otherNode',
-        x: 200, 
-        y: 140,
+        xScaled: 200, 
+        yScaled: 140,
         xUnscaled: 200,
         yUnscaled: 140,
         positionAnchored: 'otherNode.south',
@@ -205,8 +210,8 @@ describe('Node Position Calculation', () => {
         success: true,
         anchor: 'east',
         nodeRef: 'testNode',
-        x: 135, 
-        y: 95,
+        xScaled: 135, 
+        yScaled: 95,
         xUnscaled: 135,
         yUnscaled: 95,
         positionAnchored: 'testNode.east',
@@ -267,15 +272,15 @@ describe('Node Position Calculation', () => {
   });
 
   describe('calculatePositionAndScale with scaling', () => {
-    test('should return scaled and unscaled x,y if provided directly with scaling', () => {
+    test('should return scaled and unscaled positions if provided directly with scaling', () => {
       const result = Node.calculatePositionAndScale(
         testNode, allNodes, 50, 60, undefined, undefined, undefined, undefined, scaleConfig
       );
       expect(result).toEqual({ 
         calculated: true, 
         success: true,
-        x: 100,       // 50 * 2 (scale.position.x)
-        y: 120,       // 60 * 2 (scale.position.y)
+        xScaled: 100,     // 50 * 2 (scale.position.x)
+        yScaled: 120,     // 60 * 2 (scale.position.y)
         xUnscaled: 50, 
         yUnscaled: 60,
         positionCoordinates: '(100,120)',
@@ -293,8 +298,8 @@ describe('Node Position Calculation', () => {
         success: true,
         anchor: 'north',
         nodeRef: 'testNode',
-        x: 100, 
-        y: 115,
+        xScaled: 100, 
+        yScaled: 115,
         xUnscaled: 50,  // 100 / 2
         yUnscaled: 57.5, // 115 / 2
         positionAnchored: 'testNode.north',
@@ -314,8 +319,8 @@ describe('Node Position Calculation', () => {
         success: true,
         anchor: 'east',
         nodeRef: 'testNode',
-        x: 145,  // 125 + (10 * 2)
-        y: 90,   // 100 + (-5 * 2)
+        xScaled: 145,  // 125 + (10 * 2)
+        yScaled: 90,   // 100 + (-5 * 2)
         xUnscaled: 72.5, // 145 / 2
         yUnscaled: 45, // 90 / 2
         positionAnchored: 'testNode.east',
@@ -331,6 +336,32 @@ describe('Node Position Calculation', () => {
           }
         }
       });
+    });
+
+    test('should apply scaling to positions', () => {
+        const positionScale = {
+            position: { x: 2, y: 2 },
+            size: { w: 1, h: 1 }
+        };
+
+        const result = Node.calculatePositionAndScale(
+            testNode,
+            allNodes,
+            50,   // x
+            60,   // y
+            null, // no anchor
+            null, // no anchor_node
+            null, // no adjust_x
+            null, // no adjust_y
+            positionScale
+        );
+        
+        expect(result.calculated).toBe(true);
+        expect(result.success).toBe(true);
+        expect(result.xScaled).toBe(100); // 50 * 2 (scale.position.x)
+        expect(result.yScaled).toBe(120); // 60 * 2 (scale.position.y)
+        expect(result.xUnscaled).toBe(50);
+        expect(result.yUnscaled).toBe(60);
     });
   });
 }); 

@@ -37,8 +37,8 @@ function setPositionRelativeToNode(node, referenceNode, styleHandler) {
     // We need to adjust for the reference node's own anchor to find its center
     // If the node is anchored at 'center', this doesn't change anything
     // For any other anchor (like 'north west'), we need to adjust to find the center
-    const refNodeCenterX = referenceNode.x - (referenceNodeAnchorVector.x * referenceNode.width/2);
-    const refNodeCenterY = referenceNode.y - (referenceNodeAnchorVector.y * referenceNode.height/2);
+    const refNodeCenterX = referenceNode.xScaled - (referenceNodeAnchorVector.x * referenceNode.width/2);
+    const refNodeCenterY = referenceNode.yScaled - (referenceNodeAnchorVector.y * referenceNode.height/2);
     
     // STEP 3: Find the specific point on the reference node to use
     // This is the point that our new node will be positioned relative to
@@ -54,13 +54,13 @@ function setPositionRelativeToNode(node, referenceNode, styleHandler) {
     
     // STEP 5: Calculate the final position of the node
     // The node position is the center adjusted by the node's anchor vector
-    node.x = nodeCenterX + (nodeAnchorVector.x * node.width/2);
-    node.y = nodeCenterY + (nodeAnchorVector.y * node.height/2);
+    node.xScaled = nodeCenterX + (nodeAnchorVector.x * node.width/2);
+    node.yScaled = nodeCenterY + (nodeAnchorVector.y * node.height/2);
     
     // STEP 6: Store unscaled coordinates for future reference
     // These are useful for relative positioning of other nodes
-    node.xUnscaled = node.x / (styleHandler?.getPageScale()?.position?.x || 1);
-    node.yUnscaled = node.y / (styleHandler?.getPageScale()?.position?.y || 1);
+    node.xUnscaled = node.xScaled / (styleHandler?.getPageScale()?.position?.x || 1);
+    node.yUnscaled = node.yScaled / (styleHandler?.getPageScale()?.position?.y || 1);
     
     // STEP 7: Store that this node has been positioned (useful for debugging)
     node.positioned = true;

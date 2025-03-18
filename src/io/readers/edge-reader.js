@@ -69,8 +69,8 @@ class EdgeReader {
         // If either node couldn't be converted to a bounding box, fall back to center point logic
         if (!startBoxResult.success || !endBoxResult.success) {
             // Fallback to simple center-to-center direction
-            const horizontal = endNode.x - startNode.x;
-            const vertical = endNode.y - startNode.y;
+            const horizontal = endNode.xScaled - startNode.xScaled;
+            const vertical = endNode.yScaled - startNode.yScaled;
             
             return {
                 startAnchor: autoSetStartDirection ? Direction.getDirectionName(horizontal, vertical) : startAnchor,
@@ -106,8 +106,8 @@ class EdgeReader {
         }
         else {
             // Boxes overlap, fall back to center point logic
-            horizontal = endNode.x - startNode.x;
-            vertical = endNode.y - startNode.y;
+            horizontal = endNode.xScaled - startNode.xScaled;
+            vertical = endNode.yScaled - startNode.yScaled;
         }
 
         return {
