@@ -2,7 +2,12 @@
 const PositionReader = require('./io/readers/position-reader');
 const ReaderManager = require('./io/reader-manager');
 const LatexRenderer = require('./renderers/latex-renderer');
-const { setPositionRelativeToNode, setSizeRelativeToNodes } = require('./io/readers/relative-node-processor');
+const { 
+    setPositionRelativeToNode, 
+    setSizeRelativeToNodes,
+    setPositionFromReference,
+    setPositionFromAnchorPoint 
+} = require('./io/readers/relative-node-processor');
 const Node = require('./io/models/node');
         
 
@@ -174,18 +179,39 @@ class DiagramBuilder {
 
         // Single pass: handle both relative sizing and positioning
         for (const [nodeName, node] of nodes.entries()) {
-            // First handle relative sizing if needed
+            // First handle size relative to other nodes
             setSizeRelativeToNodes(node, nodes, scaleConfig);
             
+            // Check for new relative positioning using x_of and y_of
+            const hasNewRelativePos = node.x_of !== undefined || node.y_of !== undefined;
+            console.log(`${nodeName}: hasNewRelativePos=${hasNewRelativePos}, x_of=${node.x_of}, y_of=${node.y_of}`);
+            
             // Then handle relative positioning if needed
-            if (node.relative_to) {
+            if (hasNewRelativePos) {
+                console.log(`Using new relative positioning for node ${nodeName}`);
+                
+                // Handle simple reference node positioning (x_of, y_of)
+                if ((node.x_of && !node.x_of.includes('.')) || (node.y_of && !node.y_of.includes('.'))) {
+                    console.log(`Using reference-based positioning for ${nodeName}`);
+                    setPositionFromReference(node, nodes, scaleConfig);
+                    this.log(`Positioned node '${nodeName}' with x_of/y_of reference`);
+                }
+                
+                // Handle anchor point positioning (node.anchor)
+                if ((node.x_of && node.x_of.includes('.')) || (node.y_of && node.y_of.includes('.'))) {
+                    console.log(`Using anchor-based positioning for ${nodeName}`);
+                    setPositionFromAnchorPoint(node, nodes, scaleConfig);
+                    this.log(`Positioned node '${nodeName}' with reference anchor points`);
+                }
+            }
+            // Legacy relative positioning
+            else if (node.relative_to) {
                 const referenceNodeName = node.relative_to;
                 const referenceNode = nodes.get(referenceNodeName);
                 
                 // Process relative position using the reference node
                 setPositionRelativeToNode(node, referenceNode, this.renderer.styleHandler);
                 this.log(`Positioned relative node '${nodeName}' based on reference '${referenceNodeName}'`);
-
             } else {
                 // For non-relative nodes, use unscaled coords (or defaults)
                 if (node.xUnscaled === undefined) {

@@ -199,18 +199,36 @@ class LatexRenderer extends Renderer {
         } else {
             // Get text style and apply formatting
             let labelText = node.label || node.name;
-            const labelStyle = this.styleHandler.getCompleteStyle(node.style, 'node', 'label');
+            
+            // Convert newlines to LaTeX line breaks (without leading space)
+            labelText = labelText.replace(/\n/g, '\\\\');
+            
+            // Collapse multiple consecutive LaTeX linebreaks into a single one
+            labelText = labelText.replace(/\\\\(\s*\\\\)+/g, '\\\\');
+            
+            // Get text style properties
+            const textStyle = this.styleHandler.getCompleteStyle(node.style, 'node', 'text');
             
             // Apply LaTeX formatting
-            labelText = this.styleHandler.applyLatexFormatting(labelText, labelStyle);
+            labelText = this.styleHandler.applyLatexFormatting(labelText, textStyle);
             
             // Add textcolor if specified
             if (node.textcolor) {
                 labelText = `\\textcolor{${this.getColor(node.textcolor)}}{${labelText}}`;
             }
             
+            // Build adjustbox parameters
+            let adjustboxParams = `max width=${node.width}cm, max height=${node.height}cm`;
+            
+            // Add custom adjustbox attributes from style if available
+            if (textStyle && textStyle.adjustbox && Object.keys(textStyle.adjustbox).length > 0) {
+                for (const [key, value] of Object.entries(textStyle.adjustbox)) {
+                    adjustboxParams += `, ${key}=${value}`;
+                }
+            }
+            
             // Add adjustbox
-            const labelWithAdjustbox = `{\\adjustbox{max width=${node.width}cm, max height=${node.height}cm}{${labelText}}}`;
+            const labelWithAdjustbox = `{\\adjustbox{${adjustboxParams}}{${labelText}}}`;
             
             // Handle external labels
             if (node.label_above) {
@@ -644,8 +662,14 @@ ${libraries}
             if (position !== null) {
                 const labelStyle = this.styleHandler.getCompleteStyle(edge.style, 'edge', 'label_start');
                 
+                // Convert newlines to LaTeX line breaks (without leading space)
+                const processedLabel = edge.start_label.replace(/\n/g, '\\\\');
+                
+                // Collapse multiple consecutive LaTeX linebreaks
+                const cleanedLabel = processedLabel.replace(/\\\\(\s*\\\\)+/g, '\\\\');
+                
                 labels.push({
-                    text: this.styleHandler.applyLatexFormatting(this.escapeLaTeX(edge.start_label), labelStyle),
+                    text: this.styleHandler.applyLatexFormatting(this.escapeLaTeX(cleanedLabel), labelStyle),
                     position,
                     justify: edge.label_justify || 'above'
                 });
@@ -660,8 +684,14 @@ ${libraries}
             if (position !== null) {
                 const labelStyle = this.styleHandler.getCompleteStyle(edge.style, 'edge', 'label_end');
                 
+                // Convert newlines to LaTeX line breaks (without leading space)
+                const processedLabel = edge.end_label.replace(/\n/g, '\\\\');
+                
+                // Collapse multiple consecutive LaTeX linebreaks
+                const cleanedLabel = processedLabel.replace(/\\\\(\s*\\\\)+/g, '\\\\');
+                
                 labels.push({
-                    text: this.styleHandler.applyLatexFormatting(this.escapeLaTeX(edge.end_label), labelStyle),
+                    text: this.styleHandler.applyLatexFormatting(this.escapeLaTeX(cleanedLabel), labelStyle),
                     position,
                     justify: edge.label_justify || 'above'
                 });
@@ -689,8 +719,14 @@ ${libraries}
             const position = lp;
             
             if (position !== null) {
+                // Convert newlines to LaTeX line breaks (without leading space)
+                const processedLabel = edge.label.replace(/\n/g, '\\\\');
+                
+                // Collapse multiple consecutive LaTeX linebreaks
+                const cleanedLabel = processedLabel.replace(/\\\\(\s*\\\\)+/g, '\\\\');
+                
                 labels.push({
-                    text: this.styleHandler.applyLatexFormatting(this.escapeLaTeX(edge.label), edgeLabelStyle),
+                    text: this.styleHandler.applyLatexFormatting(this.escapeLaTeX(cleanedLabel), edgeLabelStyle),
                     position,
                     justify: edge.label_justify || 'above'
                 });

@@ -40,10 +40,6 @@ class NodeReader {
     
     static processNodeRecord(record) {
         // Store unscaled position values
-
-        // const defaultHeight = 1;
-        // const defaultWidth = 1;
-
         const xUnscaled = record.x !== undefined && record.x !== '' ? 
             parseFloat(record.x) : 0;
         const yUnscaled = record.y !== undefined && record.y !== '' ? 
@@ -113,6 +109,12 @@ class NodeReader {
             w_from: record.w_from, 
             w_to: record.w_to,
             w_offset: record.w_offset ? parseFloat(record.w_offset) : 0,
+            
+            // Add new relative positioning fields
+            x_of: record.x_of,
+            y_of: record.y_of,
+            x_of_offset: record.x_of_offset !== undefined ? parseFloat(record.x_of_offset) : undefined,
+            y_of_offset: record.y_of_offset !== undefined ? parseFloat(record.y_of_offset) : undefined,
             
             // Store the original record(s)
             records: [{ ...record }],

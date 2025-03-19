@@ -1,0 +1,30 @@
+\documentclass{standalone}
+\usepackage{tikz}
+\usepackage{adjustbox}
+\usepackage{helvet}  
+\usepackage{sansmathfonts}  
+\renewcommand{\familydefault}{\sfdefault}  
+\usetikzlibrary{arrows.meta,calc,decorations.pathmorphing}
+\usetikzlibrary{shapes.geometric, shapes.arrows}
+\usepackage[svgnames]{xcolor}
+
+\definecolor{colorFFFFFF}{HTML}{FFFFFF}
+\definecolor{color000000}{HTML}{000000}
+\begin{document}
+\begin{tikzpicture}
+\useasboundingbox (-2,-2) rectangle (2,2);
+
+
+
+\node[shape=rectangle, fill=colorFFFFFF, draw=color000000, line width=0.02cm, minimum width=2cm, minimum height=2cm] (ref_center) at (0,0) {\adjustbox{max width=2cm, max height=2cm}{Reference}};
+\node[shape=rectangle, fill=colorFFFFFF, draw=color000000, line width=0.02cm, minimum width=2cm, minimum height=2cm] (node1) at (0,0) {\adjustbox{max width=2cm, max height=2cm}{Right of Ref}};
+\node[shape=rectangle, fill=colorFFFFFF, draw=color000000, line width=0.02cm, minimum width=2cm, minimum height=2cm] (node2) at (0,0) {\adjustbox{max width=2cm, max height=2cm}{Above Right}};
+\node[shape=rectangle, fill=colorFFFFFF, draw=color000000, line width=0.02cm, minimum width=2cm, minimum height=2cm] (node3) at (0,0) {\adjustbox{max width=2cm, max height=2cm}{Top Left}};
+\node[shape=rectangle, fill=colorFFFFFF, draw=color000000, line width=0.02cm, minimum width=2cm, minimum height=2cm] (node4) at (0,0) {\adjustbox{max width=2cm, max height=2cm}{Bottom Right}};
+\draw[] (ref_center) (ref_center) to node[above] {Link 1} (node1);
+\draw[] (node1) (node1) to node[above] {Link 2} (node2);
+\draw[] (ref_center) (ref_center) to node[above] {Link 3} (node3);
+\draw[] (ref_center) (ref_center) to node[above] {Link 4} (node4);
+
+\end{tikzpicture}
+\end{document}

@@ -185,8 +185,116 @@ function getAnchorPoint(anchorSpec, nodesMap) {
     };
 }
 
+/**
+ * Sets the position of a node based on x_of and y_of properties
+ * @param {Object} node - The node to position
+ * @param {Map} nodesMap - Map of all nodes by name
+ * @param {Object} scaleConfig - Configuration for scaling
+ */
+function setPositionFromReference(node, nodesMap, scaleConfig) {
+    console.log(`Positioning node: ${node.name} with x_of: ${node.x_of}, y_of: ${node.y_of}`);
+    
+    // Process x coordinate
+    if (node.x_of && nodesMap.has(node.x_of)) {
+        const referenceNode = nodesMap.get(node.x_of);
+        console.log(`  Reference node for x: ${node.x_of}, xUnscaled: ${referenceNode.xUnscaled}`);
+        
+        // Get the x position from the reference node
+        if (typeof referenceNode.xUnscaled === 'number') {
+            node.xUnscaled = referenceNode.xUnscaled;
+            console.log(`  Setting xUnscaled to ${node.xUnscaled}`);
+            
+            // Apply offset if specified
+            if (node.x_of_offset !== undefined) {
+                node.xUnscaled += parseFloat(node.x_of_offset);
+                console.log(`  Applied x_of_offset: ${node.x_of_offset}, new xUnscaled: ${node.xUnscaled}`);
+            }
+        }
+    }
+    
+    // Process y coordinate
+    if (node.y_of && nodesMap.has(node.y_of)) {
+        const referenceNode = nodesMap.get(node.y_of);
+        console.log(`  Reference node for y: ${node.y_of}, yUnscaled: ${referenceNode.yUnscaled}`);
+        
+        // Get the y position from the reference node
+        if (typeof referenceNode.yUnscaled === 'number') {
+            node.yUnscaled = referenceNode.yUnscaled;
+            console.log(`  Setting yUnscaled to ${node.yUnscaled}`);
+            
+            // Apply offset if specified
+            if (node.y_of_offset !== undefined) {
+                node.yUnscaled += parseFloat(node.y_of_offset);
+                console.log(`  Applied y_of_offset: ${node.y_of_offset}, new yUnscaled: ${node.yUnscaled}`);
+            }
+        }
+    }
+    
+    // Calculate the scaled coordinates after setting position
+    if (node.xUnscaled !== undefined) {
+        node.xScaled = node.xUnscaled * (scaleConfig?.position?.x || 1);
+        console.log(`  Final xScaled: ${node.xScaled}`);
+    }
+    
+    if (node.yUnscaled !== undefined) {
+        node.yScaled = node.yUnscaled * (scaleConfig?.position?.y || 1);
+        console.log(`  Final yScaled: ${node.yScaled}`);
+    }
+    
+    return node;
+}
+
+/**
+ * Sets the position of a node's coordinate from a specific anchor point on a reference node
+ * @param {Object} node - The node to position
+ * @param {Map} nodesMap - Map of all nodes by name
+ * @param {Object} scaleConfig - Configuration for scaling
+ */
+function setPositionFromAnchorPoint(node, nodesMap, scaleConfig) {
+    // Handle x_of property with anchor notation (node.anchor)
+    if (node.x_of && node.x_of.includes('.')) {
+        const anchorPoint = getAnchorPoint(node.x_of, nodesMap);
+        
+        if (anchorPoint) {
+            node.xUnscaled = anchorPoint.x;
+            
+            // Apply offset if specified
+            if (node.x_of_offset !== undefined) {
+                node.xUnscaled += parseFloat(node.x_of_offset);
+            }
+        }
+    }
+    
+    // Handle y_of property with anchor notation (node.anchor)
+    if (node.y_of && node.y_of.includes('.')) {
+        const anchorPoint = getAnchorPoint(node.y_of, nodesMap);
+        
+        if (anchorPoint) {
+            node.yUnscaled = anchorPoint.y;
+            
+            // Apply offset if specified
+            if (node.y_of_offset !== undefined) {
+                node.yUnscaled += parseFloat(node.y_of_offset);
+            }
+        }
+    }
+    
+    // Calculate the scaled coordinates after setting position
+    if (node.xUnscaled !== undefined) {
+        node.xScaled = node.xUnscaled * (scaleConfig?.position?.x || 1);
+    }
+    
+    if (node.yUnscaled !== undefined) {
+        node.yScaled = node.yUnscaled * (scaleConfig?.position?.y || 1);
+    }
+    
+    return node;
+}
+
 // Export both functions
 module.exports = { 
     setPositionRelativeToNode,
-    setSizeRelativeToNodes
+    setSizeRelativeToNodes,
+    setPositionFromReference,
+    setPositionFromAnchorPoint
 }; 

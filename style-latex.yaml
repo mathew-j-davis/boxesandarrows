@@ -29,6 +29,8 @@ node:
       font: \footnotesize
       inner sep: 0pt
   text:
+    adjustbox:
+      stack: l
     latex:
       flags:
         font: \sffamily

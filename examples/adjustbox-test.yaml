@@ -1,0 +1,62 @@
+---
+# Node with adjustbox settings
+type: node
+name: stack_left
+shape: rectangle
+width: 4
+height: 3
+x: 0
+y: 0
+label: "Line 1\\\\Line 2\\\\Line 3\\\\Line 4"
+style: left_stack
+
+---
+
+type: node
+name: middle
+shape: rectangle
+width: 4
+height: 3
+x: 6
+y: 0
+label: "M 1\nM 2\nM 3\nM 4"
+style: left_stack
+
+---
+
+type: node
+name: right
+shape: rectangle
+width: 4
+height: 3
+x: 12
+y: 0
+style: left_stack
+label: "R 1
+
+R 2
+
+R 3
+
+R 4"
+
+---
+# Base style
+type: style
+name: base
+node:
+  object:
+    tikz:
+      shape: rectangle
+      fill: "#ffffff"
+      draw: "#000000"
+      line width: 0.02cm
+
+---
+# Left stack style
+type: style
+name: left_stack
+node:
+  text:
+    adjustbox:
+      stack: l 

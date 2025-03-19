@@ -1,0 +1,34 @@
+\documentclass{standalone}
+\usepackage{tikz}
+\usepackage{adjustbox}
+\usepackage{helvet}  
+\usepackage{sansmathfonts}  
+\renewcommand{\familydefault}{\sfdefault}  
+\usetikzlibrary{arrows.meta,calc,decorations.pathmorphing}
+\usetikzlibrary{shapes.geometric, shapes.arrows}
+\usepackage[svgnames]{xcolor}
+
+\definecolor{colorFFFFFF}{HTML}{FFFFFF}
+\definecolor{color000000}{HTML}{000000}
+\begin{document}
+\begin{tikzpicture}
+\useasboundingbox (-8,-8) rectangle (8,8);
+
+
+
+\node[shape=rectangle, fill=colorFFFFFF, draw=color000000, line width=0.02cm, minimum width=2cm, minimum height=12cm] (center) at (0,0) {\adjustbox{max width=2cm, max height=12cm}{Center}};
+\node[shape=rectangle, fill=colorFFFFFF, draw=color000000, line width=0.02cm, minimum width=2cm, minimum height=2cm] (top_left) at (-6,6) {\adjustbox{max width=2cm, max height=2cm}{Top Left}};
+\node[shape=rectangle, fill=colorFFFFFF, draw=color000000, line width=0.02cm, minimum width=2cm, minimum height=2cm] (top_right) at (6,6) {\adjustbox{max width=2cm, max height=2cm}{Top Right}};
+\node[shape=rectangle, fill=colorFFFFFF, draw=color000000, line width=0.02cm, minimum width=2cm, minimum height=2cm] (left) at (-6,0) {\adjustbox{max width=2cm, max height=2cm}{Left}};
+\node[shape=rectangle, fill=colorFFFFFF, draw=color000000, line width=0.02cm, minimum width=2cm, minimum height=2cm] (right) at (6,0) {\adjustbox{max width=2cm, max height=2cm}{Right}};
+\node[shape=rectangle, fill=colorFFFFFF, draw=color000000, line width=0.02cm, minimum width=2cm, minimum height=2cm] (bottom_left) at (-6,-6) {\adjustbox{max width=2cm, max height=2cm}{Bottom Left}};
+\node[shape=rectangle, fill=colorFFFFFF, draw=color000000, line width=0.02cm, minimum width=2cm, minimum height=2cm] (bottom_right) at (6,-6) {\adjustbox{max width=2cm, max height=2cm}{Bottom Right}};
+\draw[] (center.west) to (top_left.east);
+\draw[] (center.east) to (top_right.west);
+\draw[] (center.west) to (left.east);
+\draw[] (center.east) to (right.west);
+\draw[] (center.west) to (bottom_left.east);
+\draw[] (center.east) to (bottom_right.west);
+
+\end{tikzpicture}
+\end{document}

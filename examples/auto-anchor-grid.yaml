@@ -1,0 +1,163 @@
+---
+type: node
+name: center
+shape: rectangle
+width: 2
+height: 2
+x: 0
+y: 0
+label: Center
+
+# Top row
+---
+type: node
+name: top_left
+shape: rectangle
+width: 2
+height: 2
+x: -6
+y: 6
+label: Top Left
+
+---
+type: node
+name: top
+shape: rectangle
+width: 2
+height: 2
+x: 0
+y: 6
+label: Top
+
+---
+type: node
+name: top_right
+shape: rectangle
+width: 2
+height: 2
+x: 6
+y: 6
+label: Top Right
+
+# Middle row
+---
+type: node
+name: left
+shape: rectangle
+width: 2
+height: 2
+x: -6
+y: 0
+label: Left
+
+---
+type: node
+name: right
+shape: rectangle
+width: 2
+height: 2
+x: 6
+y: 0
+label: Right
+
+# Bottom row
+---
+type: node
+name: bottom_left
+shape: rectangle
+width: 2
+height: 2
+x: -6
+y: -6
+label: Bottom Left
+
+---
+type: node
+name: bottom
+shape: rectangle
+width: 2
+height: 2
+x: 0
+y: -6
+label: Bottom
+
+---
+type: node
+name: bottom_right
+shape: rectangle
+width: 2
+height: 2
+x: 6
+y: -6
+label: Bottom Right
+
+# Edges from center to all outer rectangles with auto anchors
+---
+type: edge
+from: center
+to: top_left
+start_anchor: auto
+end_anchor: auto
+
+---
+type: edge
+from: center
+to: top
+start_anchor: auto
+end_anchor: auto
+
+---
+type: edge
+from: center
+to: top_right
+start_anchor: auto
+end_anchor: auto
+
+---
+type: edge
+from: center
+to: left
+start_anchor: auto
+end_anchor: auto
+
+---
+type: edge
+from: center
+to: right
+start_anchor: auto
+end_anchor: auto
+
+---
+type: edge
+from: center
+to: bottom_left
+start_anchor: auto
+end_anchor: auto
+
+---
+type: edge
+from: center
+to: bottom
+start_anchor: auto
+end_anchor: auto
+
+---
+type: edge
+from: center
+to: bottom_right
+start_anchor: auto
+end_anchor: auto 
+
+---
+
+---
+# Base style
+type: style
+name: base
+node:
+  object:
+    tikz:
+      shape: rectangle
+      fill: "#ffffff"
+      draw: "#000000"
+      line width: 0.02cm

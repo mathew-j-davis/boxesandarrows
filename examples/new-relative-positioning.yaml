@@ -1,0 +1,252 @@
+---
+# Central square with explicit dimensions
+type: node
+name: center
+shape: rectangle
+width: 2
+height: 2
+x: 0
+y: 0
+label: Center
+
+# Left squares
+---
+type: node
+name: left1
+shape: rectangle
+x: -4
+y: 0
+w_of: center
+h_of: center
+label: Left1
+
+---
+type: node
+name: left2
+shape: rectangle
+x: -8
+y: 0
+w_of: center
+h_of: center
+label: Left2
+
+# Right squares
+---
+type: node
+name: right1
+shape: rectangle
+x: 4
+y: 0
+w_of: center
+h_of: center
+label: Right1
+
+---
+type: node
+name: right2
+shape: rectangle
+x: 8
+y: 0
+w_of: center
+h_of: center
+label: Right2
+
+# Top squares
+---
+type: node
+name: top1
+shape: rectangle
+x: 0
+y: 4
+w_of: center
+h_of: center
+label: Top1
+
+---
+type: node
+name: top2
+shape: rectangle
+x: 0
+y: 8
+w_of: center
+h_of: center
+label: Top2
+
+# Bottom squares
+---
+type: node
+name: bottom1
+shape: rectangle
+x: 0
+y: -4
+w_of: center
+h_of: center
+label: Bottom1
+
+---
+type: node
+name: bottom2
+shape: rectangle
+x: 0
+y: -8
+w_of: center
+h_of: center
+label: Bottom2
+
+# Corner squares using new relative positioning
+
+# Top-left corner
+---
+type: node
+name: top_left
+shape: rectangle
+x_of: left2
+y_of: top2
+w_of: center
+h_of: center
+label: Top-Left
+
+# Top-right corner
+---
+type: node
+name: top_right
+shape: rectangle
+x_of: right2
+y_of: top2
+w_of: center
+h_of: center
+label: Top-Right
+
+# Bottom-left corner
+---
+type: node
+name: bottom_left
+shape: rectangle
+x_of: left2
+y_of: bottom2
+w_of: center
+h_of: center
+label: Bottom-Left
+
+# Bottom-right corner
+---
+type: node
+name: bottom_right
+shape: rectangle
+x_of: right2
+y_of: bottom2
+w_of: center
+h_of: center
+label: Bottom-Right
+
+# Connect the cross squares
+---
+type: edge
+from: center
+to: left1
+label: L1
+
+---
+type: edge
+from: center
+to: right1
+label: R1
+
+---
+type: edge
+from: center
+to: top1
+label: T1
+
+---
+type: edge
+from: center
+to: bottom1
+label: B1
+
+---
+type: edge
+from: left1
+to: left2
+label: L2
+
+---
+type: edge
+from: right1
+to: right2
+label: R2
+
+---
+type: edge
+from: top1
+to: top2
+label: T2
+
+---
+type: edge
+from: bottom1
+to: bottom2
+label: B2
+
+# New node with relative positioning and sizing
+---
+type: node
+name: complex_node
+shape: rectangle
+anchor: nw
+x_of: left2.west
+y_of: bottom1.north
+h_of: center
+w_from: left2.west
+w_to: left1.east
+label: Complex Node
+
+# Connect to the new complex node
+---
+type: edge
+from: left2
+to: complex_node
+label: CN1
+
+---
+type: edge
+from: bottom1
+to: complex_node
+label: CN2
+
+# Vertical test node
+---
+type: node
+name: vertical_test
+shape: rectangle
+anchor: n
+x_of: left1
+y_of: top2.north
+h_from: top2.north
+h_to: top1.south
+w_of: center
+label: Vertical Test
+
+# Connect to the vertical test node
+---
+type: edge
+from: left1
+to: vertical_test
+label: VT1
+
+---
+type: edge
+from: top2
+to: vertical_test
+label: VT2
+---
+# Base style
+type: style
+name: base
+node:
+  object:
+    tikz:
+      shape: rectangle
+      fill: "#ffffff"
+      draw: "#000000"
+      line width: 0.02cm 

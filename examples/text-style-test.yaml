@@ -1,0 +1,60 @@
+---
+# Node with stack-left adjustbox and latex formatting
+type: node
+name: formatted_text
+shape: rectangle
+width: 4
+height: 3
+x: 0
+y: 0
+label: "Line 1\nLine 2\nLine 3\nA longer line to demonstrate text wrapping"
+style: fancy_text
+
+---
+# Node with regular formatting for comparison
+type: node
+name: regular_text
+shape: rectangle
+width: 4
+height: 3
+x: 8
+y: 0
+label: "Line 1\nLine 2\nLine 3\nA longer line to demonstrate text wrapping"
+style: base
+
+---
+# Base style
+type: style
+name: base
+node:
+  object:
+    tikz:
+      shape: rectangle
+      fill: "#ffffff"
+      draw: "#000000"
+      minimum width: 1cm
+      minimum height: 0.5cm
+      rounded corners: 0.3cm
+      line width: 0.02cm
+      text opacity: 1
+      inner sep: 0.2cm
+
+---
+# Fancy text style with left-aligned stack and formatting
+type: style
+name: fancy_text
+node:
+  object:
+    tikz:
+      shape: rectangle
+      fill: "#f0f0ff"
+      draw: "#0000ff"
+      rounded corners: 0.3cm
+      line width: 0.02cm
+  text:
+    adjustbox:
+      stack: l
+    latex:
+      flags:
+        font: \sffamily
+        size: \small 
