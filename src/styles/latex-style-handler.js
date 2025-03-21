@@ -1,5 +1,7 @@
 class LatexStyleHandler {
-    constructor() {
+    constructor(options = {}) {
+        this.verbose = options.verbose || false;
+        this.log = this.verbose ? console.log.bind(console) : () => {};
         this.stylesheet = this.getBlankStylesheet();
         this.colorDefinitions = new Map();  // Track color definitions
         this.reservedAttributes = new Set([
@@ -259,11 +261,11 @@ class LatexStyleHandler {
      */
     mergeStylesheet(newStyles) {
         if (!newStyles) {
-            console.log('mergeStylesheet received null or undefined');
+            this.log('mergeStylesheet received null or undefined');
             return;
         }
 
-        console.log('mergeStylesheet received:', JSON.stringify(newStyles));
+        this.log('mergeStylesheet received:', JSON.stringify(newStyles));
         
         // Initialize stylesheet if needed
         if (!this.stylesheet) {
@@ -272,7 +274,7 @@ class LatexStyleHandler {
         
         // Process styles if present
         if (newStyles.style) {
-            console.log('Processing style section');
+            this.log('Processing style section');
             
             if (!this.stylesheet.style) {
                 this.stylesheet.style = this.getBlankStyles();
@@ -294,19 +296,19 @@ class LatexStyleHandler {
         
         // Handle page configuration if present
         if (newStyles.page) {
-            console.log('Processing page config in mergeStylesheet:', JSON.stringify(newStyles.page));
+            this.log('Processing page config in mergeStylesheet:', JSON.stringify(newStyles.page));
             
             if (!this.stylesheet.page) {
-                console.log('No existing page config, creating new');
+                this.log('No existing page config, creating new');
                 this.stylesheet.page = this.getBlankPage();
             }
             
-            console.log('Before merge, page is:', JSON.stringify(this.stylesheet.page));
+            this.log('Before merge, page is:', JSON.stringify(this.stylesheet.page));
             this.stylesheet.page = this.deepMergeObjects(
                 this.stylesheet.page,
                 newStyles.page
             );
-            console.log('After merge, page is:', JSON.stringify(this.stylesheet.page));
+            this.log('After merge, page is:', JSON.stringify(this.stylesheet.page));
         }
     }
 

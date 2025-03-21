@@ -6,13 +6,17 @@ const fs = require('fs');
 const path = require('path');
 const LatexStyleHandler = require('../styles/latex-style-handler');
 const { BoundingBox } = require('../geometry/bounding-box');
+const { canConvertPositionToCoordinates } = require('../io/readers/relative-node-processor');
 
 class LatexRenderer extends Renderer {
     constructor(options = {}) {
         super(options);
         
+
+        this.log = this.verbose ? console.log.bind(console) : () => {};
+
         // Initialize the style handler
-        this.styleHandler = new LatexStyleHandler();
+        this.styleHandler = new LatexStyleHandler(options);
         
         
         // Store document paths with correct paths
@@ -129,7 +133,19 @@ class LatexRenderer extends Renderer {
 
     // Core rendering methods
     renderNode(node) {
-        const pos = `(${node.xScaled},${node.yScaled})`;
+        // Check if the node has a position_of property that can't be converted to coordinates
+        let pos;
+        let hasPositionShift = false;
+        
+        if (node.position_of && !canConvertPositionToCoordinates(node.position_of)) {
+            // Use the node.anchor syntax instead of coordinates
+            pos = `(${node.position_of})`;
+            hasPositionShift = (node.x_of_offset || node.y_of_offset);
+        } else {
+            // Use regular coordinate syntax
+            pos = `(${node.xScaled},${node.yScaled})`;
+        }
+        
         this.updateNodeBounds(node);
         
         // Initialize TikZ attributes object - this will hold all the styling
@@ -238,7 +254,19 @@ class LatexRenderer extends Renderer {
                 styleStr += (styleStr.length > 0 ? ',' : '') + `label=below:{${this.escapeLaTeX(node.label_below)}}`;
             }
             
-            output += `\\node[${styleStr}] (${nodeId}) at ${pos} ${labelWithAdjustbox};`;
+            // Handle position_of with offsets
+            if (hasPositionShift) {
+                // Add xshift and yshift attributes to the TikZ command
+                const xShift = node.x_of_offset !== undefined ? `xshift=${node.x_of_offset}cm` : '';
+                const yShift = node.y_of_offset !== undefined ? `yshift=${node.y_of_offset}cm` : '';
+                
+                // Combine shifts with a comma if both are present
+                const shifts = [xShift, yShift].filter(Boolean).join(', ');
+                
+                output += `\\node[${styleStr}] (${nodeId}) at ${pos} [${shifts}] ${labelWithAdjustbox};`;
+            } else {
+                output += `\\node[${styleStr}] (${nodeId}) at ${pos} ${labelWithAdjustbox};`;
+            }
         }
         
         // Store output in node.latex_output instead of pushing to this.content
@@ -280,11 +308,11 @@ class LatexRenderer extends Renderer {
 
         const totalSegments = realPointsInWaypoints.length + 1; // +1 for the final segment to end point
 
-        console.log('Edge waypoints:', edge.waypoints);
-        console.log('Real points in waypoints:', realPointsInWaypoints);
-        console.log('Total segments:', totalSegments);
+        this.log('Edge waypoints:', edge.waypoints);
+        this.log('Real points in waypoints:', realPointsInWaypoints);
+        this.log('Total segments:', totalSegments);
 
-        console.log('draw command', drawCommand);
+        this.log('draw command', drawCommand);
 
         let currentSegmentTail = '';
 
@@ -351,7 +379,7 @@ class LatexRenderer extends Renderer {
                             drawCommand += ` node[${label.justify}, pos=${label.position}] {${label.text}}`;
                         });
                     }
-                    console.log('draw command', drawCommand);
+                    this.log('draw command', drawCommand);
                 }
             }
 
@@ -374,7 +402,7 @@ class LatexRenderer extends Renderer {
         }
 
         drawCommand += ';';
-        console.log('draw command', drawCommand);
+        this.log('draw command', drawCommand);
         // Store output in edge.latex_output instead of pushing to this.content
         edge.latex_output = drawCommand;
     }
@@ -550,7 +578,7 @@ ${libraries}
         return new Promise((resolve, reject) => {
             exec(command, (error, stdout, stderr) => {
                 if (verbose) {
-                    console.log('LaTeX stdout:', stdout);
+                    this.log('LaTeX stdout:', stdout);
                     if (stderr) console.error('LaTeX stderr:', stderr);
                 }
     
@@ -559,7 +587,7 @@ ${libraries}
                     reject(error);
                 } else {
                     if (verbose) {
-                        console.log('pdflatex output:', stdout);
+                        this.log('pdflatex output:', stdout);
                     }
                     resolve();
                 }

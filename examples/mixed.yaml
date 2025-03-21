@@ -130,7 +130,9 @@ node:
       text opacity: 1
       font: \footnotesize
       inner sep: 0pt
-  label:
+  text:
+    adjustbox:
+      stack: l
     latex:
       flags:
         font: \sffamily
@@ -155,7 +157,7 @@ edge:
         shape: Triangle
         width: 0.2cm
         length: 0.2cm
-  label:
+  text:
     tikz:
       default:
         pos: "0.5"
@@ -194,7 +196,7 @@ node:
       draw: "white!0"
       line width: 0.00cm
       text opacity: 1
-  label:
+  text:
     latex:
       flags:
         font: \sffamily

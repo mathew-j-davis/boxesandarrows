@@ -12,19 +12,37 @@
 \definecolor{color000000}{HTML}{000000}
 \begin{document}
 \begin{tikzpicture}
-\useasboundingbox (-2,-2) rectangle (2,2);
+\useasboundingbox (-10,-10) rectangle (10,10);
 
 
 
-\node[shape=rectangle, fill=colorFFFFFF, draw=color000000, line width=0.02cm, minimum width=2cm, minimum height=2cm] (ref_center) at (0,0) {\adjustbox{max width=2cm, max height=2cm}{Reference}};
-\node[shape=rectangle, fill=colorFFFFFF, draw=color000000, line width=0.02cm, minimum width=2cm, minimum height=2cm] (node1) at (0,0) {\adjustbox{max width=2cm, max height=2cm}{Right of Ref}};
-\node[shape=rectangle, fill=colorFFFFFF, draw=color000000, line width=0.02cm, minimum width=2cm, minimum height=2cm] (node2) at (0,0) {\adjustbox{max width=2cm, max height=2cm}{Above Right}};
-\node[shape=rectangle, fill=colorFFFFFF, draw=color000000, line width=0.02cm, minimum width=2cm, minimum height=2cm] (node3) at (0,0) {\adjustbox{max width=2cm, max height=2cm}{Top Left}};
-\node[shape=rectangle, fill=colorFFFFFF, draw=color000000, line width=0.02cm, minimum width=2cm, minimum height=2cm] (node4) at (0,0) {\adjustbox{max width=2cm, max height=2cm}{Bottom Right}};
-\draw[] (ref_center) (ref_center) to node[above] {Link 1} (node1);
-\draw[] (node1) (node1) to node[above] {Link 2} (node2);
-\draw[] (ref_center) (ref_center) to node[above] {Link 3} (node3);
-\draw[] (ref_center) (ref_center) to node[above] {Link 4} (node4);
+\node[shape=rectangle, fill=colorFFFFFF, draw=color000000, line width=0.02cm, minimum width=2cm, minimum height=2cm] (center) at (0,0) {\adjustbox{max width=2cm, max height=2cm}{Center}};
+\node[shape=rectangle, fill=colorFFFFFF, draw=color000000, line width=0.02cm, minimum width=2cm, minimum height=2cm] (left1) at (-4,0) {\adjustbox{max width=2cm, max height=2cm}{Left1}};
+\node[shape=rectangle, fill=colorFFFFFF, draw=color000000, line width=0.02cm, minimum width=2cm, minimum height=2cm] (left2) at (-8,0) {\adjustbox{max width=2cm, max height=2cm}{Left2}};
+\node[shape=rectangle, fill=colorFFFFFF, draw=color000000, line width=0.02cm, minimum width=2cm, minimum height=2cm] (right1) at (4,0) {\adjustbox{max width=2cm, max height=2cm}{Right1}};
+\node[shape=rectangle, fill=colorFFFFFF, draw=color000000, line width=0.02cm, minimum width=2cm, minimum height=2cm] (right2) at (8,0) {\adjustbox{max width=2cm, max height=2cm}{Right2}};
+\node[shape=rectangle, fill=colorFFFFFF, draw=color000000, line width=0.02cm, minimum width=2cm, minimum height=2cm] (top1) at (0,4) {\adjustbox{max width=2cm, max height=2cm}{Top1}};
+\node[shape=rectangle, fill=colorFFFFFF, draw=color000000, line width=0.02cm, minimum width=2cm, minimum height=2cm] (top2) at (0,8) {\adjustbox{max width=2cm, max height=2cm}{Top2}};
+\node[shape=rectangle, fill=colorFFFFFF, draw=color000000, line width=0.02cm, minimum width=2cm, minimum height=2cm] (bottom1) at (0,-4) {\adjustbox{max width=2cm, max height=2cm}{Bottom1}};
+\node[shape=rectangle, fill=colorFFFFFF, draw=color000000, line width=0.02cm, minimum width=2cm, minimum height=2cm] (bottom2) at (0,-8) {\adjustbox{max width=2cm, max height=2cm}{Bottom2}};
+\node[shape=rectangle, fill=colorFFFFFF, draw=color000000, line width=0.02cm, minimum width=2cm, minimum height=2cm] (top_left) at (-8,8) {\adjustbox{max width=2cm, max height=2cm}{Top-Left}};
+\node[shape=rectangle, fill=colorFFFFFF, draw=color000000, line width=0.02cm, minimum width=2cm, minimum height=2cm] (top_right) at (8,8) {\adjustbox{max width=2cm, max height=2cm}{Top-Right}};
+\node[shape=rectangle, fill=colorFFFFFF, draw=color000000, line width=0.02cm, minimum width=2cm, minimum height=2cm] (bottom_left) at (-8,-8) {\adjustbox{max width=2cm, max height=2cm}{Bottom-Left}};
+\node[shape=rectangle, fill=colorFFFFFF, draw=color000000, line width=0.02cm, minimum width=2cm, minimum height=2cm] (bottom_right) at (8,-8) {\adjustbox{max width=2cm, max height=2cm}{Bottom-Right}};
+\node[shape=rectangle, fill=colorFFFFFF, draw=color000000, line width=0.02cm, minimum width=6cm, minimum height=2cm, anchor=north west] (complex_node) at (-9,-3) {\adjustbox{max width=6cm, max height=2cm}{Complex Node}};
+\node[shape=rectangle, fill=colorFFFFFF, draw=color000000, line width=0.02cm, minimum width=2cm, minimum height=6cm, anchor=north] (vertical_test) at (-4,9) {\adjustbox{max width=2cm, max height=6cm}{Vertical Test}};
+\draw[] (center) (center) to node[above] {L1} (left1);
+\draw[] (center) (center) to node[above] {R1} (right1);
+\draw[] (center) (center) to node[above] {T1} (top1);
+\draw[] (center) (center) to node[above] {B1} (bottom1);
+\draw[] (left1) (left1) to node[above] {L2} (left2);
+\draw[] (right1) (right1) to node[above] {R2} (right2);
+\draw[] (top1) (top1) to node[above] {T2} (top2);
+\draw[] (bottom1) (bottom1) to node[above] {B2} (bottom2);
+\draw[] (left2) (left2) to node[above] {CN1} (complex_node);
+\draw[] (bottom1) (bottom1) to node[above] {CN2} (complex_node);
+\draw[] (left1) (left1) to node[above] {VT1} (vertical_test);
+\draw[] (top2) (top2) to node[above] {VT2} (vertical_test);
 
 \end{tikzpicture}
 \end{document}

@@ -33,6 +33,9 @@
                     }
                 },
                 "text": {
+                    "adjustbox": {
+                        "stack": "l"
+                    },
                     "latex": {
                         "flags": {
                             "font": "\\sffamily",

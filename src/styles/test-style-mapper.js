@@ -21,7 +21,7 @@ styleDocuments.forEach(doc => {
 
 // Extract a node style object to test
 const nodeObjectStyle = styles.base.node.object;
-const nodeLabelStyle = styles.base.node.label;
+const nodeLabelStyle = styles.base.node.text;
 
 console.log('==== Testing Style Mapper ====');
 console.log('\nOriginal Node Object Style:');

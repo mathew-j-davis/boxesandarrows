@@ -1,6 +1,6 @@
 const fs = require('fs').promises;
 const YamlReader = require('../../../src/io/readers/yaml-reader');
-const Node = require('../../../src/io/models/node');
+const { Node } = require('../../../src/io/models/node');
 const NodeReader = require('../../../src/io/readers/node-reader');
 
 // Mock dependencies

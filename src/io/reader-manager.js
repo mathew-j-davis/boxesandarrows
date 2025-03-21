@@ -2,7 +2,7 @@ const path = require('path');
 const NodeReader = require('./readers/node-reader');
 const EdgeReader = require('./readers/edge-reader');
 const StyleReader = require('./readers/style-reader');
-const Node = require('./models/node');
+const { Node } = require('./models/node');
 
 /**
  * Manager class to handle reading from multiple files in different formats

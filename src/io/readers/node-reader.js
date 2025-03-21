@@ -2,7 +2,7 @@ const fs = require('fs');
 const CsvReader = require('./csv-reader');
 const yaml = require('js-yaml');
 const YamlReader = require('./yaml-reader');
-const Node = require('../models/node');
+const { Node } = require('../models/node');
 
 class NodeReader {
 
@@ -75,10 +75,7 @@ class NodeReader {
             hide_label: record.hide_label,
             label_above: record.label_above,
             label_below: record.label_below,
-            relative_to: record.relative_to,
-            relative_to_anchor: record.relative_to_anchor,
-            relative_offset_x: record.relative_offset_x,
-            relative_offset_y: record.relative_offset_y,
+            position_of: record.position_of,
             anchor: record.anchor,
             anchorVector: null,
             shape: record.shape,

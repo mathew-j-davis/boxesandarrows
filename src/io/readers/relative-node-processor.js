@@ -11,13 +11,59 @@ const { Direction } = require('../../geometry/direction');
  * @returns {Object} - The positioned node
  */
 function setPositionRelativeToNode(node, referenceNode, styleHandler) {
+    // If position_of is present but in 'node.anchor' format, process it
+    if (node.position_of && node.position_of.includes('.')) {
+        const [refNodeName, refAnchorName] = node.position_of.split('.');
+        
+        // STEP 1: Get anchor vectors
+        // 1a. Get the node's own anchor (how it will be positioned in the diagram)
+        const nodeAnchor = node.anchor || 'center';
+        const nodeAnchorVector = Direction.getVector(nodeAnchor);
+        
+        // 1b. Get any additional offsets to apply
+        const offsetX = node.x_of_offset !== undefined ? parseFloat(node.x_of_offset) : 0;
+        const offsetY = node.y_of_offset !== undefined ? parseFloat(node.y_of_offset) : 0;
+        
+        // 1c. scale offsets to apply
+        const scaledOffsetX = offsetX * (styleHandler?.getPageScale()?.position?.x || 0);
+        const scaledOffsetY = offsetY * (styleHandler?.getPageScale()?.position?.y || 0);
+        
+        // STEP 2: Find the true center of the reference node
+        const refNodeCenterX = referenceNode.xScaled - (Direction.getVector('center').x * referenceNode.width/2);
+        const refNodeCenterY = referenceNode.yScaled - (Direction.getVector('center').y * referenceNode.height/2);
+        
+        // STEP 3: Find the specific point on the reference node to use
+        const refAnchorVector = Direction.getVector(refAnchorName);
+        const referencePointX = refNodeCenterX + (refAnchorVector.x * referenceNode.width/2);
+        const referencePointY = refNodeCenterY + (refAnchorVector.y * referenceNode.height/2);
+        
+        // STEP 4: Find the center of our new node
+        const nodeCenterX = referencePointX - (nodeAnchorVector.x * node.width/2) + scaledOffsetX;
+        const nodeCenterY = referencePointY - (nodeAnchorVector.y * node.height/2) + scaledOffsetY;
+        
+        // STEP 5: Calculate the final position of the node
+        node.xScaled = nodeCenterX + (nodeAnchorVector.x * node.width/2);
+        node.yScaled = nodeCenterY + (nodeAnchorVector.y * node.height/2);
+        
+        // STEP 6: Store unscaled coordinates for future reference
+        node.xUnscaled = node.xScaled / (styleHandler?.getPageScale()?.position?.x || 1);
+        node.yUnscaled = node.yScaled / (styleHandler?.getPageScale()?.position?.y || 1);
+        
+        // STEP 7: Store that this node has been positioned
+        node.positioned = true;
+        
+        return node;
+    }
+    
+    // Fallback to standard positioning if no position_of with anchor format
+    // This handles simple position_of without anchor specification
     // STEP 1: Get the anchor vectors for all points involved
     // 1a. Get the reference node's own anchor (how it's positioned in the diagram)
     const referenceNodeAnchor = referenceNode.anchor || 'center';
     const referenceNodeAnchorVector = Direction.getVector(referenceNodeAnchor);
 
-    // 1b. Get the specific point on the reference node to use (the attachment point)
-    const referenceNodeRelativeToAnchor = node.relative_to_anchor || 'center';
+    // 1b. Get the specific point on the reference node to use (default to center)
+    const referenceNodeRelativeToAnchor = 'center';
     const referenceNodeRelativeToAnchorVector = Direction.getVector(referenceNodeRelativeToAnchor);
     
     // 1c. Get the point on the new node that should be positioned at the reference point
@@ -25,8 +71,8 @@ function setPositionRelativeToNode(node, referenceNode, styleHandler) {
     const nodeAnchorVector = Direction.getVector(nodeAnchor);
 
     // 1d. Get any additional offsets to apply
-    const offsetX = node.relative_offset_x !== undefined ? parseFloat(node.relative_offset_x) : 0;
-    const offsetY = node.relative_offset_y !== undefined ? parseFloat(node.relative_offset_y) : 0;
+    const offsetX = node.x_of_offset !== undefined ? parseFloat(node.x_of_offset) : 0;
+    const offsetY = node.y_of_offset !== undefined ? parseFloat(node.y_of_offset) : 0;
 
     // 1e. scale offsets to apply
     const scaledOffsetX = offsetX * (styleHandler?.getPageScale()?.position?.x || 0);
@@ -34,35 +80,26 @@ function setPositionRelativeToNode(node, referenceNode, styleHandler) {
 
         
     // STEP 2: Find the true center of the reference node
-    // We need to adjust for the reference node's own anchor to find its center
-    // If the node is anchored at 'center', this doesn't change anything
-    // For any other anchor (like 'north west'), we need to adjust to find the center
     const refNodeCenterX = referenceNode.xScaled - (referenceNodeAnchorVector.x * referenceNode.width/2);
     const refNodeCenterY = referenceNode.yScaled - (referenceNodeAnchorVector.y * referenceNode.height/2);
     
     // STEP 3: Find the specific point on the reference node to use
-    // This is the point that our new node will be positioned relative to
-    // We calculate this from the center of the reference node
     const referencePointX = refNodeCenterX + (referenceNodeRelativeToAnchorVector.x * referenceNode.width/2);
     const referencePointY = refNodeCenterY + (referenceNodeRelativeToAnchorVector.y * referenceNode.height/2);
     
     // STEP 4: Find the center of our new node
-    // We need to position the node so that its anchor point is at the reference point (plus offsets)
-    // To do this, we need to find where the center should be
     const nodeCenterX = referencePointX - (nodeAnchorVector.x * node.width/2) + scaledOffsetX;
     const nodeCenterY = referencePointY - (nodeAnchorVector.y * node.height/2) + scaledOffsetY;
     
     // STEP 5: Calculate the final position of the node
-    // The node position is the center adjusted by the node's anchor vector
     node.xScaled = nodeCenterX + (nodeAnchorVector.x * node.width/2);
     node.yScaled = nodeCenterY + (nodeAnchorVector.y * node.height/2);
     
     // STEP 6: Store unscaled coordinates for future reference
-    // These are useful for relative positioning of other nodes
     node.xUnscaled = node.xScaled / (styleHandler?.getPageScale()?.position?.x || 1);
     node.yUnscaled = node.yScaled / (styleHandler?.getPageScale()?.position?.y || 1);
     
-    // STEP 7: Store that this node has been positioned (useful for debugging)
+    // STEP 7: Store that this node has been positioned
     node.positioned = true;
     
     // Return the positioned node
@@ -75,7 +112,7 @@ function setPositionRelativeToNode(node, referenceNode, styleHandler) {
  * @param {Map} nodesMap - Map of all nodes by name
  * @param {Object} scaleConfig - Configuration for scaling
  */
-function setSizeRelativeToNodes(node, nodesMap, scaleConfig) {
+function setSizeRelativeToNodes(node, nodesMap, scaleConfig, log) {
     
     const defaultHeight = 1;
     const defaultWidth = 1;
@@ -191,23 +228,23 @@ function getAnchorPoint(anchorSpec, nodesMap) {
  * @param {Map} nodesMap - Map of all nodes by name
  * @param {Object} scaleConfig - Configuration for scaling
  */
-function setPositionFromReference(node, nodesMap, scaleConfig) {
-    console.log(`Positioning node: ${node.name} with x_of: ${node.x_of}, y_of: ${node.y_of}`);
+function setPositionFromReference(node, nodesMap, scaleConfig, log) {
+    log(`Positioning node: ${node.name} with x_of: ${node.x_of}, y_of: ${node.y_of}`);
     
     // Process x coordinate
     if (node.x_of && nodesMap.has(node.x_of)) {
         const referenceNode = nodesMap.get(node.x_of);
-        console.log(`  Reference node for x: ${node.x_of}, xUnscaled: ${referenceNode.xUnscaled}`);
+        log(`  Reference node for x: ${node.x_of}, xUnscaled: ${referenceNode.xUnscaled}`);
         
         // Get the x position from the reference node
         if (typeof referenceNode.xUnscaled === 'number') {
             node.xUnscaled = referenceNode.xUnscaled;
-            console.log(`  Setting xUnscaled to ${node.xUnscaled}`);
+            log(`  Setting xUnscaled to ${node.xUnscaled}`);
             
             // Apply offset if specified
             if (node.x_of_offset !== undefined) {
                 node.xUnscaled += parseFloat(node.x_of_offset);
-                console.log(`  Applied x_of_offset: ${node.x_of_offset}, new xUnscaled: ${node.xUnscaled}`);
+                log(`  Applied x_of_offset: ${node.x_of_offset}, new xUnscaled: ${node.xUnscaled}`);
             }
         }
     }
@@ -215,17 +252,17 @@ function setPositionFromReference(node, nodesMap, scaleConfig) {
     // Process y coordinate
     if (node.y_of && nodesMap.has(node.y_of)) {
         const referenceNode = nodesMap.get(node.y_of);
-        console.log(`  Reference node for y: ${node.y_of}, yUnscaled: ${referenceNode.yUnscaled}`);
+        log(`  Reference node for y: ${node.y_of}, yUnscaled: ${referenceNode.yUnscaled}`);
         
         // Get the y position from the reference node
         if (typeof referenceNode.yUnscaled === 'number') {
             node.yUnscaled = referenceNode.yUnscaled;
-            console.log(`  Setting yUnscaled to ${node.yUnscaled}`);
+            log(`  Setting yUnscaled to ${node.yUnscaled}`);
             
             // Apply offset if specified
             if (node.y_of_offset !== undefined) {
                 node.yUnscaled += parseFloat(node.y_of_offset);
-                console.log(`  Applied y_of_offset: ${node.y_of_offset}, new yUnscaled: ${node.yUnscaled}`);
+                log(`  Applied y_of_offset: ${node.y_of_offset}, new yUnscaled: ${node.yUnscaled}`);
             }
         }
     }
@@ -233,12 +270,12 @@ function setPositionFromReference(node, nodesMap, scaleConfig) {
     // Calculate the scaled coordinates after setting position
     if (node.xUnscaled !== undefined) {
         node.xScaled = node.xUnscaled * (scaleConfig?.position?.x || 1);
-        console.log(`  Final xScaled: ${node.xScaled}`);
+        log(`  Final xScaled: ${node.xScaled}`);
     }
     
     if (node.yUnscaled !== undefined) {
         node.yScaled = node.yUnscaled * (scaleConfig?.position?.y || 1);
-        console.log(`  Final yScaled: ${node.yScaled}`);
+        log(`  Final yScaled: ${node.yScaled}`);
     }
     
     return node;
@@ -291,10 +328,35 @@ function setPositionFromAnchorPoint(node, nodesMap, scaleConfig) {
     return node;
 }
 
+/**
+ * Determine if a position can be converted to coordinates
+ * @param {string} positionSpec - Position specification, possibly in node.anchor format
+ * @returns {boolean} - True if the position can be directly converted to coordinates
+ */
+function canConvertPositionToCoordinates(positionSpec) {
+    // If the position doesn't include an anchor, it can be converted
+    if (!positionSpec || !positionSpec.includes('.')) {
+        return true;
+    }
+
+    // Extract the anchor part
+    const anchor = positionSpec.split('.')[1];
+    
+    // Basic directional anchors can be converted
+    const convertibleAnchors = [
+        'center', 'north', 'south', 'east', 'west', 
+        'north east', 'north west', 'south east', 'south west',
+        'northeast', 'northwest', 'southeast', 'southwest'
+    ];
+    
+    return convertibleAnchors.includes(anchor);
+}
+
 // Export both functions
 module.exports = { 
     setPositionRelativeToNode,
     setSizeRelativeToNodes,
     setPositionFromReference,
-    setPositionFromAnchorPoint
+    setPositionFromAnchorPoint,
+    canConvertPositionToCoordinates
 }; 

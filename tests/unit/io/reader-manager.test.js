@@ -2,7 +2,7 @@ const ReaderManager = require('../../../src/io/reader-manager');
 const NodeReader = require('../../../src/io/readers/node-reader');
 const EdgeReader = require('../../../src/io/readers/edge-reader');
 const StyleReader = require('../../../src/io/readers/style-reader');
-const Node = require('../../../src/io/models/node');
+const { Node } = require('../../../src/io/models/node');
 
 // Mock readers
 jest.mock('../../../src/io/readers/node-reader');
