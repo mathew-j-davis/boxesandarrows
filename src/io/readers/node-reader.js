@@ -65,12 +65,11 @@ class NodeReader {
                     : undefined);
         
         // Initialize as undefined for proper scaling later
-        const width = undefined;
-        const height = undefined;
+        const widthScaled = undefined;
+        const heightScaled = undefined;
 
         let nodeProperties = {
             name: record.name,
-
             label: record.label,
             hide_label: record.hide_label,
             label_above: record.label_above,
@@ -83,9 +82,8 @@ class NodeReader {
             yScaled,
             xUnscaled,
             yUnscaled,
-
-            width,
-            height,
+            widthScaled,
+            heightScaled,
             widthUnscaled,
             heightUnscaled,
             type: record.type || 'default',

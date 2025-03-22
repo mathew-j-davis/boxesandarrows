@@ -68,42 +68,48 @@ describe('Position.calculatePositionAndScale', () => {
         // Add test nodes to the map
         allNodes.set('node1', {
             name: 'node1',
-            x: 100,
-            y: 100,
+            xUnscaled: 100,
+            yUnscaled: 100,
             xScaled: 100,
             yScaled: 100,
-            width: 50,
-            height: 30,
+            widthUnscaled: 50,
+            heightUnscaled: 30,
+            widthScaled: 50,
+            heightScaled: 30,
             anchor: 'center'
         });
         
         allNodes.set('node2', {
             name: 'node2',
-            x: 200,
-            y: 150,
+            xUnscaled: 200,
+            yUnscaled: 150,
             xScaled: 200,
             yScaled: 150,
-            width: 60,
-            height: 40,
+            widthUnscaled: 60,
+            heightUnscaled: 40,
+            widthScaled: 60,
+            heightScaled: 40,
             anchor: 'north'
         });
         
         allNodes.set('node3', {
             name: 'node3',
-            x: 300,
-            y: 200,
+            xUnscaled: 300,
+            yUnscaled: 200,
             xScaled: 300,
             yScaled: 200,
-            width: 70,
-            height: 50,
+            widthUnscaled: 70,
+            heightUnscaled: 50,
+            widthScaled: 70,
+            heightScaled: 50,
             anchor: 'east'
         });
         
         // Node without dimensions for anchor-based tests
         allNodes.set('incomplete', {
             name: 'incomplete',
-            x: 50,
-            y: 50,
+            xUnscaled: 50,
+            yUnscaled: 50,
             xScaled: 50,
             yScaled: 50,
             // width and height are missing

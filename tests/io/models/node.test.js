@@ -52,34 +52,34 @@ describe('Position.calculatePositionFromReference', () => {
         // Add test nodes to the map
         allNodes.set('node1', {
             name: 'node1',
-            x: 100,
-            y: 100,
+            xUnscaled: 100,
+            yUnscaled: 100,
             xScaled: 100,
             yScaled: 100,
-            width: 50,
-            height: 30,
+            widthScaled: 50,
+            heightScaled: 30,
             anchor: 'center'
         });
         
         allNodes.set('node2', {
             name: 'node2',
-            x: 200,
-            y: 150,
+            xUnscaled: 200,
+            yUnscaled: 150,
             xScaled: 200,
             yScaled: 150,
-            width: 60,
-            height: 40,
+            widthScaled: 60,
+            heightScaled: 40,
             anchor: 'north'
         });
         
         allNodes.set('node3', {
             name: 'node3',
-            x: 300,
-            y: 200,
+            xUnscaled: 300,
+            yUnscaled: 200,
             xScaled: 300,
             yScaled: 200,
-            width: 70,
-            height: 50,
+            widthScaled: 70,
+            heightScaled: 50,
             anchor: 'east'
         });
     });

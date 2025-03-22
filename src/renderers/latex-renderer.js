@@ -159,8 +159,8 @@ class LatexRenderer extends Renderer {
         }
         
         // 2. Apply mandatory node attributes (important: these override the base style)
-        tikzAttributes['minimum width'] = `${node.width}cm`;
-        tikzAttributes['minimum height'] = `${node.height}cm`;
+        tikzAttributes['minimum width'] = `${node.widthScaled}cm`;
+        tikzAttributes['minimum height'] = `${node.heightScaled}cm`;
         
         // 3. Apply node-specific attributes from CSV
         if (node.shape) {
@@ -234,7 +234,7 @@ class LatexRenderer extends Renderer {
             }
             
             // Build adjustbox parameters
-            let adjustboxParams = `max width=${node.width}cm, max height=${node.height}cm`;
+            let adjustboxParams = `max width=${node.widthScaled}cm, max height=${node.heightScaled}cm`;
             
             // Add custom adjustbox attributes from style if available
             if (textStyle && textStyle.adjustbox && Object.keys(textStyle.adjustbox).length > 0) {
@@ -497,11 +497,11 @@ ${libraries}
         });
 
         // Add size styles if specified
-        if (node.height !== undefined) {
-            style['minimum height'] = `${node.height}cm`;
+        if (node.heightScaled !== undefined) {
+            style['minimum height'] = `${node.heightScaled}cm`;
         }
-        if (node.width !== undefined) {
-            style['minimum width'] = `${node.width}cm`;
+        if (node.widthScaled !== undefined) {
+            style['minimum width'] = `${node.widthScaled}cm`;
         }
 
         // Add colors if specified

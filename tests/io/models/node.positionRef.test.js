@@ -87,12 +87,14 @@ describe('Direct test of calculatePositionFromReference', () => {
         // Add test node
         allNodes.set('node1', {
             name: 'node1',
-            x: 100,
-            y: 100,
+            xUnscaled: 100,
+            yUnscaled: 100,
             xScaled: 100,
             yScaled: 100,
-            width: 50,
-            height: 30,
+            widthUnscaled: 50,
+            heightUnscaled: 30,
+            widthScaled: 50,
+            heightScaled: 30,
             anchor: 'center'
         });
     });

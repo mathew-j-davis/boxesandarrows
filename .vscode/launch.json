@@ -24,16 +24,99 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Debug Format Consistency Tests",
-            "skipFiles": [
-                "<node_internals>/**"
+            "name": "Run All Tests",
+            "program": "${workspaceFolder}/node_modules/jest/bin/jest.js",
+            "args": [
+                "--runInBand",
+                "--testTimeout=10000",
+                "--verbose"
             ],
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Debug Node Position Tests",
+            "program": "${workspaceFolder}/node_modules/jest/bin/jest.js",
+            "args": [
+                "--runInBand",
+                "--testTimeout=10000",
+                "--verbose",
+                "tests/io/models/node.calculatePositionAndScale.test.js",
+                "tests/io/models/node.positionRef.test.js"
+            ],
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Debug Node Creation/Property Tests",
+            "program": "${workspaceFolder}/node_modules/jest/bin/jest.js",
+            "args": [
+                "--runInBand",
+                "--testTimeout=10000",
+                "--verbose",
+                "tests/io/models/node.test.js",
+                "tests/unit/io/node-reader.test.js"
+            ],
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Debug Rendering Tests",
+            "program": "${workspaceFolder}/node_modules/jest/bin/jest.js",
+            "args": [
+                "--runInBand",
+                "--testTimeout=10000",
+                "--verbose",
+                "tests/unit/renderers"
+            ],
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Debug Edge Connection Tests",
+            "program": "${workspaceFolder}/node_modules/jest/bin/jest.js",
+            "args": [
+                "--runInBand",
+                "--testTimeout=10000",
+                "--verbose",
+                "tests/unit/io/edge-reader.test.js",
+                "tests/unit/geometry/node-connection-point.test.js"
+            ],
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Debug Integration Tests",
             "program": "${workspaceFolder}/node_modules/jest/bin/jest.js",
             "args": [
                 "--runInBand",
                 "--testTimeout=30000",
                 "--verbose",
-                "tests/integration/format-consistency.test.js"
+                "tests/integration"
+            ],
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Debug Single Test File",
+            "program": "${workspaceFolder}/node_modules/jest/bin/jest.js",
+            "args": [
+                "--runInBand",
+                "--testTimeout=10000",
+                "--verbose",
+                "${file}"
             ],
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen"

@@ -8,7 +8,7 @@ const {
     setPositionFromReference,
     setPositionFromAnchorPoint 
 } = require('./io/readers/relative-node-processor');
-//const { Node } = require('./io/models/node');
+const { Node } = require('./io/models/node');
 const fs = require('fs');
 const LatexStyleHandler = require('./styles/latex-style-handler');
 const path = require('path');
@@ -163,8 +163,8 @@ class DiagramBuilder {
                     heightUnscaled: 1,
                     widthUnscaled: 1,
                     // These will be set in applyScalingToAllNodes
-                    height: undefined,
-                    width: undefined,
+                    heightScaled: undefined,
+                    widthScaled: undefined,
                     xScaled: undefined,
                     yScaled: undefined,
                     type: 'default',
@@ -249,21 +249,21 @@ class DiagramBuilder {
             }
             
             if (node.widthUnscaled === undefined) {
-                node.widthUnscaled = node.width !== undefined ? node.width : 1;
+                node.widthUnscaled = 1;
             }
             
             if (node.heightUnscaled === undefined) {
-                node.heightUnscaled = node.height !== undefined ? node.height : 1;
+                node.heightUnscaled = 1;
             }
             
             // Apply scaling to dimensions
-            node.width = node.widthUnscaled * scaleConfig.size.w;
-            node.height = node.heightUnscaled * scaleConfig.size.h;
+            node.widthScaled = node.widthUnscaled * scaleConfig.size.w;
+            node.heightScaled = node.heightUnscaled * scaleConfig.size.h;
             
             // Recalculate anchor vector with scaled dimensions
             node.anchorVector = this.renderer.getNodeAnchor(node);
             
-            this.log(`Scaled node '${nodeName}' to (${node.xScaled}, ${node.yScaled}) with dimensions ${node.width}x${node.height}`);
+            this.log(`Scaled node '${nodeName}' to (${node.xScaled}, ${node.yScaled}) with dimensions ${node.widthScaled}x${node.heightScaled}`);
         }
     }
 }

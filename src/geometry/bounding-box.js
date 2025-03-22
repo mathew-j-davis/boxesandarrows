@@ -130,8 +130,8 @@ class BoundingBox {
         }
 
         try {
-            const width = node.width || node.w || 0;
-            const height = node.height || node.h || 0;
+            const width = node.widthScaled || node.w || 0;
+            const height = node.heightScaled || node.h || 0;
             
             if (width <= 0 || height <= 0) {
                 return { success: false, boundingBox: null };

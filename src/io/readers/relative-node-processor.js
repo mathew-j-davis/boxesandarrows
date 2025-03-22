@@ -29,21 +29,21 @@ function setPositionRelativeToNode(node, referenceNode, styleHandler) {
         const scaledOffsetY = offsetY * (styleHandler?.getPageScale()?.position?.y || 0);
         
         // STEP 2: Find the true center of the reference node
-        const refNodeCenterX = referenceNode.xScaled - (Direction.getVector('center').x * referenceNode.width/2);
-        const refNodeCenterY = referenceNode.yScaled - (Direction.getVector('center').y * referenceNode.height/2);
+        const refNodeCenterX = referenceNode.xScaled - (Direction.getVector('center').x * referenceNode.widthScaled/2);
+        const refNodeCenterY = referenceNode.yScaled - (Direction.getVector('center').y * referenceNode.heightScaled/2);
         
         // STEP 3: Find the specific point on the reference node to use
         const refAnchorVector = Direction.getVector(refAnchorName);
-        const referencePointX = refNodeCenterX + (refAnchorVector.x * referenceNode.width/2);
-        const referencePointY = refNodeCenterY + (refAnchorVector.y * referenceNode.height/2);
+        const referencePointX = refNodeCenterX + (refAnchorVector.x * referenceNode.widthScaled/2);
+        const referencePointY = refNodeCenterY + (refAnchorVector.y * referenceNode.heightScaled/2);
         
         // STEP 4: Find the center of our new node
-        const nodeCenterX = referencePointX - (nodeAnchorVector.x * node.width/2) + scaledOffsetX;
-        const nodeCenterY = referencePointY - (nodeAnchorVector.y * node.height/2) + scaledOffsetY;
+        const nodeCenterX = referencePointX - (nodeAnchorVector.x * node.widthScaled/2) + scaledOffsetX;
+        const nodeCenterY = referencePointY - (nodeAnchorVector.y * node.heightScaled/2) + scaledOffsetY;
         
         // STEP 5: Calculate the final position of the node
-        node.xScaled = nodeCenterX + (nodeAnchorVector.x * node.width/2);
-        node.yScaled = nodeCenterY + (nodeAnchorVector.y * node.height/2);
+        node.xScaled = nodeCenterX + (nodeAnchorVector.x * node.widthScaled/2);
+        node.yScaled = nodeCenterY + (nodeAnchorVector.y * node.heightScaled/2);
         
         // STEP 6: Store unscaled coordinates for future reference
         node.xUnscaled = node.xScaled / (styleHandler?.getPageScale()?.position?.x || 1);
@@ -80,20 +80,20 @@ function setPositionRelativeToNode(node, referenceNode, styleHandler) {
 
         
     // STEP 2: Find the true center of the reference node
-    const refNodeCenterX = referenceNode.xScaled - (referenceNodeAnchorVector.x * referenceNode.width/2);
-    const refNodeCenterY = referenceNode.yScaled - (referenceNodeAnchorVector.y * referenceNode.height/2);
+    const refNodeCenterX = referenceNode.xScaled - (referenceNodeAnchorVector.x * referenceNode.widthScaled/2);
+    const refNodeCenterY = referenceNode.yScaled - (referenceNodeAnchorVector.y * referenceNode.heightScaled/2);
     
     // STEP 3: Find the specific point on the reference node to use
-    const referencePointX = refNodeCenterX + (referenceNodeRelativeToAnchorVector.x * referenceNode.width/2);
-    const referencePointY = refNodeCenterY + (referenceNodeRelativeToAnchorVector.y * referenceNode.height/2);
+    const referencePointX = refNodeCenterX + (referenceNodeRelativeToAnchorVector.x * referenceNode.widthScaled/2);
+    const referencePointY = refNodeCenterY + (referenceNodeRelativeToAnchorVector.y * referenceNode.heightScaled/2);
     
     // STEP 4: Find the center of our new node
-    const nodeCenterX = referencePointX - (nodeAnchorVector.x * node.width/2) + scaledOffsetX;
-    const nodeCenterY = referencePointY - (nodeAnchorVector.y * node.height/2) + scaledOffsetY;
+    const nodeCenterX = referencePointX - (nodeAnchorVector.x * node.widthScaled/2) + scaledOffsetX;
+    const nodeCenterY = referencePointY - (nodeAnchorVector.y * node.heightScaled/2) + scaledOffsetY;
     
     // STEP 5: Calculate the final position of the node
-    node.xScaled = nodeCenterX + (nodeAnchorVector.x * node.width/2);
-    node.yScaled = nodeCenterY + (nodeAnchorVector.y * node.height/2);
+    node.xScaled = nodeCenterX + (nodeAnchorVector.x * node.widthScaled/2);
+    node.yScaled = nodeCenterY + (nodeAnchorVector.y * node.heightScaled/2);
     
     // STEP 6: Store unscaled coordinates for future reference
     node.xUnscaled = node.xScaled / (styleHandler?.getPageScale()?.position?.x || 1);

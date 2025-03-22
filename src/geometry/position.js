@@ -141,8 +141,8 @@ class Position {
             referenceNodeOwnAnchorCanonical === undefined ||
             ReferenceNode.xScaled === undefined ||
             ReferenceNode.yScaled === undefined ||
-            ReferenceNode.width === undefined ||
-            ReferenceNode.height === undefined
+            ReferenceNode.widthScaled === undefined ||
+            ReferenceNode.heightScaled === undefined
         ){
             result.success = true;
             result.atNode = ReferenceNodeName;
@@ -158,12 +158,12 @@ class Position {
 
         // Complex case: Transform anchors to calculate coordinates
         // Step 1: Get the center point of the reference node by adjusting for its own anchor
-        const refNodeCenterX = ReferenceNode.xScaled - (referenceNodeOwnAnchorVector.x * ReferenceNode.width/2);
-        const refNodeCenterY = ReferenceNode.yScaled - (referenceNodeOwnAnchorVector.y * ReferenceNode.height/2);
+        const refNodeCenterX = ReferenceNode.xScaled - (referenceNodeOwnAnchorVector.x * ReferenceNode.widthScaled/2);
+        const refNodeCenterY = ReferenceNode.yScaled - (referenceNodeOwnAnchorVector.y * ReferenceNode.heightScaled/2);
         
         // Step 2: Find the position of the specific anchor point on the reference node
-        const refAnchorPointX = refNodeCenterX + (referenceNodeAtAnchorVector.x * ReferenceNode.width/2);
-        const refAnchorPointY = refNodeCenterY + (referenceNodeAtAnchorVector.y * ReferenceNode.height/2);
+        const refAnchorPointX = refNodeCenterX + (referenceNodeAtAnchorVector.x * ReferenceNode.widthScaled/2);
+        const refAnchorPointY = refNodeCenterY + (referenceNodeAtAnchorVector.y * ReferenceNode.heightScaled/2);
         
         // Step 3: Apply offsets if specified
         const finalXScaled = refAnchorPointX + x_offset_safe_scaled;
