@@ -1,5 +1,6 @@
-const { Node, PositionType } = require('../../../src/io/models/node');
+const { Node } = require('../../../src/io/models/node');
 const { Direction } = require('../../../src/geometry/direction');
+const { Position, PositionType } = require('../../../src/geometry/position');
 
 // Mock the Direction module if needed
 jest.mock('../../../src/geometry/direction', () => {
@@ -41,7 +42,7 @@ jest.mock('../../../src/geometry/direction', () => {
     };
 });
 
-describe('Node.calculatePositionFromReference', () => {
+describe('Position.calculatePositionFromReference', () => {
     // Mock the allNodes Map
     let allNodes;
     
@@ -84,14 +85,14 @@ describe('Node.calculatePositionFromReference', () => {
     });
     
     test('should return error for non-existent reference node', () => {
-        const result = Node.calculatePositionFromReference(allNodes, 'nonexistent', 0, 0, 1, 1);
+        const result = Position.calculatePositionFromReference(allNodes, 'nonexistent', 0, 0, 1, 1);
         
         expect(result.success).toBe(false);
         expect(result.message).toContain('not found');
     });
     
     test('should handle simple node reference without anchor', () => {
-        const result = Node.calculatePositionFromReference(allNodes, 'node1', 10, 20, 1, 1);
+        const result = Position.calculatePositionFromReference(allNodes, 'node1', 10, 20, 1, 1);
         
         expect(result.success).toBe(true);
         expect(result.positionType).toBe(PositionType.COORDINATES);
@@ -101,7 +102,7 @@ describe('Node.calculatePositionFromReference', () => {
     });
     
     test('should handle node reference with same anchor', () => {
-        const result = Node.calculatePositionFromReference(allNodes, 'node1.center', 10, 20, 1, 1);
+        const result = Position.calculatePositionFromReference(allNodes, 'node1.center', 10, 20, 1, 1);
         
         expect(result.success).toBe(true);
         expect(result.positionType).toBe(PositionType.COORDINATES);
@@ -112,7 +113,7 @@ describe('Node.calculatePositionFromReference', () => {
     });
     
     test('should handle node reference with different anchor', () => {
-        const result = Node.calculatePositionFromReference(allNodes, 'node1.north', 10, 20, 1, 1);
+        const result = Position.calculatePositionFromReference(allNodes, 'node1.north', 10, 20, 1, 1);
         
         expect(result.success).toBe(true);
         expect(result.positionType).toBe(PositionType.COORDINATES);
@@ -127,7 +128,7 @@ describe('Node.calculatePositionFromReference', () => {
     });
     
     test('should handle node reference with scale factors', () => {
-        const result = Node.calculatePositionFromReference(allNodes, 'node1', 10, 20, 2, 3);
+        const result = Position.calculatePositionFromReference(allNodes, 'node1', 10, 20, 2, 3);
         
         expect(result.success).toBe(true);
         expect(result.positionType).toBe(PositionType.COORDINATES);
@@ -154,7 +155,7 @@ describe('Node.calculatePositionFromReference', () => {
             anchor: 'center'
         });
         
-        const result = Node.calculatePositionFromReference(allNodes, 'incomplete.east', 0, 0, 1, 1);
+        const result = Position.calculatePositionFromReference(allNodes, 'incomplete.east', 0, 0, 1, 1);
         
         expect(result.success).toBe(true);
         expect(result.positionType).toBe(PositionType.ANCHOR);

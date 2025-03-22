@@ -1,5 +1,6 @@
-const { Node, PositionType } = require('../../../src/io/models/node');
+const { Node } = require('../../../src/io/models/node');
 const { Direction } = require('../../../src/geometry/direction');
+const { Position, PositionType } = require('../../../src/geometry/position');
 
 // Mock the Direction module
 jest.mock('../../../src/geometry/direction', () => {
@@ -47,7 +48,7 @@ jest.mock('../../../src/geometry/direction', () => {
     };
 });
 
-describe('Node.calculatePositionAndScale', () => {
+describe('Position.calculatePositionAndScale', () => {
     // Mock the allNodes Map
     let allNodes;
     let scaleConfig;
@@ -113,7 +114,7 @@ describe('Node.calculatePositionAndScale', () => {
     // Test Group 1: Direct coordinate positioning
     describe('direct coordinates', () => {
         test('should position using direct x,y coordinates', () => {
-            const result = Node.calculatePositionAndScale(
+            const result = Position.calculatePositionAndScale(
                 allNodes, 150, 180, null, null, null, null, null, scaleConfig
             );
             
@@ -133,7 +134,7 @@ describe('Node.calculatePositionAndScale', () => {
                 }
             };
             
-            const result = Node.calculatePositionAndScale(
+            const result = Position.calculatePositionAndScale(
                 allNodes, 100, 100, null, null, null, null, null, scaledConfig
             );
             
@@ -149,7 +150,7 @@ describe('Node.calculatePositionAndScale', () => {
     // Test Group 2: Position_of positioning
     describe('position_of', () => {
         test('should position relative to another node', () => {
-            const result = Node.calculatePositionAndScale(
+            const result = Position.calculatePositionAndScale(
                 allNodes, null, null, 'node1', null, null, 10, 20, scaleConfig
             );
             
@@ -162,7 +163,7 @@ describe('Node.calculatePositionAndScale', () => {
         });
         
         test('should position at a specific anchor point', () => {
-            const result = Node.calculatePositionAndScale(
+            const result = Position.calculatePositionAndScale(
                 allNodes, null, null, 'node1.north', null, null, 0, 0, scaleConfig
             );
             
@@ -172,7 +173,7 @@ describe('Node.calculatePositionAndScale', () => {
         });
         
         test('should handle anchor-based positioning when dimensions are missing', () => {
-            const result = Node.calculatePositionAndScale(
+            const result = Position.calculatePositionAndScale(
                 allNodes, null, null, 'incomplete.east', null, null, 5, 10, scaleConfig
             );
             
@@ -185,7 +186,7 @@ describe('Node.calculatePositionAndScale', () => {
         });
         
         test('should return error for non-existent reference node', () => {
-            const result = Node.calculatePositionAndScale(
+            const result = Position.calculatePositionAndScale(
                 allNodes, null, null, 'nonexistent', null, null, 0, 0, scaleConfig
             );
             
@@ -197,7 +198,7 @@ describe('Node.calculatePositionAndScale', () => {
     // Test Group 3: x_of and y_of positioning
     describe('x_of and y_of', () => {
         test('should position using x_of and y_of together', () => {
-            const result = Node.calculatePositionAndScale(
+            const result = Position.calculatePositionAndScale(
                 allNodes, null, null, null, 'node1', 'node2', 10, 20, scaleConfig
             );
             
@@ -208,7 +209,7 @@ describe('Node.calculatePositionAndScale', () => {
         });
         
         test('should position using only x_of with default y', () => {
-            const result = Node.calculatePositionAndScale(
+            const result = Position.calculatePositionAndScale(
                 allNodes, null, 75, null, 'node1', null, 10, null, scaleConfig
             );
             
@@ -219,7 +220,7 @@ describe('Node.calculatePositionAndScale', () => {
         });
         
         test('should position using only y_of with default x', () => {
-            const result = Node.calculatePositionAndScale(
+            const result = Position.calculatePositionAndScale(
                 allNodes, 75, null, null, null, 'node2', null, 20, scaleConfig
             );
             
@@ -230,7 +231,7 @@ describe('Node.calculatePositionAndScale', () => {
         });
         
         test('should position using x_of and y_of with anchor notation', () => {
-            const result = Node.calculatePositionAndScale(
+            const result = Position.calculatePositionAndScale(
                 allNodes, null, null, null, 'node1.east', 'node2.south', 0, 0, scaleConfig
             );
             
@@ -241,7 +242,7 @@ describe('Node.calculatePositionAndScale', () => {
         });
         
         test('should return error if x_of reference node does not exist', () => {
-            const result = Node.calculatePositionAndScale(
+            const result = Position.calculatePositionAndScale(
                 allNodes, null, null, null, 'nonexistent', 'node2', 0, 0, scaleConfig
             );
             
@@ -250,7 +251,7 @@ describe('Node.calculatePositionAndScale', () => {
         });
         
         test('should return error if y_of reference node does not exist', () => {
-            const result = Node.calculatePositionAndScale(
+            const result = Position.calculatePositionAndScale(
                 allNodes, null, null, null, 'node1', 'nonexistent', 0, 0, scaleConfig
             );
             
@@ -269,7 +270,7 @@ describe('Node.calculatePositionAndScale', () => {
                 }
             };
             
-            const result = Node.calculatePositionAndScale(
+            const result = Position.calculatePositionAndScale(
                 allNodes, null, null, null, 'node1', 'node2', 10, 20, scaledConfig
             );
             

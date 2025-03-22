@@ -8,7 +8,7 @@ const {
     setPositionFromReference,
     setPositionFromAnchorPoint 
 } = require('./io/readers/relative-node-processor');
-const { Node } = require('./io/models/node');
+//const { Node } = require('./io/models/node');
 const fs = require('fs');
 const LatexStyleHandler = require('./styles/latex-style-handler');
 const path = require('path');

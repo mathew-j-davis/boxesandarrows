@@ -1,8 +1,9 @@
 /**
- * Simple test case for Node.calculatePositionFromReference
+ * Simple test case for Position.calculatePositionFromReference
  * This focuses just on the function that's failing, with minimal setup
  */
-const { Node, PositionType } = require('../../../src/io/models/node');
+const { Node } = require('../../../src/io/models/node');
+const { Position, PositionType } = require('../../../src/geometry/position');
 
 // Create a simple mock for Direction
 jest.mock('../../../src/geometry/direction', () => {
@@ -26,8 +27,8 @@ jest.mock('../../../src/geometry/direction', () => {
 });
 
 // Wrap the original function to add debugging
-const originalPositionFnRef = Node.calculatePositionFromReference;
-Node.calculatePositionFromReference = function(...args) {
+const originalPositionFnRef = Position.calculatePositionFromReference;
+Position.calculatePositionFromReference = function(...args) {
     console.log('\n=== Debug calculatePositionFromReference ===');
     console.log('Arguments:', {
         position_of: args[1],
@@ -98,7 +99,7 @@ describe('Direct test of calculatePositionFromReference', () => {
     
     test('Simple node reference without anchor', () => {
         // Direct call to the function
-        const result = Node.calculatePositionFromReference(
+        const result = Position.calculatePositionFromReference(
             allNodes,
             'node1',  // position_of
             10,       // x_offset
@@ -125,7 +126,7 @@ describe('Direct test of calculatePositionFromReference', () => {
     
     test('Node reference with explicit anchor', () => {
         // Direct call to the function
-        const result = Node.calculatePositionFromReference(
+        const result = Position.calculatePositionFromReference(
             allNodes,
             'node1.north',  // position_of
             0,       // x_offset

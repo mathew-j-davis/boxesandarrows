@@ -1,5 +1,6 @@
-const { Node, PositionType } = require('../../../src/io/models/node');
+const { Node } = require('../../../src/io/models/node');
 const { Direction } = require('../../../src/geometry/direction');
+const { Position, PositionType } = require('../../../src/geometry/position');
 
 // Mock the Direction module
 jest.mock('../../../src/geometry/direction', () => {
@@ -43,9 +44,9 @@ jest.mock('../../../src/geometry/direction', () => {
     };
 });
 
-// Patch Node.calculatePositionFromReference to add debugging
-const originalCalculatePositionFromReference = Node.calculatePositionFromReference;
-Node.calculatePositionFromReference = function(...args) {
+// Patch Position.calculatePositionFromReference to add debugging
+const originalCalculatePositionFromReference = Position.calculatePositionFromReference;
+Position.calculatePositionFromReference = function(...args) {
     console.log("\n=== calculatePositionFromReference CALLED ===");
     console.log(`Arguments: position_of=${args[1]}, x_offset=${args[2]}, y_offset=${args[3]}, xScale=${args[4]}, yScale=${args[5]}`);
     
@@ -74,7 +75,7 @@ Node.calculatePositionFromReference = function(...args) {
     return result;
 };
 
-describe('DEBUG: Node.calculatePositionAndScale', () => {
+describe('DEBUG: Position.calculatePositionAndScale', () => {
     // Mock the allNodes Map
     let allNodes;
     let scaleConfig;
@@ -113,7 +114,7 @@ describe('DEBUG: Node.calculatePositionAndScale', () => {
         
         // Call the function
         console.log("\nCalling calculatePositionAndScale...");
-        const result = Node.calculatePositionAndScale(
+        const result = Position.calculatePositionAndScale(
             {}, allNodes, null, null, 'center', 'node1', null, null, 10, 20, scaleConfig
         );
         
