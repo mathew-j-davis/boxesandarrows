@@ -117,8 +117,8 @@ describe('Direct test of calculatePositionFromReference', () => {
         expect(result.positionType).toBe(PositionType.COORDINATES);
         
         // Check calculated coordinates
-        expect(result.x).toBe(110); // 100 + 10
-        expect(result.y).toBe(120); // 100 + 20
+        expect(result.xUnscaled).toBe(110); // 100 + 10
+        expect(result.yUnscaled).toBe(120); // 100 + 20
         expect(result.xScaled).toBe(110);
         expect(result.yScaled).toBe(120);
         
@@ -144,8 +144,8 @@ describe('Direct test of calculatePositionFromReference', () => {
         expect(result.positionType).toBe(PositionType.COORDINATES);
         
         // Check calculated coordinates (node1.y + half_height)
-        expect(result.x).toBe(100);
-        expect(result.y).toBe(115); // 100 + 15 (half height)
+        expect(result.xUnscaled).toBe(100);
+        expect(result.yUnscaled).toBe(115); // 100 + 15 (half height)
         
         // Also check reference information
         expect(result.atNode).toBe('node1');

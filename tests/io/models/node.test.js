@@ -96,8 +96,8 @@ describe('Position.calculatePositionFromReference', () => {
         
         expect(result.success).toBe(true);
         expect(result.positionType).toBe(PositionType.COORDINATES);
-        expect(result.x).toBe(110); // 100 + 10
-        expect(result.y).toBe(120); // 100 + 20
+        expect(result.xUnscaled).toBe(110); // 100 + 10
+        expect(result.yUnscaled).toBe(120); // 100 + 20
         expect(result.atNode).toBe('node1');
     });
     
@@ -106,8 +106,8 @@ describe('Position.calculatePositionFromReference', () => {
         
         expect(result.success).toBe(true);
         expect(result.positionType).toBe(PositionType.COORDINATES);
-        expect(result.x).toBe(110); // 100 + 10
-        expect(result.y).toBe(120); // 100 + 20
+        expect(result.xUnscaled).toBe(110); // 100 + 10
+        expect(result.yUnscaled).toBe(120); // 100 + 20
         expect(result.atNode).toBe('node1');
         expect(result.atAnchor).toBe('center');
     });
@@ -121,8 +121,8 @@ describe('Position.calculatePositionFromReference', () => {
         // node1 center is at (100, 100)
         // node1 height is 30, so north is at y + height/2 = 100 + 15 = 115
         // with offset of 20, final y should be 115 + 20 = 135
-        expect(result.x).toBe(110); // 100 + 10
-        expect(result.y).toBe(135); // 100 + 15 + 20
+        expect(result.xUnscaled).toBe(110); // 100 + 10
+        expect(result.yUnscaled).toBe(135); // 100 + 15 + 20
         expect(result.atNode).toBe('node1');
         expect(result.atAnchor).toBe('north');
     });
@@ -139,16 +139,16 @@ describe('Position.calculatePositionFromReference', () => {
         expect(result.yScaled).toBe(160); // 100 + 60
         
         // Unscaled coordinates should be scaled coordinates divided by scale factors
-        expect(result.x).toBe(60); // 120 / 2
-        expect(result.y).toBe(53.333333333333336); // 160 / 3
+        expect(result.xUnscaled).toBe(60); // 120 / 2
+        expect(result.yUnscaled).toBe(53.333333333333336); // 160 / 3
     });
     
     test('should handle node with missing dimensions gracefully', () => {
         // Create a node with missing dimensions
         allNodes.set('incomplete', {
             name: 'incomplete',
-            x: 50,
-            y: 50,
+            xUnscaled: 50,
+            yUnscaled: 50,
             xScaled: 50,
             yScaled: 50,
             // width and height are missing

@@ -140,7 +140,7 @@ class LatexRenderer extends Renderer {
         if (node.position_of && !canConvertPositionToCoordinates(node.position_of)) {
             // Use the node.anchor syntax instead of coordinates
             pos = `(${node.position_of})`;
-            hasPositionShift = (node.x_of_offset || node.y_of_offset);
+            hasPositionShift = (node.x_offset || node.y_offset);
         } else {
             // Use regular coordinate syntax
             pos = `(${node.xScaled},${node.yScaled})`;
@@ -257,8 +257,8 @@ class LatexRenderer extends Renderer {
             // Handle position_of with offsets
             if (hasPositionShift) {
                 // Add xshift and yshift attributes to the TikZ command
-                const xShift = node.x_of_offset !== undefined ? `xshift=${node.x_of_offset}cm` : '';
-                const yShift = node.y_of_offset !== undefined ? `yshift=${node.y_of_offset}cm` : '';
+                const xShift = node.x_offset !== undefined ? `xshift=${node.x_offset}cm` : '';
+                const yShift = node.y_offset !== undefined ? `yshift=${node.y_offset}cm` : '';
                 
                 // Combine shifts with a comma if both are present
                 const shifts = [xShift, yShift].filter(Boolean).join(', ');

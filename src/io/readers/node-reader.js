@@ -68,6 +68,29 @@ class NodeReader {
         const widthScaled = undefined;
         const heightScaled = undefined;
 
+        const x_offset = record.x_offset !== undefined ? parseFloat(record.x_offset) : undefined;
+        const y_offset = record.y_offset !== undefined ? parseFloat(record.y_offset) : undefined;
+        
+        const h_offset = record.h_offset ? parseFloat(record.h_offset) : 0;
+        const w_offset = record.w_offset ? parseFloat(record.w_offset) : 0;
+
+        /*
+        xUnscaled
+        yUnscaled
+        xScaled
+        yScaled
+        widthUnscaled
+        heightUnscaled
+        widthScaled
+        heightScaled
+
+        x_offset
+        y_offset
+        h_offset
+        w_offset
+
+        */
+
         let nodeProperties = {
             name: record.name,
             label: record.label,
@@ -98,18 +121,21 @@ class NodeReader {
             h_of: record.h_of,
             h_from: record.h_from,
             h_to: record.h_to,
-            h_offset: record.h_offset ? parseFloat(record.h_offset) : 0,
-            
+            h_offset: h_offset,
+
             w_of: record.w_of,
             w_from: record.w_from, 
             w_to: record.w_to,
-            w_offset: record.w_offset ? parseFloat(record.w_offset) : 0,
+            w_offset: w_offset,
+
             
             // Add new relative positioning fields
             x_of: record.x_of,
             y_of: record.y_of,
-            x_of_offset: record.x_of_offset !== undefined ? parseFloat(record.x_of_offset) : undefined,
-            y_of_offset: record.y_of_offset !== undefined ? parseFloat(record.y_of_offset) : undefined,
+            x_offset: x_offset,
+            y_offset: y_offset,
+            
+           
             
             // Store the original record(s)
             records: [{ ...record }],

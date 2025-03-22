@@ -21,8 +21,8 @@ function setPositionRelativeToNode(node, referenceNode, styleHandler) {
         const nodeAnchorVector = Direction.getVector(nodeAnchor);
         
         // 1b. Get any additional offsets to apply
-        const offsetX = node.x_of_offset !== undefined ? parseFloat(node.x_of_offset) : 0;
-        const offsetY = node.y_of_offset !== undefined ? parseFloat(node.y_of_offset) : 0;
+        const offsetX = node.x_offset !== undefined ? parseFloat(node.x_offset) : 0;
+        const offsetY = node.y_offset !== undefined ? parseFloat(node.y_offset) : 0;
         
         // 1c. scale offsets to apply
         const scaledOffsetX = offsetX * (styleHandler?.getPageScale()?.position?.x || 0);
@@ -71,8 +71,8 @@ function setPositionRelativeToNode(node, referenceNode, styleHandler) {
     const nodeAnchorVector = Direction.getVector(nodeAnchor);
 
     // 1d. Get any additional offsets to apply
-    const offsetX = node.x_of_offset !== undefined ? parseFloat(node.x_of_offset) : 0;
-    const offsetY = node.y_of_offset !== undefined ? parseFloat(node.y_of_offset) : 0;
+    const offsetX = node.x_offset !== undefined ? parseFloat(node.x_offset) : 0;
+    const offsetY = node.y_offset !== undefined ? parseFloat(node.y_offset) : 0;
 
     // 1e. scale offsets to apply
     const scaledOffsetX = offsetX * (styleHandler?.getPageScale()?.position?.x || 0);
@@ -242,9 +242,9 @@ function setPositionFromReference(node, nodesMap, scaleConfig, log) {
             log(`  Setting xUnscaled to ${node.xUnscaled}`);
             
             // Apply offset if specified
-            if (node.x_of_offset !== undefined) {
-                node.xUnscaled += parseFloat(node.x_of_offset);
-                log(`  Applied x_of_offset: ${node.x_of_offset}, new xUnscaled: ${node.xUnscaled}`);
+            if (node.x_offset !== undefined) {
+                node.xUnscaled += parseFloat(node.x_offset);
+                log(`  Applied x_offset: ${node.x_offset}, new xUnscaled: ${node.xUnscaled}`);
             }
         }
     }
@@ -260,9 +260,9 @@ function setPositionFromReference(node, nodesMap, scaleConfig, log) {
             log(`  Setting yUnscaled to ${node.yUnscaled}`);
             
             // Apply offset if specified
-            if (node.y_of_offset !== undefined) {
-                node.yUnscaled += parseFloat(node.y_of_offset);
-                log(`  Applied y_of_offset: ${node.y_of_offset}, new yUnscaled: ${node.yUnscaled}`);
+            if (node.y_offset !== undefined) {
+                node.yUnscaled += parseFloat(node.y_offset);
+                log(`  Applied y_offset: ${node.y_offset}, new yUnscaled: ${node.yUnscaled}`);
             }
         }
     }
@@ -296,8 +296,8 @@ function setPositionFromAnchorPoint(node, nodesMap, scaleConfig) {
             node.xUnscaled = anchorPoint.x;
             
             // Apply offset if specified
-            if (node.x_of_offset !== undefined) {
-                node.xUnscaled += parseFloat(node.x_of_offset);
+            if (node.x_offset !== undefined) {
+                node.xUnscaled += parseFloat(node.x_offset);
             }
         }
     }
@@ -310,8 +310,8 @@ function setPositionFromAnchorPoint(node, nodesMap, scaleConfig) {
             node.yUnscaled = anchorPoint.y;
             
             // Apply offset if specified
-            if (node.y_of_offset !== undefined) {
-                node.yUnscaled += parseFloat(node.y_of_offset);
+            if (node.y_offset !== undefined) {
+                node.yUnscaled += parseFloat(node.y_offset);
             }
         }
     }

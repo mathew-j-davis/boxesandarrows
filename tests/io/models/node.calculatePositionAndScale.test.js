@@ -126,8 +126,8 @@ describe('Position.calculatePositionAndScale', () => {
             
             expect(result.success).toBe(true);
             expect(result.positionType).toBe(PositionType.COORDINATES);
-            expect(result.x).toBe(150);
-            expect(result.y).toBe(180);
+            expect(result.xUnscaled).toBe(150);
+            expect(result.yUnscaled).toBe(180);
             expect(result.xScaled).toBe(150); // No scaling in this test
             expect(result.yScaled).toBe(180);
         });
@@ -146,8 +146,8 @@ describe('Position.calculatePositionAndScale', () => {
             
             expect(result.success).toBe(true);
             expect(result.positionType).toBe(PositionType.COORDINATES);
-            expect(result.x).toBe(100);
-            expect(result.y).toBe(100);
+            expect(result.xUnscaled).toBe(100);
+            expect(result.yUnscaled).toBe(100);
             expect(result.xScaled).toBe(200); // x * 2
             expect(result.yScaled).toBe(300); // y * 3
         });
@@ -162,8 +162,8 @@ describe('Position.calculatePositionAndScale', () => {
             
             expect(result.success).toBe(true);
             expect(result.positionType).toBe(PositionType.COORDINATES);
-            expect(result.x).toBe(110); // 100 + 10
-            expect(result.y).toBe(120); // 100 + 20
+            expect(result.xUnscaled).toBe(110); // 100 + 10
+            expect(result.yUnscaled).toBe(120); // 100 + 20
             expect(result.xScaled).toBe(110);
             expect(result.yScaled).toBe(120);
         });
@@ -175,7 +175,7 @@ describe('Position.calculatePositionAndScale', () => {
             
             expect(result.success).toBe(true);
             expect(result.positionType).toBe(PositionType.COORDINATES);
-            expect(result.y).toBe(115); // 100 + 15 (half height)
+            expect(result.yUnscaled).toBe(115); // 100 + 15 (half height)
         });
         
         test('should handle anchor-based positioning when dimensions are missing', () => {
@@ -210,8 +210,8 @@ describe('Position.calculatePositionAndScale', () => {
             
             expect(result.success).toBe(true);
             expect(result.positionType).toBe(PositionType.COORDINATES);
-            expect(result.x).toBe(110); // node1.x (100) + 10
-            expect(result.y).toBe(170); // node2.y (150) + 20
+            expect(result.xUnscaled).toBe(110); // node1.x (100) + 10
+            expect(result.yUnscaled).toBe(170); // node2.y (150) + 20
         });
         
         test('should position using only x_of with default y', () => {
@@ -221,8 +221,8 @@ describe('Position.calculatePositionAndScale', () => {
             
             expect(result.success).toBe(true);
             expect(result.positionType).toBe(PositionType.COORDINATES);
-            expect(result.x).toBe(110); // 100 + 10
-            expect(result.y).toBe(75);  // Direct y
+            expect(result.xUnscaled).toBe(110); // 100 + 10
+            expect(result.yUnscaled).toBe(75);  // Direct y
         });
         
         test('should position using only y_of with default x', () => {
@@ -232,8 +232,8 @@ describe('Position.calculatePositionAndScale', () => {
             
             expect(result.success).toBe(true);
             expect(result.positionType).toBe(PositionType.COORDINATES);
-            expect(result.x).toBe(75);  // Default x provided
-            expect(result.y).toBe(170); // node2.y (150) + 20
+            expect(result.xUnscaled).toBe(75);  // Default x provided
+            expect(result.yUnscaled).toBe(170); // node2.y (150) + 20
         });
         
         test('should position using x_of and y_of with anchor notation', () => {
@@ -243,8 +243,8 @@ describe('Position.calculatePositionAndScale', () => {
             
             expect(result.success).toBe(true);
             expect(result.positionType).toBe(PositionType.COORDINATES);
-            expect(result.x).toBe(125); // node1.x (100) + half width (25)
-            expect(result.y).toBe(110); // node2.y (150) - full height (40) when anchor is north
+            expect(result.xUnscaled).toBe(125); // node1.x (100) + half width (25)
+            expect(result.yUnscaled).toBe(110); // node2.y (150) - full height (40) when anchor is north
         });
         
         test('should return error if x_of reference node does not exist', () => {
@@ -286,13 +286,13 @@ describe('Position.calculatePositionAndScale', () => {
             // node1.x = 100, offset = 10, scale = 2
             // Scaled: (100 + 10*2) = 120
             // Unscaled: 120/2 = 60
-            expect(result.x).toBe(60);
+            expect(result.xUnscaled).toBe(60);
             expect(result.xScaled).toBe(120);
             
             // node2.y = 150, offset = 20, scale = 3
             // Scaled: (150 + 20*3) = 210
             // Unscaled: 210/3 = 70
-            expect(result.y).toBe(70);
+            expect(result.yUnscaled).toBe(70);
             expect(result.yScaled).toBe(210);
         });
     });
