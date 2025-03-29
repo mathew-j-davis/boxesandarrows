@@ -96,12 +96,6 @@ class Position {
             }
         }
 
-        // if (
-        //     ReferenceNode?.position?.xScaled === undefined ||
-        //     ReferenceNode?.position?.yScaled === undefined 
-        // ){
-        //     console.log('ReferenceNode.xScaled === undefined || ReferenceNode.yScaled === undefined');
-        // }
 
         // Simple case: direct reference without anchor transformation
         // Either we have a reference node with no anchor
@@ -121,11 +115,9 @@ class Position {
             )
         ){
             // Apply offsets if specified
-            // const finalXScaled = ReferenceNode.xScaled + x_offset_safe_scaled;
-            // const finalYScaled = ReferenceNode.yScaled + y_offset_safe_scaled;
- 
-            const finalXScaled = ReferenceNode.xScaled + x_offset_safe_scaled;
-            const finalYScaled = ReferenceNode.yScaled + y_offset_safe_scaled;
+
+            const finalXScaled = ReferenceNode.position.xScaled + x_offset_safe_scaled;
+            const finalYScaled = ReferenceNode.position.yScaled + y_offset_safe_scaled;
             
             // Back-calculate to unscaled coordinates
             const finalX = finalXScaled / xScale;
@@ -174,8 +166,8 @@ class Position {
 
         // Complex case: Transform anchors to calculate coordinates
         // Step 1: Get the center point of the reference node by adjusting for its own anchor
-        const refNodeCenterX = ReferenceNode.xScaled - (referenceNodeOwnAnchorVector.x * ReferenceNode.widthScaled/2);
-        const refNodeCenterY = ReferenceNode.yScaled - (referenceNodeOwnAnchorVector.y * ReferenceNode.heightScaled/2);
+        const refNodeCenterX = ReferenceNode.position.xScaled - (referenceNodeOwnAnchorVector.x * ReferenceNode.widthScaled/2);
+        const refNodeCenterY = ReferenceNode.position.yScaled - (referenceNodeOwnAnchorVector.y * ReferenceNode.heightScaled/2);
         
         // Step 2: Find the position of the specific anchor point on the reference node
         const refAnchorPointX = refNodeCenterX + (referenceNodeAtAnchorVector.x * ReferenceNode.widthScaled/2);
@@ -284,8 +276,7 @@ class Position {
         // calculate offsets (if any)
         const x_of_offset_safe = x_offset !== undefined && x_offset !== null ? parseFloat(x_offset) : 0;
         const y_of_offset_safe = y_offset !== undefined && y_offset !== null ? parseFloat(y_offset) : 0;
-        // const x_of_offset_safe_scaled = x_of_offset_safe * xScale;
-        // const y_of_offset_safe_scaled = y_of_offset_safe * yScale;
+
 
         // Position relative to another node using position_of
         if (position_of) {

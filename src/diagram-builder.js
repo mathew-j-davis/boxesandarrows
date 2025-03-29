@@ -3,7 +3,7 @@ const PositionReader = require('./io/readers/position-reader');
 const ReaderManager = require('./io/reader-manager');
 const LatexRenderer = require('./renderers/latex-renderer');
 const { 
-    setPositionRelativeToNode, 
+    //setPositionRelativeToNode, 
     setSizeRelativeToNodes,
     setPositionFromReference,
     setPositionFromAnchorPoint 

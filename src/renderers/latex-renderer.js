@@ -424,17 +424,17 @@ class LatexRenderer extends Renderer {
         return options.join(', ');
     }
 
-    calculateControlPoint(node, direction, controlLength) {
-        if (!direction || !controlLength) {
-            return new Point2D(node.xScaled, node.yScaled);
-        }
+    // calculateControlPoint(node, direction, controlLength) {
+    //     if (!direction || !controlLength) {
+    //         return new Point2D(node.xScaled, node.yScaled);
+    //     }
 
-        const directionVector = Direction.getVector(direction);
-        return new Point2D(
-            node.xScaled + (directionVector.x * controlLength),
-            node.yScaled + (directionVector.y * controlLength)
-        );
-    }
+    //     const directionVector = Direction.getVector(direction);
+    //     return new Point2D(
+    //         node.xScaled + (directionVector.x * controlLength),
+    //         node.yScaled + (directionVector.y * controlLength)
+    //     );
+    // }
 
     // Document structure
     beforeRender() {

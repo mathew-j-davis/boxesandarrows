@@ -171,7 +171,7 @@ class ReaderManager {
         
         // Return empty array if no nodes have been loaded
         if (this.nodes.size === 0) {
-            console.warn('Cannot process edges: No nodes have been loaded');
+            //console.warn('Cannot process edges: No nodes have been loaded');
             return [];
         }
         

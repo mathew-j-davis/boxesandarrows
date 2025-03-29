@@ -32,7 +32,7 @@ describe('Relative Positioning Tests', () => {
 
     // Compile the YAML to LaTeX
     const cmd = `node src/index.js -y ${yamlFile} -o output/${baseName}`;
-    console.log(`Executing: ${cmd}`);
+    // console.log(`Executing: ${cmd}`);
     
     try {
       execSync(cmd, { encoding: 'utf8', stdio: 'inherit' });
