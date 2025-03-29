@@ -30,9 +30,9 @@
             ],
             "program": "${workspaceFolder}\\src\\index.js",
             "args": [
-                "-y", "./examples/new-relative-positioning.yaml",
-                "-s", "style-latex.json",
-                "-o", "output/new-relative-positioning",
+                "-y", "./examples/mixed.yaml ",
+                "-m", "./examples/map.csv",
+                "-o", "output/mixed-yaml",
                 "--trace-warnings"
             ]
         },

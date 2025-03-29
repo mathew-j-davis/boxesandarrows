@@ -96,6 +96,13 @@ class Position {
             }
         }
 
+        // if (
+        //     ReferenceNode?.position?.xScaled === undefined ||
+        //     ReferenceNode?.position?.yScaled === undefined 
+        // ){
+        //     console.log('ReferenceNode.xScaled === undefined || ReferenceNode.yScaled === undefined');
+        // }
+
         // Simple case: direct reference without anchor transformation
         // Either we have a reference node with no anchor
         // Or we have a reference node with an attachment anchor that is the same as the reference node's own anchor
@@ -109,11 +116,14 @@ class Position {
             )
             &&
             !(
-                ReferenceNode.xScaled === undefined ||
-                ReferenceNode.yScaled === undefined 
+                ReferenceNode.position?.xScaled === undefined ||
+                ReferenceNode.position?.yScaled === undefined 
             )
         ){
             // Apply offsets if specified
+            // const finalXScaled = ReferenceNode.xScaled + x_offset_safe_scaled;
+            // const finalYScaled = ReferenceNode.yScaled + y_offset_safe_scaled;
+ 
             const finalXScaled = ReferenceNode.xScaled + x_offset_safe_scaled;
             const finalYScaled = ReferenceNode.yScaled + y_offset_safe_scaled;
             

@@ -149,6 +149,7 @@ class DiagramBuilder {
                 // Store unscaled position (no scaling applied here anymore)
                 node.xUnscaled = pos.xUnscaled;
                 node.yUnscaled = pos.yUnscaled;
+
                 // The xScaled,yScaled values will be set in applyScalingToAllNodes
                 this.log(`Set unscaled position of node '${name}' to (${node.xUnscaled}, ${node.yUnscaled})`);
             } else {
@@ -170,6 +171,7 @@ class DiagramBuilder {
                     type: 'default',
                     anchor: null,
                     anchorVector: null
+
                 };
 
                 nodes.set(name, node);

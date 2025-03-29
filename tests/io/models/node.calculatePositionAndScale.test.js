@@ -76,7 +76,14 @@ describe('Position.calculatePositionAndScale', () => {
             heightUnscaled: 30,
             widthScaled: 50,
             heightScaled: 30,
-            anchor: 'center'
+            anchor: 'center',
+            position: {
+                xUnscaled: 100,
+                yUnscaled: 100,
+                xScaled: 100,
+                yScaled: 100,
+                positionType: PositionType.COORDINATES
+            }
         });
         
         allNodes.set('node2', {
@@ -89,7 +96,14 @@ describe('Position.calculatePositionAndScale', () => {
             heightUnscaled: 40,
             widthScaled: 60,
             heightScaled: 40,
-            anchor: 'north'
+            anchor: 'north',
+            position: {
+                xUnscaled: 200,
+                yUnscaled: 150,
+                xScaled: 200,
+                yScaled: 150,
+                positionType: PositionType.COORDINATES
+            }
         });
         
         allNodes.set('node3', {
@@ -102,7 +116,14 @@ describe('Position.calculatePositionAndScale', () => {
             heightUnscaled: 50,
             widthScaled: 70,
             heightScaled: 50,
-            anchor: 'east'
+            anchor: 'east',
+            position: {
+                xUnscaled: 300,
+                yUnscaled: 200,
+                xScaled: 300,
+                yScaled: 200,
+                positionType: PositionType.COORDINATES
+            }
         });
         
         // Node without dimensions for anchor-based tests
@@ -113,7 +134,14 @@ describe('Position.calculatePositionAndScale', () => {
             xScaled: 50,
             yScaled: 50,
             // width and height are missing
-            anchor: 'center'
+            anchor: 'center',
+            position: {
+                xUnscaled: 50,
+                yUnscaled: 50,
+                xScaled: 50,
+                yScaled: 50,
+                positionType: PositionType.COORDINATES
+            }
         });
     });
     

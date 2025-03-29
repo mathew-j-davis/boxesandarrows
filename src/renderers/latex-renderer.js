@@ -7,6 +7,7 @@ const path = require('path');
 const LatexStyleHandler = require('../styles/latex-style-handler');
 const { BoundingBox } = require('../geometry/bounding-box');
 const { canConvertPositionToCoordinates } = require('../io/readers/relative-node-processor');
+const { Position, PositionType } = require('../geometry/position');
 
 class LatexRenderer extends Renderer {
     constructor(options = {}) {
@@ -133,18 +134,20 @@ class LatexRenderer extends Renderer {
 
     // Core rendering methods
     renderNode(node) {
-        // Check if the node has a position_of property that can't be converted to coordinates
+
         let pos;
         let hasPositionShift = false;
         
-        if (node.position_of && !canConvertPositionToCoordinates(node.position_of)) {
-            // Use the node.anchor syntax instead of coordinates
-            pos = `(${node.position_of})`;
-            hasPositionShift = (node.x_offset || node.y_offset);
-        } else {
-            // Use regular coordinate syntax
-            pos = `(${node.xScaled},${node.yScaled})`;
-        }
+        if (node.position) {
+
+            if (node.position.positionType === PositionType.NAMED) {
+                pos = node.position.at;
+                hasPositionShift = (node?.position?.xAtNodeAnchorOffsetScaled || node?.position?.yAtNodeAnchorOffsetScaled);
+            } 
+            else {
+                pos = `(${node.position.xScaled},${node.position.yScaled})`;
+            }
+        } 
         
         this.updateNodeBounds(node);
         
@@ -256,9 +259,9 @@ class LatexRenderer extends Renderer {
             
             // Handle position_of with offsets
             if (hasPositionShift) {
-                // Add xshift and yshift attributes to the TikZ command
-                const xShift = node.x_offset !== undefined ? `xshift=${node.x_offset}cm` : '';
-                const yShift = node.y_offset !== undefined ? `yshift=${node.y_offset}cm` : '';
+
+                const xShift = node.position.xAtNodeAnchorOffsetScaled || '';
+                const yShift = node.position.yAtNodeAnchorOffsetScaled || '';
                 
                 // Combine shifts with a comma if both are present
                 const shifts = [xShift, yShift].filter(Boolean).join(', ');
@@ -830,12 +833,12 @@ ${libraries}
         // If we couldn't create a bounding box, try to update bounds directly from node coordinates
         if (!boxResult.success) {
             // Fallback to using node's coordinates directly
-            this.updateBounds(node.xScaled, node.yScaled);
+            this.updateBounds(node?.position?.xScaled || 0, node?.position?.yScaled);
             return;
         }
         
         const boundingBox = boxResult.boundingBox;
-        
+            
         // Update bounds for all corners of the node
         this.updateBounds(boundingBox.left, boundingBox.bottom);
         this.updateBounds(boundingBox.right, boundingBox.bottom);

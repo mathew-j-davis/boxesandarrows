@@ -95,7 +95,14 @@ describe('Direct test of calculatePositionFromReference', () => {
             heightUnscaled: 30,
             widthScaled: 50,
             heightScaled: 30,
-            anchor: 'center'
+            anchor: 'center',
+            position: {
+                xUnscaled: 100,
+                yUnscaled: 100,
+                xScaled: 100,
+                yScaled: 100,
+                positionType: PositionType.COORDINATES
+            }
         });
     });
     
