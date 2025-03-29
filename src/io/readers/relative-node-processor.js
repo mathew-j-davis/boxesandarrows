@@ -2,6 +2,7 @@
  * Module for processing nodes with relative positioning
  */
 const { Direction } = require('../../geometry/direction');
+const { Position, PositionType } = require('../../geometry/position');
 
 /**
  * Positions a node relative to another node using anchor points
@@ -120,6 +121,8 @@ function setSizeRelativeToNodes(node, nodesMap, scaleConfig, log) {
     // Get scale factors
     const widthScale = scaleConfig?.size?.w || 1;
     const heightScale = scaleConfig?.size?.h || 1;
+    const xScale = scaleConfig?.position?.x || 1;
+    const yScale = scaleConfig?.position?.y || 1;
     
     // Process height first
     if (!node.heightUnscaled) {
@@ -130,12 +133,14 @@ function setSizeRelativeToNodes(node, nodesMap, scaleConfig, log) {
         }
         // If no height yet and both h_from and h_to are specified
         else if (node.h_from && node.h_to) {
-            const fromPoint = getAnchorPoint(node.h_from, nodesMap);
-            const toPoint = getAnchorPoint(node.h_to, nodesMap);
+            const fromPosition = Position.calculatePositionFromReference(nodesMap, node.h_from, 0, 0, xScale, yScale);
+            const toPosition = Position.calculatePositionFromReference(nodesMap, node.h_to, 0, 0, xScale, yScale);
             
-            if (fromPoint && toPoint) {
+            // Only proceed if we got valid coordinate positions
+            if (fromPosition.success && fromPosition.positionType === PositionType.COORDINATES &&
+                toPosition.success && toPosition.positionType === PositionType.COORDINATES) {
                 // Calculate absolute difference in Y coordinates (using scaled values)
-                const scaledHeight = Math.abs(toPoint.y - fromPoint.y);
+                const scaledHeight = Math.abs(toPosition.yScaled - fromPosition.yScaled);
                 // Convert back to unscaled value
                 node.heightUnscaled = scaledHeight / heightScale;
                 // Add the offset (which is already in unscaled units)
@@ -156,12 +161,14 @@ function setSizeRelativeToNodes(node, nodesMap, scaleConfig, log) {
         }
         // If no width yet and both w_from and w_to are specified
         else if (node.w_from && node.w_to) {
-            const fromPoint = getAnchorPoint(node.w_from, nodesMap);
-            const toPoint = getAnchorPoint(node.w_to, nodesMap);
+            const fromPosition = Position.calculatePositionFromReference(nodesMap, node.w_from, 0, 0, xScale, yScale);
+            const toPosition = Position.calculatePositionFromReference(nodesMap, node.w_to, 0, 0, xScale, yScale);
             
-            if (fromPoint && toPoint) {
+            // Only proceed if we got valid coordinate positions
+            if (fromPosition.success && fromPosition.positionType === PositionType.COORDINATES &&
+                toPosition.success && toPosition.positionType === PositionType.COORDINATES) {
                 // Calculate absolute difference in X coordinates (using scaled values)
-                const scaledWidth = Math.abs(toPoint.x - fromPoint.x);
+                const scaledWidth = Math.abs(toPosition.xScaled - fromPosition.xScaled);
                 // Convert back to unscaled value
                 node.widthUnscaled = scaledWidth / widthScale;
                 // Add the offset (which is already in unscaled units)
@@ -173,53 +180,6 @@ function setSizeRelativeToNodes(node, nodesMap, scaleConfig, log) {
             node.widthUnscaled = defaultWidth;
         }
     }
-}
-
-/**
- * Get the position of an anchor point from a node name or node.anchor specification
- * @param {string} anchorSpec - Node name or Node.Anchor specification
- * @param {Map} nodesMap - Map of all nodes by name
- * @returns {Object|null} - The point with x,y coordinates or null if not found
- */
-function getAnchorPoint(anchorSpec, nodesMap) {
-    if (!anchorSpec) return null;
-
-    // Parse the anchor spec - either 'nodeName' or 'nodeName.anchor'
-    const parts = anchorSpec.split('.');
-    const nodeName = parts[0];
-    
-    // Look up the node
-    if (!nodesMap.has(nodeName)) return null;
-    
-    const node = nodesMap.get(nodeName);
-    
-    // If no specific anchor is provided, use the node's own anchor or default to 'center'
-    const anchorName = parts.length > 1 ? parts[1] : (node.anchor || 'center');
-    
-    // If the node doesn't have position yet, we can't calculate from it
-    if (typeof node.xUnscaled !== 'number' || typeof node.yUnscaled !== 'number') return null;
-    
-    // Get the anchor direction vector
-    const anchorVector = Direction.getVector(anchorName);
-    
-    if (!anchorVector) return null;
-    
-    // Calculate the anchor point position based on unscaled values
-    const xUnscaled = node.xUnscaled;
-    const yUnscaled = node.yUnscaled;
-    const widthUnscaled = node.widthUnscaled || 0;
-    const heightUnscaled = node.heightUnscaled || 0;
-    
-    // Calculate the anchor point coordinates (unscaled)
-    const xPointUnscaled = xUnscaled + (anchorVector.x * widthUnscaled / 2);
-    const yPointUnscaled = yUnscaled + (anchorVector.y * heightUnscaled / 2);
-    
-    // Return the scaled coordinates for consistent usage with h_from/h_to calculations
-    const scale = node.scale || 1;
-    return {
-        x: xPointUnscaled * scale,
-        y: yPointUnscaled * scale
-    };
 }
 
 /**
@@ -288,12 +248,15 @@ function setPositionFromReference(node, nodesMap, scaleConfig, log) {
  * @param {Object} scaleConfig - Configuration for scaling
  */
 function setPositionFromAnchorPoint(node, nodesMap, scaleConfig) {
+    const xScale = scaleConfig?.position?.x || 1;
+    const yScale = scaleConfig?.position?.y || 1;
+    
     // Handle x_of property with anchor notation (node.anchor)
     if (node.x_of && node.x_of.includes('.')) {
-        const anchorPoint = getAnchorPoint(node.x_of, nodesMap);
+        const position = Position.calculatePositionFromReference(nodesMap, node.x_of, 0, 0, xScale, yScale);
         
-        if (anchorPoint) {
-            node.xUnscaled = anchorPoint.x;
+        if (position.success && position.positionType === PositionType.COORDINATES) {
+            node.xUnscaled = position.xUnscaled;
             
             // Apply offset if specified
             if (node.x_offset !== undefined) {
@@ -304,10 +267,10 @@ function setPositionFromAnchorPoint(node, nodesMap, scaleConfig) {
     
     // Handle y_of property with anchor notation (node.anchor)
     if (node.y_of && node.y_of.includes('.')) {
-        const anchorPoint = getAnchorPoint(node.y_of, nodesMap);
+        const position = Position.calculatePositionFromReference(nodesMap, node.y_of, 0, 0, xScale, yScale);
         
-        if (anchorPoint) {
-            node.yUnscaled = anchorPoint.y;
+        if (position.success && position.positionType === PositionType.COORDINATES) {
+            node.yUnscaled = position.yUnscaled;
             
             // Apply offset if specified
             if (node.y_offset !== undefined) {
@@ -318,11 +281,11 @@ function setPositionFromAnchorPoint(node, nodesMap, scaleConfig) {
     
     // Calculate the scaled coordinates after setting position
     if (node.xUnscaled !== undefined) {
-        node.xScaled = node.xUnscaled * (scaleConfig?.position?.x || 1);
+        node.xScaled = node.xUnscaled * xScale;
     }
     
     if (node.yUnscaled !== undefined) {
-        node.yScaled = node.yUnscaled * (scaleConfig?.position?.y || 1);
+        node.yScaled = node.yUnscaled * yScale;
     }
     
     return node;

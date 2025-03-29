@@ -3,7 +3,7 @@ const CsvReader = require('./csv-reader');
 const yaml = require('js-yaml');
 const YamlReader = require('./yaml-reader');
 const { Node } = require('../models/node');
-
+const ValueParser = require('./value-parser');
 class NodeReader {
 
     static async readFromCsv(nodeFile) {
@@ -41,9 +41,9 @@ class NodeReader {
     static processNodeRecord(record) {
         // Store unscaled position values
         const xUnscaled = record.x !== undefined && record.x !== '' ? 
-            parseFloat(record.x) : 0;
+            parseFloat(record.x) : undefined;
         const yUnscaled = record.y !== undefined && record.y !== '' ? 
-            parseFloat(record.y) : 0;
+            parseFloat(record.y) : undefined;
 
         // Apply position scaling - initialize as undefined for proper scaling later
         const xScaled = undefined; 
@@ -74,6 +74,9 @@ class NodeReader {
         const h_offset = record.h_offset ? parseFloat(record.h_offset) : 0;
         const w_offset = record.w_offset ? parseFloat(record.w_offset) : 0;
 
+        const render = new Map();
+        const records = [{ ...record }];
+
         /*
         xUnscaled
         yUnscaled
@@ -89,18 +92,23 @@ class NodeReader {
         h_offset
         w_offset
 
+        records
+
+        render
+
         */
 
         let nodeProperties = {
-            name: record.name,
-            label: record.label,
-            hide_label: record.hide_label,
-            label_above: record.label_above,
-            label_below: record.label_below,
-            position_of: record.position_of,
-            anchor: record.anchor,
+            name: ValueParser.parse(record.name, 'string'),
+            label: ValueParser.parse(record.label, 'string'),
+            hide_label: ValueParser.parse(record.hide_label, 'boolean'),
+            label_above: ValueParser.parse(record.label_above, 'boolean'),
+            label_below: ValueParser.parse(record.label_below, 'boolean'),
+            position_of: ValueParser.parse(record.position_of, 'string'),
+            anchor: ValueParser.parse(record.anchor, 'string'),
             anchorVector: null,
-            shape: record.shape,
+            at: ValueParser.parse(record.at, 'string'),
+            shape: ValueParser.parse(record.shape, 'string'),
             xScaled,
             yScaled,
             xUnscaled,
@@ -109,40 +117,41 @@ class NodeReader {
             heightScaled,
             widthUnscaled,
             heightUnscaled,
-            type: record.type || 'default',
-            style: record.style,
-            tikz_object_attributes: record.tikz_object_attributes,
-            //mergedStyle,  // Store processed style for rendering
-            edge_color: record.edge_color,
-            fillcolor: record.fillcolor,
-            textcolor: record.textcolor,
+            style: ValueParser.parse(record.style, 'string'),
+            tikz_object_attributes: ValueParser.parse(record.tikz_object_attributes, 'string'),
+            edge_color: ValueParser.parse(record.edge_color, 'string'),
+            fillcolor: ValueParser.parse(record.fillcolor, 'string'),
+            textcolor: ValueParser.parse(record.textcolor, 'string'),
 
             // Add relative sizing fields
-            h_of: record.h_of,
-            h_from: record.h_from,
-            h_to: record.h_to,
+            h_of: ValueParser.parse(record.h_of, 'string'),
+            h_from: ValueParser.parse(record.h_from, 'string'),
+            h_to: ValueParser.parse(record.h_to, 'string'),
             h_offset: h_offset,
 
-            w_of: record.w_of,
-            w_from: record.w_from, 
-            w_to: record.w_to,
+            w_of: ValueParser.parse(record.w_of, 'string'),
+            w_from: ValueParser.parse(record.w_from, 'string'),     
+            w_to: ValueParser.parse(record.w_to, 'string'),
             w_offset: w_offset,
 
-            
             // Add new relative positioning fields
-            x_of: record.x_of,
-            y_of: record.y_of,
+            x_of: ValueParser.parse(record.x_of, 'string'),
+            y_of: ValueParser.parse(record.y_of, 'string'),
             x_offset: x_offset,
             y_offset: y_offset,
             
-           
-            
-            // Store the original record(s)
-            records: [{ ...record }],
-            
-            // Initialize output storage
-            latex_output: ''
+            records,
+            render
         };
+
+        // Add any additional properties from the record that aren't already in nodeProperties
+        const processedKeys = new Set(['x', 'y', 'width', 'height', 'w', 'h', 'type']);
+
+        for (const key in record) {
+            if (!(key in nodeProperties) && !processedKeys.has(key)) {
+                nodeProperties[key] = record[key];
+            }
+        }
 
         return new Node(nodeProperties);
     }

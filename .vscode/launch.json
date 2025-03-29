@@ -24,6 +24,21 @@
         {
             "type": "node",
             "request": "launch",
+            "name": "Launch Diagram",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}\\src\\index.js",
+            "args": [
+                "-y", "./examples/new-relative-positioning.yaml",
+                "-s", "style-latex.json",
+                "-o", "output/new-relative-positioning",
+                "--trace-warnings"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
             "name": "Run All Tests",
             "program": "${workspaceFolder}/node_modules/jest/bin/jest.js",
             "args": [
@@ -45,6 +60,20 @@
                 "--verbose",
                 "tests/io/models/node.calculatePositionAndScale.test.js",
                 "tests/io/models/node.positionRef.test.js"
+            ],
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Debug Node Relative Positioning Tests",
+            "program": "${workspaceFolder}/node_modules/jest/bin/jest.js",
+            "args": [
+                "--runInBand",
+                "--testTimeout=10000",
+                "--verbose",
+                "tests/integration/relative-positioning.test.js"
             ],
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen"

@@ -130,8 +130,8 @@ class BoundingBox {
         }
 
         try {
-            const width = node.widthScaled || node.w || 0;
-            const height = node.heightScaled || node.h || 0;
+            const width = node.widthScaled || node.width || node.w || 0;
+            const height = node.heightScaled || node.height || node.h || 0;
             
             if (width <= 0 || height <= 0) {
                 return { success: false, boundingBox: null };
@@ -157,7 +157,7 @@ class BoundingBox {
             // Calculate the edges of the box
             // For center anchor (0,0), this is (x ± width/2, y ± height/2)
             // For other anchors, we adjust based on the anchor vector
-            const halfWidth = width / 2;
+            const halfWidth = width  / 2;
             const halfHeight = height / 2;
             
             const left = node.xScaled - halfWidth - (anchorVector.x * halfWidth);

@@ -158,7 +158,7 @@ describe('Position.calculatePositionFromReference', () => {
         const result = Position.calculatePositionFromReference(allNodes, 'incomplete.east', 0, 0, 1, 1);
         
         expect(result.success).toBe(true);
-        expect(result.positionType).toBe(PositionType.ANCHOR);
+        expect(result.positionType).toBe(PositionType.NAMED);
         expect(result.atNode).toBe('incomplete');
         expect(result.atAnchor).toBe('east');
     });

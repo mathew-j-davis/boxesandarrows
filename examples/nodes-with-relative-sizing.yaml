@@ -44,10 +44,9 @@ tikz_object_attributes: draw=blue, thick
 type: node
 name: square4
 label: 4
-relative_to: square1
-relative_to_anchor: south
+position_of: square1.south
 anchor: north
-relative_offset_y: 1
+y_offset: 1
 # Use square2's height
 h_of: square2
 # Width based on horizontal distance between square1 and square3
@@ -61,10 +60,9 @@ tikz_object_attributes: draw=orange, thick
 type: node
 name: square5
 label: 5
-relative_to: square4
-relative_to_anchor: south
+position_of: square4.south
 anchor: north
-relative_offset_y: 0.5
+y_offset: 0.5
 # Height based on the previously calculated relative node
 h_of: square4
 h_offset: -0.5
@@ -93,10 +91,9 @@ tikz_object_attributes: draw=brown, thick
 type: node
 name: square7
 label: 7
-relative_to: square6
-relative_to_anchor: east
+position_of: square6.east
 anchor: west
-relative_offset_x: 1
+x_offset: 1
 # Height scales with distance between nodes 1 and 2
 h_from: square1.center
 h_to: square2.center
@@ -111,8 +108,7 @@ tikz_object_attributes: draw=LightBlue, thick
 type: node
 name: square8
 label: "8 (fixed w)"
-relative_to: square7 
-relative_to_anchor: ne
+position_of: square7.ne
 anchor: nw
 # Fixed width
 width: 3
@@ -125,8 +121,7 @@ tikz_object_attributes: draw=DarkGreen, thick
 type: node
 name: square9
 label: "9 (fixed h/w)"
-relative_to: square8
-relative_to_anchor: south
+position_of: square8.south
 anchor: north
 # These will be ignored because explicit width/height is present
 h_of: square1

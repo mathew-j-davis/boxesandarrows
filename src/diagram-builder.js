@@ -15,7 +15,7 @@ const path = require('path');
 const { Direction } = require('./geometry/direction');
 const { getNodeConnectionPoint } = require('./geometry/node-connection-point');
 const EdgeReader = require('./io/readers/edge-reader');
-        
+const { Position, PositionType } = require('./geometry/position');
 
 class DiagramBuilder {
     constructor(options = {}) {
@@ -185,9 +185,31 @@ class DiagramBuilder {
 
         // Single pass: handle both relative sizing and positioning
         for (const [nodeName, node] of nodes.entries()) {
+            
+            const position = Position.calculatePositionAndScale(nodes, node.xUnscaled, node.yUnscaled, node.at, node.position_of, node.x_of, node.y_of, node.x_offset, node.y_offset, scaleConfig)
+            
+            node["position"] = position;
+
+            if (position.success === true) {
+                if (position.positionType === PositionType.COORDINATES) {
+                    node.xUnscaled = position.xUnscaled;
+                    node.yUnscaled = position.yUnscaled;
+                    node.xScaled = position.xScaled;
+                    node.yScaled = position.yScaled;
+                }
+            }
+
+            if (position.positionType === PositionType.NAMED) {
+                node.anchor = position.anchor;
+                node.anchorVector = position.anchorVector;
+            }
+
+
+
             // First handle size relative to other nodes
             setSizeRelativeToNodes(node, nodes, scaleConfig, this.log);
             
+            /*
             // Check for new relative positioning using x_of and y_of
             const hasNewRelativePos = node.x_of !== undefined || node.y_of !== undefined;
             const hasPositionOf = node.position_of !== undefined;
@@ -226,15 +248,18 @@ class DiagramBuilder {
                     this.log(`Positioned node '${nodeName}' with reference anchor points`);
                 }
             }
-            // Legacy relative positioning - keep for backward compatibility
-            else if (node.relative_to) {
-                const referenceNodeName = node.relative_to;
-                const referenceNode = nodes.get(referenceNodeName);
+
+            // // Legacy relative positioning - keep for backward compatibility
+            // else if (node.relative_to) {
+            //     const referenceNodeName = node.relative_to;
+            //     const referenceNode = nodes.get(referenceNodeName);
                 
-                // Process relative position using the reference node
-                setPositionRelativeToNode(node, referenceNode, this.renderer.styleHandler);
-                this.log(`Positioned relative node '${nodeName}' based on legacy reference '${referenceNodeName}'`);
-            } else {
+            //     // Process relative position using the reference node
+            //     setPositionRelativeToNode(node, referenceNode, this.renderer.styleHandler);
+            //     this.log(`Positioned relative node '${nodeName}' based on legacy reference '${referenceNodeName}'`);
+            // } 
+            
+            else {
                 // For non-relative nodes, use unscaled coords (or defaults)
                 if (node.xUnscaled === undefined) {
                     node.xUnscaled = 0;
@@ -247,7 +272,7 @@ class DiagramBuilder {
                 node.xScaled = node.xUnscaled * scaleConfig.position.x;
                 node.yScaled = node.yUnscaled * scaleConfig.position.y;
             }
-            
+            */
             if (node.widthUnscaled === undefined) {
                 node.widthUnscaled = 1;
             }
@@ -255,6 +280,7 @@ class DiagramBuilder {
             if (node.heightUnscaled === undefined) {
                 node.heightUnscaled = 1;
             }
+            
             
             // Apply scaling to dimensions
             node.widthScaled = node.widthUnscaled * scaleConfig.size.w;

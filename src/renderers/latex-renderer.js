@@ -71,7 +71,7 @@ class LatexRenderer extends Renderer {
 
         // Initialize latex_output property on nodes and edges
         safeNodes.forEach(node => {
-            node.latex_output = '';
+            node.render['latex'] = '';
         });
         
         safeEdges.forEach(edge => {
@@ -270,7 +270,7 @@ class LatexRenderer extends Renderer {
         }
         
         // Store output in node.latex_output instead of pushing to this.content
-        node.latex_output = output;
+        node.render['latex'] = output;
     }
 
     renderEdge(edge) {
@@ -949,8 +949,8 @@ ${libraries}
         
         // Add node outputs to content array
         for (const node of nodes) {
-            if (node.latex_output) {
-                this.content.push(node.latex_output);
+            if (node?.render['latex']) {
+                this.content.push(node.render['latex']);
             }
         }
         

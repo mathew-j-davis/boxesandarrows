@@ -58,6 +58,11 @@ node src/index.js -n examples/relative-nodes.yaml -o output/relative-nodes -s ex
 ```
 This example demonstrates positioning nodes relative to other nodes using properties like `relative_to` and offsets.
 
+
+```
+node src/index.js -y examples/new-relative-positioning.yaml -s examples/style-latex.json -o output/new-relative-positioning
+```
+
 ## Automated Testing
 
 The examples above have automated tests in `tests/integration/format-consistency.test.js` that:

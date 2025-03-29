@@ -121,7 +121,7 @@ describe('Position.calculatePositionAndScale', () => {
     describe('direct coordinates', () => {
         test('should position using direct x,y coordinates', () => {
             const result = Position.calculatePositionAndScale(
-                allNodes, 150, 180, null, null, null, null, null, scaleConfig
+                allNodes, 150, 180, null, null, null, null, null, null, scaleConfig
             );
             
             expect(result.success).toBe(true);
@@ -141,7 +141,7 @@ describe('Position.calculatePositionAndScale', () => {
             };
             
             const result = Position.calculatePositionAndScale(
-                allNodes, 100, 100, null, null, null, null, null, scaledConfig
+                allNodes, 100, 100, null, null, null, null, null, null, scaledConfig
             );
             
             expect(result.success).toBe(true);
@@ -157,7 +157,7 @@ describe('Position.calculatePositionAndScale', () => {
     describe('position_of', () => {
         test('should position relative to another node', () => {
             const result = Position.calculatePositionAndScale(
-                allNodes, null, null, 'node1', null, null, 10, 20, scaleConfig
+                allNodes, null, null, null, 'node1', null, null, 10, 20, scaleConfig
             );
             
             expect(result.success).toBe(true);
@@ -170,7 +170,7 @@ describe('Position.calculatePositionAndScale', () => {
         
         test('should position at a specific anchor point', () => {
             const result = Position.calculatePositionAndScale(
-                allNodes, null, null, 'node1.north', null, null, 0, 0, scaleConfig
+                allNodes, null, null, null, 'node1.north', null, null, 0, 0, scaleConfig
             );
             
             expect(result.success).toBe(true);
@@ -180,11 +180,11 @@ describe('Position.calculatePositionAndScale', () => {
         
         test('should handle anchor-based positioning when dimensions are missing', () => {
             const result = Position.calculatePositionAndScale(
-                allNodes, null, null, 'incomplete.east', null, null, 5, 10, scaleConfig
+                allNodes, null, null, null, 'incomplete.east', null, null, 5, 10, scaleConfig
             );
             
             expect(result.success).toBe(true);
-            expect(result.positionType).toBe(PositionType.ANCHOR);
+            expect(result.positionType).toBe(PositionType.NAMED);
             expect(result.atNode).toBe('incomplete');
             expect(result.atAnchor).toBe('east');
             expect(result.xAtNodeAnchorOffset).toBe(5);
@@ -193,7 +193,7 @@ describe('Position.calculatePositionAndScale', () => {
         
         test('should return error for non-existent reference node', () => {
             const result = Position.calculatePositionAndScale(
-                allNodes, null, null, 'nonexistent', null, null, 0, 0, scaleConfig
+                allNodes, null, null, null, 'nonexistent', null, null, 0, 0, scaleConfig
             );
             
             expect(result.success).toBe(false);
@@ -205,7 +205,7 @@ describe('Position.calculatePositionAndScale', () => {
     describe('x_of and y_of', () => {
         test('should position using x_of and y_of together', () => {
             const result = Position.calculatePositionAndScale(
-                allNodes, null, null, null, 'node1', 'node2', 10, 20, scaleConfig
+                allNodes, null, null, null, null, 'node1', 'node2', 10, 20, scaleConfig
             );
             
             expect(result.success).toBe(true);
@@ -216,7 +216,7 @@ describe('Position.calculatePositionAndScale', () => {
         
         test('should position using only x_of with default y', () => {
             const result = Position.calculatePositionAndScale(
-                allNodes, null, 75, null, 'node1', null, 10, null, scaleConfig
+                allNodes, null, 75, null, null, 'node1', null, 10, null, scaleConfig
             );
             
             expect(result.success).toBe(true);
@@ -227,7 +227,7 @@ describe('Position.calculatePositionAndScale', () => {
         
         test('should position using only y_of with default x', () => {
             const result = Position.calculatePositionAndScale(
-                allNodes, 75, null, null, null, 'node2', null, 20, scaleConfig
+                allNodes, 75, null, null, null, null, 'node2', null, 20, scaleConfig
             );
             
             expect(result.success).toBe(true);
@@ -238,7 +238,7 @@ describe('Position.calculatePositionAndScale', () => {
         
         test('should position using x_of and y_of with anchor notation', () => {
             const result = Position.calculatePositionAndScale(
-                allNodes, null, null, null, 'node1.east', 'node2.south', 0, 0, scaleConfig
+                allNodes, null, null, null, null, 'node1.east', 'node2.south', 0, 0, scaleConfig
             );
             
             expect(result.success).toBe(true);
@@ -249,7 +249,7 @@ describe('Position.calculatePositionAndScale', () => {
         
         test('should return error if x_of reference node does not exist', () => {
             const result = Position.calculatePositionAndScale(
-                allNodes, null, null, null, 'nonexistent', 'node2', 0, 0, scaleConfig
+                allNodes, null, null, null, null, 'nonexistent', 'node2', 0, 0, scaleConfig
             );
             
             expect(result.success).toBe(false);
@@ -258,7 +258,7 @@ describe('Position.calculatePositionAndScale', () => {
         
         test('should return error if y_of reference node does not exist', () => {
             const result = Position.calculatePositionAndScale(
-                allNodes, null, null, null, 'node1', 'nonexistent', 0, 0, scaleConfig
+                allNodes, null, null, null, null, 'node1', 'nonexistent', 0, 0, scaleConfig
             );
             
             expect(result.success).toBe(false);
@@ -277,7 +277,7 @@ describe('Position.calculatePositionAndScale', () => {
             };
             
             const result = Position.calculatePositionAndScale(
-                allNodes, null, null, null, 'node1', 'node2', 10, 20, scaledConfig
+                allNodes, null, null, null, null, 'node1', 'node2', 10, 20, scaledConfig
             );
             
             expect(result.success).toBe(true);
