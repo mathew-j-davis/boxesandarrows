@@ -4,6 +4,8 @@ const yaml = require('js-yaml');
 const YamlReader = require('./yaml-reader');
 const { Node } = require('../models/node');
 const ValueParser = require('./value-parser');
+const { Position, PositionType } = require('../../geometry/position');
+
 class NodeReader {
 
     static async readFromCsv(nodeFile) {
@@ -40,14 +42,10 @@ class NodeReader {
     
     static processNodeRecord(record) {
         // Store unscaled position values
-        const xUnscaled = record.x !== undefined && record.x !== '' ? 
+        const x = record.x !== undefined && record.x !== '' ? 
             parseFloat(record.x) : undefined;
-        const yUnscaled = record.y !== undefined && record.y !== '' ? 
+        const y = record.y !== undefined && record.y !== '' ? 
             parseFloat(record.y) : undefined;
-
-        // Apply position scaling - initialize as undefined for proper scaling later
-        const xScaled = undefined; 
-        const yScaled = undefined;
 
         // Store unscaled size values with priority: CSV > Style > Default
         const widthUnscaled = 
@@ -78,10 +76,9 @@ class NodeReader {
         const records = [{ ...record }];
 
         /*
-        xUnscaled
-        yUnscaled
-        xScaled
-        yScaled
+        x
+        y
+
         widthUnscaled
         heightUnscaled
         widthScaled
@@ -102,17 +99,15 @@ class NodeReader {
             name: ValueParser.parse(record.name, 'string'),
             label: ValueParser.parse(record.label, 'string'),
             hide_label: ValueParser.parse(record.hide_label, 'boolean'),
-            label_above: ValueParser.parse(record.label_above, 'boolean'),
-            label_below: ValueParser.parse(record.label_below, 'boolean'),
+            label_above: ValueParser.parse(record.label_above, 'string'),
+            label_below: ValueParser.parse(record.label_below, 'string'),
             position_of: ValueParser.parse(record.position_of, 'string'),
             anchor: ValueParser.parse(record.anchor, 'string'),
             anchorVector: null,
             at: ValueParser.parse(record.at, 'string'),
             shape: ValueParser.parse(record.shape, 'string'),
-            xScaled,
-            yScaled,
-            xUnscaled,
-            yUnscaled,
+            x,
+            y,
             widthScaled,
             heightScaled,
             widthUnscaled,
@@ -141,7 +136,16 @@ class NodeReader {
             y_offset: y_offset,
             
             records,
-            render
+            render,
+
+            // Initialize position object
+            position: new Position({
+                xUnscaled: 0,
+                yUnscaled: 0,
+                xScaled: 0,
+                yScaled: 0,
+                positionType: PositionType.COORDINATES
+            })
         };
 
         // Add any additional properties from the record that aren't already in nodeProperties

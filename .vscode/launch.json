@@ -149,6 +149,23 @@
             ],
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Debug Error Case",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}\\src\\index.js",
+            "args": [
+                "-y", "./examples/error/mixed.yaml",
+                "-m", "./examples/error/map.csv",
+                "-o", "./examples/error/error",
+                "--trace-warnings"
+            ],
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen"
         }
     ]
 }

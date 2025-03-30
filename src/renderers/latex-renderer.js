@@ -212,62 +212,100 @@ class LatexRenderer extends Renderer {
         const nodeId = `${node.name.replace(/\W/g, '_')}`;
         
         let output = '';
-        // Check if the node should not display a label
-        if (node.hide_label === true) {
-            output += `\\node[${styleStr}] (${nodeId}) at ${pos} {};`;
-        } else {
-            // Get text style and apply formatting
-            let labelText = node.label || node.name;
+        
+        // Handle external labels first (these should be independent of hide_label)
+        if (node.label_above) {
+            styleStr += (styleStr.length > 0 ? ',' : '') + `label=above:{${this.escapeLaTeX(node.label_above)}}`;
+        }
+        if (node.label_below) {
+            styleStr += (styleStr.length > 0 ? ',' : '') + `label=below:{${this.escapeLaTeX(node.label_below)}}`;
+        }
+        
+        // Handle position_of with offsets
+        if (hasPositionShift) {
+            const xShift = node.position.xAtNodeAnchorOffsetScaled || '';
+            const yShift = node.position.yAtNodeAnchorOffsetScaled || '';
             
-            // Convert newlines to LaTeX line breaks (without leading space)
-            labelText = labelText.replace(/\n/g, '\\\\');
+            // Combine shifts with a comma if both are present
+            const shifts = [xShift, yShift].filter(Boolean).join(', ');
             
-            // Collapse multiple consecutive LaTeX linebreaks into a single one
-            labelText = labelText.replace(/\\\\(\s*\\\\)+/g, '\\\\');
-            
-            // Get text style properties
-            const textStyle = this.styleHandler.getCompleteStyle(node.style, 'node', 'text');
-            
-            // Apply LaTeX formatting
-            labelText = this.styleHandler.applyLatexFormatting(labelText, textStyle);
-            
-            // Add textcolor if specified
-            if (node.textcolor) {
-                labelText = `\\textcolor{${this.getColor(node.textcolor)}}{${labelText}}`;
-            }
-            
-            // Build adjustbox parameters
-            let adjustboxParams = `max width=${node.widthScaled}cm, max height=${node.heightScaled}cm`;
-            
-            // Add custom adjustbox attributes from style if available
-            if (textStyle && textStyle.adjustbox && Object.keys(textStyle.adjustbox).length > 0) {
-                for (const [key, value] of Object.entries(textStyle.adjustbox)) {
-                    adjustboxParams += `, ${key}=${value}`;
-                }
-            }
-            
-            // Add adjustbox
-            const labelWithAdjustbox = `{\\adjustbox{${adjustboxParams}}{${labelText}}}`;
-            
-            // Handle external labels
-            if (node.label_above) {
-                styleStr += (styleStr.length > 0 ? ',' : '') + `label=above:{${this.escapeLaTeX(node.label_above)}}`;
-            }
-            if (node.label_below) {
-                styleStr += (styleStr.length > 0 ? ',' : '') + `label=below:{${this.escapeLaTeX(node.label_below)}}`;
-            }
-            
-            // Handle position_of with offsets
-            if (hasPositionShift) {
-
-                const xShift = node.position.xAtNodeAnchorOffsetScaled || '';
-                const yShift = node.position.yAtNodeAnchorOffsetScaled || '';
+            // Check if the node should not display a label
+            if (node.hide_label === true) {
+                output += `\\node[${styleStr}] (${nodeId}) at ${pos} [${shifts}] {};`;
+            } else {
+                // Get text style and apply formatting
+                let labelText = node.label || node.name;
                 
-                // Combine shifts with a comma if both are present
-                const shifts = [xShift, yShift].filter(Boolean).join(', ');
+                // Convert newlines to LaTeX line breaks (without leading space)
+                labelText = labelText.replace(/\n/g, '\\\\');
+                
+                // Collapse multiple consecutive LaTeX linebreaks into a single one
+                labelText = labelText.replace(/\\\\(\s*\\\\)+/g, '\\\\');
+                
+                // Get text style properties
+                const textStyle = this.styleHandler.getCompleteStyle(node.style, 'node', 'text');
+                
+                // Apply LaTeX formatting
+                labelText = this.styleHandler.applyLatexFormatting(labelText, textStyle);
+                
+                // Add textcolor if specified
+                if (node.textcolor) {
+                    labelText = `\\textcolor{${this.getColor(node.textcolor)}}{${labelText}}`;
+                }
+                
+                // Build adjustbox parameters
+                let adjustboxParams = `max width=${node.widthScaled}cm, max height=${node.heightScaled}cm`;
+                
+                // Add custom adjustbox attributes from style if available
+                if (textStyle && textStyle.adjustbox && Object.keys(textStyle.adjustbox).length > 0) {
+                    for (const [key, value] of Object.entries(textStyle.adjustbox)) {
+                        adjustboxParams += `, ${key}=${value}`;
+                    }
+                }
+                
+                // Add adjustbox
+                const labelWithAdjustbox = `{\\adjustbox{${adjustboxParams}}{${labelText}}}`;
                 
                 output += `\\node[${styleStr}] (${nodeId}) at ${pos} [${shifts}] ${labelWithAdjustbox};`;
+            }
+        } else {
+            // Check if the node should not display a label
+            if (node.hide_label === true) {
+                output += `\\node[${styleStr}] (${nodeId}) at ${pos} {};`;
             } else {
+                // Get text style and apply formatting
+                let labelText = node.label || node.name;
+                
+                // Convert newlines to LaTeX line breaks (without leading space)
+                labelText = labelText.replace(/\n/g, '\\\\');
+                
+                // Collapse multiple consecutive LaTeX linebreaks into a single one
+                labelText = labelText.replace(/\\\\(\s*\\\\)+/g, '\\\\');
+                
+                // Get text style properties
+                const textStyle = this.styleHandler.getCompleteStyle(node.style, 'node', 'text');
+                
+                // Apply LaTeX formatting
+                labelText = this.styleHandler.applyLatexFormatting(labelText, textStyle);
+                
+                // Add textcolor if specified
+                if (node.textcolor) {
+                    labelText = `\\textcolor{${this.getColor(node.textcolor)}}{${labelText}}`;
+                }
+                
+                // Build adjustbox parameters
+                let adjustboxParams = `max width=${node.widthScaled}cm, max height=${node.heightScaled}cm`;
+                
+                // Add custom adjustbox attributes from style if available
+                if (textStyle && textStyle.adjustbox && Object.keys(textStyle.adjustbox).length > 0) {
+                    for (const [key, value] of Object.entries(textStyle.adjustbox)) {
+                        adjustboxParams += `, ${key}=${value}`;
+                    }
+                }
+                
+                // Add adjustbox
+                const labelWithAdjustbox = `{\\adjustbox{${adjustboxParams}}{${labelText}}}`;
+                
                 output += `\\node[${styleStr}] (${nodeId}) at ${pos} ${labelWithAdjustbox};`;
             }
         }

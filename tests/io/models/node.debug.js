@@ -58,13 +58,16 @@ describe('Position.calculatePositionAndScale', () => {
         // Add test nodes to the map
         allNodes.set('node1', {
             name: 'node1',
-            xUnscaled: 100,
-            yUnscaled: 100,
-            xScaled: 100,
-            yScaled: 100,
             width: 50,
             height: 30,
-            anchor: 'center'
+            anchor: 'center',
+            position: {
+                xUnscaled: 100,
+                yUnscaled: 100,
+                xScaled: 100,
+                yScaled: 100,
+                positionType: PositionType.COORDINATES
+            }
         });
     });
     

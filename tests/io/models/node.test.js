@@ -52,10 +52,6 @@ describe('Position.calculatePositionFromReference', () => {
         // Add test nodes to the map
         allNodes.set('node1', {
             name: 'node1',
-            xUnscaled: 100,
-            yUnscaled: 100,
-            xScaled: 100,
-            yScaled: 100,
             widthScaled: 50,
             heightScaled: 30,
             anchor: 'center',
@@ -70,10 +66,6 @@ describe('Position.calculatePositionFromReference', () => {
         
         allNodes.set('node2', {
             name: 'node2',
-            xUnscaled: 200,
-            yUnscaled: 150,
-            xScaled: 200,
-            yScaled: 150,
             widthScaled: 60,
             heightScaled: 40,
             anchor: 'north',
@@ -88,10 +80,6 @@ describe('Position.calculatePositionFromReference', () => {
         
         allNodes.set('node3', {
             name: 'node3',
-            xUnscaled: 300,
-            yUnscaled: 200,
-            xScaled: 300,
-            yScaled: 200,
             widthScaled: 70,
             heightScaled: 50,
             anchor: 'east',
@@ -168,11 +156,6 @@ describe('Position.calculatePositionFromReference', () => {
         // Create a node with missing dimensions
         allNodes.set('incomplete', {
             name: 'incomplete',
-            xUnscaled: 50,
-            yUnscaled: 50,
-            xScaled: 50,
-            yScaled: 50,
-            // width and height are missing
             anchor: 'center',
             position: {
                 xUnscaled: 50,

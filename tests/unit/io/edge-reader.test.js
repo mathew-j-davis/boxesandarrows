@@ -72,17 +72,12 @@ describe('EdgeReader', () => {
     // Mock nodes map for edge processing
     mockNodes = new Map();
     // Add nodes with positions and dimensions for connection point calculations
-    // Important: Include both scaled and unscaled values
     mockNodes.set('node1', { 
       name: 'node1', 
-      x: 20,                   // Scaled position (10 * position.x)
-      y: 40,                   // Scaled position (20 * position.y)
-      xUnscaled: 10,           // Unscaled position
-      yUnscaled: 20,           // Unscaled position
-      width: 7.5,              // Scaled width (5 * size.w)
-      height: 4.5,             // Scaled height (3 * size.h)
       widthUnscaled: 5,        // Unscaled width
       heightUnscaled: 3,       // Unscaled height
+      width: 7.5,              // Scaled width (5 * size.w)
+      height: 4.5,             // Scaled height (3 * size.h)
       anchorVector: { x: 0, y: 0 },  // Center anchor by default
       position: {
         xUnscaled: 10,
@@ -94,14 +89,10 @@ describe('EdgeReader', () => {
     });
     mockNodes.set('node2', { 
       name: 'node2', 
-      x: 60,                   // Scaled position (30 * position.x)
-      y: 40,                   // Scaled position (20 * position.y)
-      xUnscaled: 30,           // Unscaled position
-      yUnscaled: 20,           // Unscaled position
-      width: 7.5,              // Scaled width (5 * size.w)
-      height: 4.5,             // Scaled height (3 * size.h)
       widthUnscaled: 5,        // Unscaled width
       heightUnscaled: 3,       // Unscaled height
+      width: 7.5,              // Scaled width (5 * size.w)
+      height: 4.5,             // Scaled height (3 * size.h)
       anchorVector: { x: 0, y: 0 },  // Center anchor by default
       position: {
         xUnscaled: 30,
@@ -113,14 +104,10 @@ describe('EdgeReader', () => {
     });
     mockNodes.set('node3', { 
       name: 'node3', 
-      x: 60,                   // Scaled position (30 * position.x)
-      y: 80,                   // Scaled position (40 * position.y)
-      xUnscaled: 30,           // Unscaled position
-      yUnscaled: 40,           // Unscaled position
-      width: 7.5,              // Scaled width (5 * size.w)
-      height: 4.5,             // Scaled height (3 * size.h)
       widthUnscaled: 5,        // Unscaled width
       heightUnscaled: 3,       // Unscaled height
+      width: 7.5,              // Scaled width (5 * size.w)
+      height: 4.5,             // Scaled height (3 * size.h)
       anchorVector: { x: 0, y: 0 },  // Center anchor by default
       position: {
         xUnscaled: 30,

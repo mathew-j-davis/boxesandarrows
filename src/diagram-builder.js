@@ -146,36 +146,32 @@ class DiagramBuilder {
             let node = nodes.get(name);
             
             if (node) {
-                // Store unscaled position (no scaling applied here anymore)
-                node.xUnscaled = pos.xUnscaled;
-                node.yUnscaled = pos.yUnscaled;
+                // Store unscaled position
+                node.x = pos.xUnscaled;
+                node.y = pos.yUnscaled;
 
-                // The xScaled,yScaled values will be set in applyScalingToAllNodes
-                this.log(`Set unscaled position of node '${name}' to (${node.xUnscaled}, ${node.yUnscaled})`);
+                // The position object values will be set in applyScalingToAllNodes
+                this.log(`Set unscaled position of node '${name}' to (${node.x}, ${node.y})`);
             } else {
-                // Create new node with unscaled values
+                // Create new node with position values
                 node = {
                     name: name,
                     label: name,
-                    // Don't set scaled xScaled,yScaled here - will be set in applyScalingToAllNodes
-                    xUnscaled: pos.xUnscaled,
-                    yUnscaled: pos.yUnscaled,
-                    // Don't apply scaling to dimensions either
+                    x: pos.xUnscaled,
+                    y: pos.yUnscaled,
+                    // Don't apply scaling to dimensions
                     heightUnscaled: 1,
                     widthUnscaled: 1,
                     // These will be set in applyScalingToAllNodes
                     heightScaled: undefined,
                     widthScaled: undefined,
-                    xScaled: undefined,
-                    yScaled: undefined,
                     type: 'default',
                     anchor: null,
                     anchorVector: null
-
                 };
 
                 nodes.set(name, node);
-                this.log(`Created new node '${name}' with unscaled position (${node.xUnscaled}, ${node.yUnscaled})`);
+                this.log(`Created new node '${name}' with position (${node.x}, ${node.y})`);
             }
         });
     }
@@ -188,93 +184,13 @@ class DiagramBuilder {
         // Single pass: handle both relative sizing and positioning
         for (const [nodeName, node] of nodes.entries()) {
             
-            const position = Position.calculatePositionAndScale(nodes, node.xUnscaled, node.yUnscaled, node.at, node.position_of, node.x_of, node.y_of, node.x_offset, node.y_offset, scaleConfig)
+            const position = Position.calculatePositionAndScale(nodes, node.x, node.y, node.at, node.position_of, node.x_of, node.y_of, node.x_offset, node.y_offset, scaleConfig)
             
             node["position"] = position;
-
-            // if (position.success === true) {
-            //     if (position.positionType === PositionType.COORDINATES) {
-            //         node.xUnscaled = position.xUnscaled;
-            //         node.yUnscaled = position.yUnscaled;
-            //         node.xScaled = position.xScaled;
-            //         node.yScaled = position.yScaled;
-            //     }
-            // }
-
-            // if (position.positionType === PositionType.NAMED) {
-            //     node.anchor = position.anchor;
-            //     node.anchorVector = position.anchorVector;
-            // }
-
-
 
             // First handle size relative to other nodes
             setSizeRelativeToNodes(node, nodes, scaleConfig, this.log);
             
-            /*
-            // Check for new relative positioning using x_of and y_of
-            const hasNewRelativePos = node.x_of !== undefined || node.y_of !== undefined;
-            const hasPositionOf = node.position_of !== undefined;
-            
-            this.log(`${nodeName}: hasNewRelativePos=${hasNewRelativePos}, x_of=${node.x_of}, y_of=${node.y_of}, position_of=${node.position_of}`);
-            
-            // Handle position_of property (new simpler approach)
-            if (hasPositionOf) {
-                this.log(`Using position_of for node ${nodeName}: ${node.position_of}`);
-                
-                // Find reference node
-                const refNodeName = node.position_of.split('.')[0];
-                const referenceNode = nodes.get(refNodeName);
-                
-                if (referenceNode) {
-                    // Process position using the reference node
-                    setPositionRelativeToNode(node, referenceNode, this.renderer.styleHandler);
-                    this.log(`Positioned node '${nodeName}' based on position_of '${node.position_of}'`);
-                }
-            }
-            // Then handle relative positioning if needed
-            else if (hasNewRelativePos) {
-                this.log(`Using new relative positioning for node ${nodeName}`);
-                
-                // Handle simple reference node positioning (x_of, y_of)
-                if ((node.x_of && !node.x_of.includes('.')) || (node.y_of && !node.y_of.includes('.'))) {
-                    this.log(`Using reference-based positioning for ${nodeName}`);
-                    setPositionFromReference(node, nodes, scaleConfig, this.log);
-                    this.log(`Positioned node '${nodeName}' with x_of/y_of reference`);
-                }
-                
-                // Handle anchor point positioning (node.anchor)
-                if ((node.x_of && node.x_of.includes('.')) || (node.y_of && node.y_of.includes('.'))) {
-                    this.log(`Using anchor-based positioning for ${nodeName}`);
-                    setPositionFromAnchorPoint(node, nodes, scaleConfig);
-                    this.log(`Positioned node '${nodeName}' with reference anchor points`);
-                }
-            }
-
-            // // Legacy relative positioning - keep for backward compatibility
-            // else if (node.relative_to) {
-            //     const referenceNodeName = node.relative_to;
-            //     const referenceNode = nodes.get(referenceNodeName);
-                
-            //     // Process relative position using the reference node
-            //     setPositionRelativeToNode(node, referenceNode, this.renderer.styleHandler);
-            //     this.log(`Positioned relative node '${nodeName}' based on legacy reference '${referenceNodeName}'`);
-            // } 
-            
-            else {
-                // For non-relative nodes, use unscaled coords (or defaults)
-                if (node.xUnscaled === undefined) {
-                    node.xUnscaled = 0;
-                }
-                if (node.yUnscaled === undefined) {
-                    node.yUnscaled = 0;
-                }
-   
-                // Apply position scaling
-                node.xScaled = node.xUnscaled * scaleConfig.position.x;
-                node.yScaled = node.yUnscaled * scaleConfig.position.y;
-            }
-            */
             if (node.widthUnscaled === undefined) {
                 node.widthUnscaled = 1;
             }
@@ -282,7 +198,6 @@ class DiagramBuilder {
             if (node.heightUnscaled === undefined) {
                 node.heightUnscaled = 1;
             }
-            
             
             // Apply scaling to dimensions
             node.widthScaled = node.widthUnscaled * scaleConfig.size.w;

@@ -146,8 +146,11 @@ describe('NodeReader', () => {
       expect(nodes[1].label).toBe('Node 2');
       
       // These will be null now due to changes in processNodeRecord that disable direct position setting
-      expect(nodes[0].xUnscaled).toBe(10);
-      expect(nodes[1].xUnscaled).toBe(30);
+      expect(nodes[0].x).toBe(10);
+      expect(nodes[1].x).toBe(30);
+      
+      expect(nodes[0].y).toBe(20);
+      expect(nodes[1].y).toBe(40);
       
       expect(nodes[0].tikz_object_attributes).toBe('draw=red, fill=blue, dashed');
       expect(nodes[1].tikz_object_attributes).toBe('rounded corners=3pt');
@@ -176,8 +179,8 @@ describe('NodeReader', () => {
       
       expect(node.name).toBe('node1');
       expect(node.label).toBe('Node 1');
-      expect(node.xUnscaled).toBe(10.5);
-      expect(node.yUnscaled).toBe(20.3);
+      expect(node.x).toBe(10.5);
+      expect(node.y).toBe(20.3);
       expect(node.widthUnscaled).toBe(5);
       expect(node.heightUnscaled).toBe(3);
     });
