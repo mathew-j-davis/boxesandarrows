@@ -6,7 +6,7 @@ const fs = require('fs');
 const path = require('path');
 const LatexStyleHandler = require('../styles/latex-style-handler');
 const { BoundingBox } = require('../geometry/bounding-box');
-const { canConvertPositionToCoordinates } = require('../io/readers/relative-node-processor');
+//const { canConvertPositionToCoordinates } = require('../io/readers/relative-node-processor');
 const { Position, PositionType } = require('../geometry/position');
 
 class LatexRenderer extends Renderer {

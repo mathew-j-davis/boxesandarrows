@@ -5,8 +5,8 @@ const LatexRenderer = require('./renderers/latex-renderer');
 const { 
     //setPositionRelativeToNode, 
     setSizeRelativeToNodes,
-    setPositionFromReference,
-    setPositionFromAnchorPoint 
+    //setPositionFromReference,
+   // setPositionFromAnchorPoint 
 } = require('./io/readers/relative-node-processor');
 const { Node } = require('./io/models/node');
 const fs = require('fs');
@@ -192,19 +192,19 @@ class DiagramBuilder {
             
             node["position"] = position;
 
-            if (position.success === true) {
-                if (position.positionType === PositionType.COORDINATES) {
-                    node.xUnscaled = position.xUnscaled;
-                    node.yUnscaled = position.yUnscaled;
-                    node.xScaled = position.xScaled;
-                    node.yScaled = position.yScaled;
-                }
-            }
+            // if (position.success === true) {
+            //     if (position.positionType === PositionType.COORDINATES) {
+            //         node.xUnscaled = position.xUnscaled;
+            //         node.yUnscaled = position.yUnscaled;
+            //         node.xScaled = position.xScaled;
+            //         node.yScaled = position.yScaled;
+            //     }
+            // }
 
-            if (position.positionType === PositionType.NAMED) {
-                node.anchor = position.anchor;
-                node.anchorVector = position.anchorVector;
-            }
+            // if (position.positionType === PositionType.NAMED) {
+            //     node.anchor = position.anchor;
+            //     node.anchorVector = position.anchorVector;
+            // }
 
 
 
@@ -291,7 +291,7 @@ class DiagramBuilder {
             // Recalculate anchor vector with scaled dimensions
             node.anchorVector = this.renderer.getNodeAnchor(node);
             
-            this.log(`Scaled node '${nodeName}' to (${node.xScaled}, ${node.yScaled}) with dimensions ${node.widthScaled}x${node.heightScaled}`);
+            this.log(`Scaled node '${nodeName}' to (${node?.position?.xScaled}, ${node?.position?.yScaled}) with dimensions ${node.widthScaled}x${node.heightScaled}`);
         }
     }
 }

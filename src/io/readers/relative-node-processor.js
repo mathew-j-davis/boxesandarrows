@@ -183,144 +183,144 @@ function setSizeRelativeToNodes(node, nodesMap, scaleConfig, log) {
     }
 }
 
-/**
- * Sets the position of a node based on x_of and y_of properties
- * @param {Object} node - The node to position
- * @param {Map} nodesMap - Map of all nodes by name
- * @param {Object} scaleConfig - Configuration for scaling
- */
-function setPositionFromReference(node, nodesMap, scaleConfig, log) {
-    log(`Positioning node: ${node.name} with x_of: ${node.x_of}, y_of: ${node.y_of}`);
+// /**
+//  * Sets the position of a node based on x_of and y_of properties
+//  * @param {Object} node - The node to position
+//  * @param {Map} nodesMap - Map of all nodes by name
+//  * @param {Object} scaleConfig - Configuration for scaling
+//  */
+// function setPositionFromReference(node, nodesMap, scaleConfig, log) {
+//     log(`Positioning node: ${node.name} with x_of: ${node.x_of}, y_of: ${node.y_of}`);
     
-    // Process x coordinate
-    if (node.x_of && nodesMap.has(node.x_of)) {
-        const referenceNode = nodesMap.get(node.x_of);
-        log(`  Reference node for x: ${node.x_of}, xUnscaled: ${referenceNode.xUnscaled}`);
+//     // Process x coordinate
+//     if (node.x_of && nodesMap.has(node.x_of)) {
+//         const referenceNode = nodesMap.get(node.x_of);
+//         log(`  Reference node for x: ${node.x_of}, xUnscaled: ${referenceNode.position.xUnscaled}`);
         
-        // Get the x position from the reference node
-        if (typeof referenceNode.xUnscaled === 'number') {
-            node.xUnscaled = referenceNode.xUnscaled;
-            log(`  Setting xUnscaled to ${node.xUnscaled}`);
+//         // Get the x position from the reference node
+//         if (typeof referenceNode.xUnscaled === 'number') {
+//             node.xUnscaled = referenceNode.xUnscaled;
+//             log(`  Setting xUnscaled to ${node.xUnscaled}`);
             
-            // Apply offset if specified
-            if (node.x_offset !== undefined) {
-                node.xUnscaled += parseFloat(node.x_offset);
-                log(`  Applied x_offset: ${node.x_offset}, new xUnscaled: ${node.xUnscaled}`);
-            }
-        }
-    }
+//             // Apply offset if specified
+//             if (node.x_offset !== undefined) {
+//                 node.xUnscaled += parseFloat(node.x_offset);
+//                 log(`  Applied x_offset: ${node.x_offset}, new xUnscaled: ${node.xUnscaled}`);
+//             }
+//         }
+//     }
     
-    // Process y coordinate
-    if (node.y_of && nodesMap.has(node.y_of)) {
-        const referenceNode = nodesMap.get(node.y_of);
-        log(`  Reference node for y: ${node.y_of}, yUnscaled: ${referenceNode.yUnscaled}`);
+//     // Process y coordinate
+//     if (node.y_of && nodesMap.has(node.y_of)) {
+//         const referenceNode = nodesMap.get(node.y_of);
+//         log(`  Reference node for y: ${node.y_of}, yUnscaled: ${referenceNode.yUnscaled}`);
         
-        // Get the y position from the reference node
-        if (typeof referenceNode.yUnscaled === 'number') {
-            node.yUnscaled = referenceNode.yUnscaled;
-            log(`  Setting yUnscaled to ${node.yUnscaled}`);
+//         // Get the y position from the reference node
+//         if (typeof referenceNode.yUnscaled === 'number') {
+//             node.yUnscaled = referenceNode.yUnscaled;
+//             log(`  Setting yUnscaled to ${node.yUnscaled}`);
             
-            // Apply offset if specified
-            if (node.y_offset !== undefined) {
-                node.yUnscaled += parseFloat(node.y_offset);
-                log(`  Applied y_offset: ${node.y_offset}, new yUnscaled: ${node.yUnscaled}`);
-            }
-        }
-    }
+//             // Apply offset if specified
+//             if (node.y_offset !== undefined) {
+//                 node.yUnscaled += parseFloat(node.y_offset);
+//                 log(`  Applied y_offset: ${node.y_offset}, new yUnscaled: ${node.yUnscaled}`);
+//             }
+//         }
+//     }
     
-    // Calculate the scaled coordinates after setting position
-    if (node.xUnscaled !== undefined) {
-        node.xScaled = node.xUnscaled * (scaleConfig?.position?.x || 1);
-        log(`  Final xScaled: ${node.xScaled}`);
-    }
+//     // Calculate the scaled coordinates after setting position
+//     if (node.xUnscaled !== undefined) {
+//         node.xScaled = node.xUnscaled * (scaleConfig?.position?.x || 1);
+//         log(`  Final xScaled: ${node.xScaled}`);
+//     }
     
-    if (node.yUnscaled !== undefined) {
-        node.yScaled = node.yUnscaled * (scaleConfig?.position?.y || 1);
-        log(`  Final yScaled: ${node.yScaled}`);
-    }
+//     if (node.yUnscaled !== undefined) {
+//         node.yScaled = node.yUnscaled * (scaleConfig?.position?.y || 1);
+//         log(`  Final yScaled: ${node.yScaled}`);
+//     }
     
-    return node;
-}
+//     return node;
+// }
 
-/**
- * Sets the position of a node's coordinate from a specific anchor point on a reference node
- * @param {Object} node - The node to position
- * @param {Map} nodesMap - Map of all nodes by name
- * @param {Object} scaleConfig - Configuration for scaling
- */
-function setPositionFromAnchorPoint(node, nodesMap, scaleConfig) {
-    const xScale = scaleConfig?.position?.x || 1;
-    const yScale = scaleConfig?.position?.y || 1;
+// /**
+//  * Sets the position of a node's coordinate from a specific anchor point on a reference node
+//  * @param {Object} node - The node to position
+//  * @param {Map} nodesMap - Map of all nodes by name
+//  * @param {Object} scaleConfig - Configuration for scaling
+//  */
+// function setPositionFromAnchorPoint(node, nodesMap, scaleConfig) {
+//     const xScale = scaleConfig?.position?.x || 1;
+//     const yScale = scaleConfig?.position?.y || 1;
     
-    // Handle x_of property with anchor notation (node.anchor)
-    if (node.x_of && node.x_of.includes('.')) {
-        const position = Position.calculatePositionFromReference(nodesMap, node.x_of, 0, 0, xScale, yScale);
+//     // Handle x_of property with anchor notation (node.anchor)
+//     if (node.x_of && node.x_of.includes('.')) {
+//         const position = Position.calculatePositionFromReference(nodesMap, node.x_of, 0, 0, xScale, yScale);
         
-        if (position.success && position.positionType === PositionType.COORDINATES) {
-            node.xUnscaled = position.xUnscaled;
+//         if (position.success && position.positionType === PositionType.COORDINATES) {
+//             node.xUnscaled = position.xUnscaled;
             
-            // Apply offset if specified
-            if (node.x_offset !== undefined) {
-                node.xUnscaled += parseFloat(node.x_offset);
-            }
-        }
-    }
+//             // Apply offset if specified
+//             if (node.x_offset !== undefined) {
+//                 node.xUnscaled += parseFloat(node.x_offset);
+//             }
+//         }
+//     }
     
-    // Handle y_of property with anchor notation (node.anchor)
-    if (node.y_of && node.y_of.includes('.')) {
-        const position = Position.calculatePositionFromReference(nodesMap, node.y_of, 0, 0, xScale, yScale);
+//     // Handle y_of property with anchor notation (node.anchor)
+//     if (node.y_of && node.y_of.includes('.')) {
+//         const position = Position.calculatePositionFromReference(nodesMap, node.y_of, 0, 0, xScale, yScale);
         
-        if (position.success && position.positionType === PositionType.COORDINATES) {
-            node.yUnscaled = position.yUnscaled;
+//         if (position.success && position.positionType === PositionType.COORDINATES) {
+//             node.yUnscaled = position.yUnscaled;
             
-            // Apply offset if specified
-            if (node.y_offset !== undefined) {
-                node.yUnscaled += parseFloat(node.y_offset);
-            }
-        }
-    }
+//             // Apply offset if specified
+//             if (node.y_offset !== undefined) {
+//                 node.yUnscaled += parseFloat(node.y_offset);
+//             }
+//         }
+//     }
     
-    // Calculate the scaled coordinates after setting position
-    if (node.xUnscaled !== undefined) {
-        node.xScaled = node.xUnscaled * xScale;
-    }
+//     // Calculate the scaled coordinates after setting position
+//     if (node.xUnscaled !== undefined) {
+//         node.xScaled = node.xUnscaled * xScale;
+//     }
     
-    if (node.yUnscaled !== undefined) {
-        node.yScaled = node.yUnscaled * yScale;
-    }
+//     if (node.yUnscaled !== undefined) {
+//         node.yScaled = node.yUnscaled * yScale;
+//     }
     
-    return node;
-}
+//     return node;
+// }
 
-/**
- * Determine if a position can be converted to coordinates
- * @param {string} positionSpec - Position specification, possibly in node.anchor format
- * @returns {boolean} - True if the position can be directly converted to coordinates
- */
-function canConvertPositionToCoordinates(positionSpec) {
-    // If the position doesn't include an anchor, it can be converted
-    if (!positionSpec || !positionSpec.includes('.')) {
-        return true;
-    }
+// /**
+//  * Determine if a position can be converted to coordinates
+//  * @param {string} positionSpec - Position specification, possibly in node.anchor format
+//  * @returns {boolean} - True if the position can be directly converted to coordinates
+//  */
+// function canConvertPositionToCoordinates(positionSpec) {
+//     // If the position doesn't include an anchor, it can be converted
+//     if (!positionSpec || !positionSpec.includes('.')) {
+//         return true;
+//     }
 
-    // Extract the anchor part
-    const anchor = positionSpec.split('.')[1];
+//     // Extract the anchor part
+//     const anchor = positionSpec.split('.')[1];
     
-    // Basic directional anchors can be converted
-    const convertibleAnchors = [
-        'center', 'north', 'south', 'east', 'west', 
-        'north east', 'north west', 'south east', 'south west',
-        'northeast', 'northwest', 'southeast', 'southwest'
-    ];
+//     // Basic directional anchors can be converted
+//     const convertibleAnchors = [
+//         'center', 'north', 'south', 'east', 'west', 
+//         'north east', 'north west', 'south east', 'south west',
+//         'northeast', 'northwest', 'southeast', 'southwest'
+//     ];
     
-    return convertibleAnchors.includes(anchor);
-}
+//     return convertibleAnchors.includes(anchor);
+// }
 
 // Export both functions
 module.exports = { 
     //setPositionRelativeToNode,
     setSizeRelativeToNodes,
-    setPositionFromReference,
-    setPositionFromAnchorPoint,
-    canConvertPositionToCoordinates
+    //setPositionFromReference,
+    //setPositionFromAnchorPoint,
+    //canConvertPositionToCoordinates
 }; 

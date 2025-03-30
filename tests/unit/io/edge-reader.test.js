@@ -445,8 +445,8 @@ describe('EdgeReader', () => {
       // Create mock nodes
       const startNode = {
         name: 'start',
-        xScaled: 0,
-        yScaled: 0,
+        // xScaled: 0,
+        // yScaled: 0,
         width: 10,
         height: 10,
         position: {
@@ -460,8 +460,8 @@ describe('EdgeReader', () => {
       
       const endNode = {
         name: 'end',
-        xScaled: 20,
-        yScaled: 0, 
+        // xScaled: 20,
+        // yScaled: 0, 
         width: 10,
         height: 10,
         position: {
@@ -483,8 +483,8 @@ describe('EdgeReader', () => {
       // Create mock nodes
       const startNode = {
         name: 'start',
-        xScaled: 0,
-        yScaled: 0,
+        // xScaled: 0,
+        // yScaled: 0,
         width: 10,
         height: 10,
         position: {
@@ -498,8 +498,8 @@ describe('EdgeReader', () => {
       
       const endNode = {
         name: 'end',
-        xScaled: 0,
-        yScaled: 20,
+        // xScaled: 0,
+        // yScaled: 20,
         width: 10,
         height: 10,
         position: {
@@ -520,8 +520,8 @@ describe('EdgeReader', () => {
     test('should honor explicit directions', () => {
       const startNode = {
         name: 'start',
-        xScaled: 0,
-        yScaled: 0,
+        // xScaled: 0,
+        // yScaled: 0,
         width: 10,
         height: 10,
         position: {
@@ -535,8 +535,8 @@ describe('EdgeReader', () => {
       
       const endNode = {
         name: 'end',
-        xScaled: 20,
-        yScaled: 0,
+        // xScaled: 20,
+        // yScaled: 0,
         width: 10,
         height: 10,
         position: {
@@ -558,8 +558,8 @@ describe('EdgeReader', () => {
       // Create mock nodes
       const startNode = {
         name: 'start',
-        xScaled: 0,
-        yScaled: 0,
+          // xScaled: 0,
+          // yScaled: 0,
         width: 10,
         height: 10,
         position: {
@@ -573,8 +573,8 @@ describe('EdgeReader', () => {
       
       const endNode = {
         name: 'end',
-        xScaled: -20,
-        yScaled: 20,
+          // xScaled: -20,
+          // yScaled: 20,
         width: 10,
         height: 10,
         position: {
@@ -599,8 +599,8 @@ describe('EdgeReader', () => {
       
       // Position 1: End node directly to the right
       const startNode1 = { 
-        xScaled: 0, 
-        yScaled: 0, 
+        // xScaled: 0, 
+        // yScaled: 0, 
         width: 10, 
         height: 10,
         position: {
@@ -612,8 +612,8 @@ describe('EdgeReader', () => {
         }
       };
       const endNode1 = { 
-        xScaled: 50, 
-        yScaled: 0, 
+        // xScaled: 50, 
+        // yScaled: 0, 
         width: 10, 
         height: 10,
         position: {
@@ -631,8 +631,8 @@ describe('EdgeReader', () => {
       
       // Position 2: End node directly to the left
       const startNode2 = { 
-        xScaled: 0, 
-        yScaled: 0, 
+        // xScaled: 0, 
+        // yScaled: 0, 
         width: 10, 
         height: 10,
         position: {
@@ -644,8 +644,8 @@ describe('EdgeReader', () => {
         }
       };
       const endNode2 = { 
-        xScaled: -50, 
-        yScaled: 0, 
+        // xScaled: -50, 
+        // yScaled: 0, 
         width: 10, 
         height: 10,
         position: {
@@ -663,8 +663,8 @@ describe('EdgeReader', () => {
       
       // Position 3: End node directly above
       const startNode3 = { 
-        xScaled: 0, 
-        yScaled: 0, 
+        // xScaled: 0, 
+        // yScaled: 0, 
         width: 10, 
         height: 10,
         position: {
@@ -676,8 +676,8 @@ describe('EdgeReader', () => {
         }
       };
       const endNode3 = { 
-        xScaled: 0, 
-        yScaled: 50, 
+        // xScaled: 0, 
+        // yScaled: 50, 
         width: 10, 
         height: 10,
         position: {
@@ -694,8 +694,8 @@ describe('EdgeReader', () => {
       
       // Position 4: End node directly below
       const startNode4 = { 
-        xScaled: 0, 
-        yScaled: 0, 
+        // xScaled: 0, 
+        // yScaled: 0, 
         width: 10, 
         height: 10,
         position: {
@@ -707,8 +707,8 @@ describe('EdgeReader', () => {
         }
       };
       const endNode4 = { 
-        xScaled: 0, 
-        yScaled: -50, 
+        // xScaled: 0, 
+        // yScaled: -50, 
         width: 10, 
         height: 10,
         position: {
@@ -725,8 +725,8 @@ describe('EdgeReader', () => {
       
       // Position 5: End node to the upper left (diagonal) - like our failing test
       const startNode5 = { 
-        xScaled: 0, 
-        yScaled: 0, 
+        // xScaled: 0, 
+        // yScaled: 0, 
         width: 10, 
         height: 10,
         position: {
@@ -738,8 +738,8 @@ describe('EdgeReader', () => {
         }
       };
       const endNode5 = { 
-        xScaled: -20, 
-        yScaled: 20, 
+        // xScaled: -20, 
+        // yScaled: 20, 
         width: 10, 
         height: 10,
         position: {

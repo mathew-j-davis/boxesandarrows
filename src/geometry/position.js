@@ -147,8 +147,8 @@ class Position {
         if (
             referenceNodeAtAnchorCanonical === undefined || 
             referenceNodeOwnAnchorCanonical === undefined ||
-            ReferenceNode.xScaled === undefined ||
-            ReferenceNode.yScaled === undefined ||
+            ReferenceNode.position?.xScaled === undefined ||
+            ReferenceNode.position?.yScaled === undefined ||
             ReferenceNode.widthScaled === undefined ||
             ReferenceNode.heightScaled === undefined
         ){
