@@ -5,6 +5,7 @@ const YamlReader = require('./yaml-reader');
 const { Node } = require('../models/node');
 const ValueParser = require('./value-parser');
 const { Position, PositionType } = require('../../geometry/position');
+const Dimensions = require('../../geometry/dimensions');
 
 class NodeReader {
 
@@ -48,23 +49,20 @@ class NodeReader {
             parseFloat(record.y) : undefined;
 
         // Store unscaled size values with priority: CSV > Style > Default
-        const widthUnscaled = 
+        const width = 
             record.width !== undefined && record.width !== '' 
                 ? parseFloat(record.width) 
                 : (record.w !== undefined && record.w !== '' 
                     ? parseFloat(record.w) 
                     : undefined);
                     
-        const heightUnscaled = 
+        const height = 
             record.height !== undefined && record.height !== '' 
                 ? parseFloat(record.height) 
                 : (record.h !== undefined && record.h !== '' 
                     ? parseFloat(record.h) 
                     : undefined);
         
-        // Initialize as undefined for proper scaling later
-        const widthScaled = undefined;
-        const heightScaled = undefined;
 
         const x_offset = record.x_offset !== undefined ? parseFloat(record.x_offset) : undefined;
         const y_offset = record.y_offset !== undefined ? parseFloat(record.y_offset) : undefined;
@@ -79,10 +77,8 @@ class NodeReader {
         x
         y
 
-        widthUnscaled
-        heightUnscaled
-        widthScaled
-        heightScaled
+        width
+        height
 
         x_offset
         y_offset
@@ -108,10 +104,8 @@ class NodeReader {
             shape: ValueParser.parse(record.shape, 'string'),
             x,
             y,
-            widthScaled,
-            heightScaled,
-            widthUnscaled,
-            heightUnscaled,
+            width: width,
+            height: height,
             style: ValueParser.parse(record.style, 'string'),
             tikz_object_attributes: ValueParser.parse(record.tikz_object_attributes, 'string'),
             edge_color: ValueParser.parse(record.edge_color, 'string'),
@@ -146,6 +140,15 @@ class NodeReader {
                 yScaled: 0,
                 positionType: PositionType.COORDINATES
             })
+            
+            // ,
+            // // initialize dimensions
+            // dimensions: new Dimensions({
+            //     widthUnscaled: width,
+            //     heightUnscaled: height,
+            //     width: width,
+            //     height: height,
+            // })
         };
 
         // Add any additional properties from the record that aren't already in nodeProperties

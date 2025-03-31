@@ -13,7 +13,7 @@ describe('Dimensions', () => {
         expect(dimensions.heightUnscaled).toBe(20);
         expect(dimensions.widthScaled).toBe(15);
         expect(dimensions.heightScaled).toBe(30);
-        expect(dimensions.sizeType).toBe('COORDINATES');
+
     });
 
     test('should calculate scaled dimensions from unscaled values', () => {

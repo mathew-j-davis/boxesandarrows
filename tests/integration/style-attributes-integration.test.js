@@ -60,7 +60,7 @@ describe('Style and Attribute Integration', () => {
     };
     
     // Set up a mock scale
-    const mockScale = {
+    const scaleConfig = {
       position: { x: 1, y: 1 },
       size: { w: 1, h: 1 }
     };
@@ -85,7 +85,7 @@ describe('Style and Attribute Integration', () => {
     });
     
     // Process the node record
-    const node = NodeReader.processNodeRecord(nodeRecord, mockScale, mockRenderer);
+    const node = NodeReader.processNodeRecord(nodeRecord, scaleConfig, mockRenderer);
     
     // Since mergedStyle is not set by NodeReader anymore (commented out in implementation),
     // we need to manually set it for testing purposes
@@ -122,7 +122,7 @@ describe('Style and Attribute Integration', () => {
     };
     
     // Set up a mock scale
-    const mockScale = {
+    const scaleConfig = {
       position: { x: 1, y: 1 },
       size: { w: 1, h: 1 }
     };
@@ -145,7 +145,7 @@ describe('Style and Attribute Integration', () => {
     });
     
     // Process the node record
-    const node = NodeReader.processNodeRecord(nodeRecord, mockScale, mockRenderer);
+    const node = NodeReader.processNodeRecord(nodeRecord, scaleConfig, mockRenderer);
     
     // Manually set the mergedStyle for testing purposes since NodeReader no longer sets it
     node.mergedStyle = {
@@ -204,13 +204,13 @@ describe('Style and Attribute Integration', () => {
     });
     
     // Set up a mock scale
-    const mockScale = {
+    const scaleConfig = {
       position: { x: 1, y: 1 },
       size: { w: 1, h: 1 }
     };
     
     // Process the node record
-    const node = NodeReader.processNodeRecord(nodeRecord, mockScale, mockRenderer);
+    const node = NodeReader.processNodeRecord(nodeRecord, scaleConfig, mockRenderer);
     
     // Manually set the mergedStyle for testing purposes
     node.mergedStyle = {

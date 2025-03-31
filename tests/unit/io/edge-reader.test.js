@@ -63,10 +63,10 @@ describe('EdgeReader', () => {
       })
     };
     
-    // Set up a more realistic scaling object
+
     mockScale = {
-      position: { x: 2, y: 2 },  // Position scaling factor
-      size: { w: 1.5, h: 1.5 }   // Size scaling factor
+      position: { x: 1, y: 1},  // Position scaling factor
+      size: { w: 1, h: 1 }   // Size scaling factor
     };
     
     // Mock nodes map for edge processing
@@ -74,68 +74,63 @@ describe('EdgeReader', () => {
     // Add nodes with positions and dimensions for connection point calculations
     mockNodes.set('node1', { 
       name: 'node1', 
-      widthUnscaled: 5,        // Unscaled width
-      heightUnscaled: 3,       // Unscaled height
-      width: 7.5,              // Scaled width (5 * size.w)
-      height: 4.5,             // Scaled height (3 * size.h)
+      width: 5,        // Unscaled width
+      height: 3,       // Unscaled height
+
       anchorVector: { x: 0, y: 0 },  // Center anchor by default
       position: {
         xUnscaled: 10,
         yUnscaled: 20,
-        xScaled: 20,
-        yScaled: 40,
+        xScaled: 10,
+        yScaled: 20,
         positionType: PositionType.COORDINATES
       },
       dimensions: {
         widthUnscaled: 5,
         heightUnscaled: 3,
-        widthScaled: 7.5,
-        heightScaled: 4.5,
-        sizeType: 'COORDINATES'
+        widthScaled: 5,
+        heightScaled: 3
       }
     });
     mockNodes.set('node2', { 
       name: 'node2', 
-      widthUnscaled: 5,        // Unscaled width
-      heightUnscaled: 3,       // Unscaled height
-      width: 7.5,              // Scaled width (5 * size.w)
-      height: 4.5,             // Scaled height (3 * size.h)
+      width: 5,        // Unscaled width
+      height: 3,       // Unscaled height
+
       anchorVector: { x: 0, y: 0 },  // Center anchor by default
       position: {
         xUnscaled: 30,
         yUnscaled: 20,
-        xScaled: 60,
+        xScaled: 30,
+        yScaled: 20,
+        positionType: PositionType.COORDINATES
+      },
+      dimensions: {
+        widthUnscaled: 5,
+        heightUnscaled: 3,
+        widthScaled: 5,
+        heightScaled: 3
+      }
+    });
+    mockNodes.set('node3', { 
+      name: 'node3', 
+      x: 30, 
+      y: 40, 
+      width: 5,
+      height: 3,
+      anchorVector: { x: 0, y: 0 },
+      position: {
+        xUnscaled: 30,
+        yUnscaled: 40,
+        xScaled: 30,
         yScaled: 40,
         positionType: PositionType.COORDINATES
       },
       dimensions: {
         widthUnscaled: 5,
         heightUnscaled: 3,
-        widthScaled: 7.5,
-        heightScaled: 4.5,
-        sizeType: 'COORDINATES'
-      }
-    });
-    mockNodes.set('node3', { 
-      name: 'node3', 
-      widthUnscaled: 5,        // Unscaled width
-      heightUnscaled: 3,       // Unscaled height
-      width: 7.5,              // Scaled width (5 * size.w)
-      height: 4.5,             // Scaled height (3 * size.h)
-      anchorVector: { x: 0, y: 0 },  // Center anchor by default
-      position: {
-        xUnscaled: 30,
-        yUnscaled: 40,
-        xScaled: 60,
-        yScaled: 80,
-        positionType: PositionType.COORDINATES
-      },
-      dimensions: {
-        widthUnscaled: 5,
-        heightUnscaled: 3,
-        widthScaled: 7.5,
-        heightScaled: 4.5,
-        sizeType: 'COORDINATES'
+        widthScaled: 5,
+        heightScaled: 3
       }
     });
   });
@@ -325,14 +320,8 @@ describe('EdgeReader', () => {
           name: 'node1', 
           x: 10, 
           y: 20, 
-          w: 5, 
-          h: 5,
           width: 5,
           height: 5,
-          xUnscaled: 10,
-          yUnscaled: 20,
-          widthUnscaled: 5,
-          heightUnscaled: 5,
           anchorVector: { x: 0, y: 0 },
           position: {
             xUnscaled: 10,
@@ -345,22 +334,15 @@ describe('EdgeReader', () => {
             widthUnscaled: 5,
             heightUnscaled: 5,
             widthScaled: 5,
-            heightScaled: 5,
-            sizeType: 'COORDINATES'
+            heightScaled: 5
           }
         }],
         ['node2', { 
           name: 'node2', 
           x: 30, 
           y: 20, 
-          w: 5, 
-          h: 5,
           width: 5,
           height: 5,
-          xUnscaled: 30,
-          yUnscaled: 20,
-          widthUnscaled: 5,
-          heightUnscaled: 5,
           anchorVector: { x: 0, y: 0 },
           position: {
             xUnscaled: 30,
@@ -373,8 +355,7 @@ describe('EdgeReader', () => {
             widthUnscaled: 5,
             heightUnscaled: 5,
             widthScaled: 5,
-            heightScaled: 5,
-            sizeType: 'COORDINATES'
+            heightScaled: 5
           }
         }]
       ]);
@@ -407,14 +388,8 @@ describe('EdgeReader', () => {
           x: 10, 
           y: 10, 
           shape: 'circle', 
-          w: 5, 
-          h: 5,
           width: 5,
           height: 5,
-          xUnscaled: 10,
-          yUnscaled: 10,
-          widthUnscaled: 5,
-          heightUnscaled: 5,
           anchorVector: { x: 0, y: 0 },
           position: {
             xUnscaled: 10,
@@ -427,8 +402,7 @@ describe('EdgeReader', () => {
             widthUnscaled: 5,
             heightUnscaled: 5,
             widthScaled: 5,
-            heightScaled: 5,
-            sizeType: 'COORDINATES'
+            heightScaled: 5
           }
         }],
         ['rectangle', { 
@@ -436,14 +410,8 @@ describe('EdgeReader', () => {
           x: 10, 
           y: 30, 
           shape: 'rectangle', 
-          w: 10, 
-          h: 5,
           width: 10,
           height: 5,
-          xUnscaled: 10,
-          yUnscaled: 30,
-          widthUnscaled: 10,
-          heightUnscaled: 5,
           anchorVector: { x: 0, y: 0 },
           position: {
             xUnscaled: 10,
@@ -456,8 +424,7 @@ describe('EdgeReader', () => {
             widthUnscaled: 10,
             heightUnscaled: 5,
             widthScaled: 10,
-            heightScaled: 5,
-            sizeType: 'COORDINATES'
+            heightScaled: 5
           }
         }]
       ]);

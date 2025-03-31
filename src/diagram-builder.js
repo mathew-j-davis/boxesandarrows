@@ -155,8 +155,8 @@ class DiagramBuilder {
                     x: pos.xUnscaled,
                     y: pos.yUnscaled,
                     // Don't apply scaling to dimensions
-                    heightUnscaled: 1,
-                    widthUnscaled: 1,
+                    height: 1,
+                    width: 1,
                     // These will be set in applyScalingToAllNodes
                     heightScaled: undefined,
                     widthScaled: undefined,
@@ -183,23 +183,9 @@ class DiagramBuilder {
             
             node["position"] = position;
 
-            node["dimensions"] = Dimensions.calculateDimensionsAndScale(nodes, node.widthUnscaled, node.heightUnscaled, node.w_of, node.h_of, node.w_from, node.h_from, node.w_to, node.h_to, node.w_offset, node.h_offset, scaleConfig);
+            node["dimensions"] = Dimensions.calculateDimensionsAndScale(nodes, node.width, node.height, node.w_of, node.h_of, node.w_from, node.h_from, node.w_to, node.h_to, node.w_offset, node.h_offset, scaleConfig);
 
-            // First handle size relative to other nodes
-            // setSizeRelativeToNodes(node, nodes, scaleConfig, this.log);
-            
-            // if (node.widthUnscaled === undefined) {
-            //     node.widthUnscaled = 1;
-            // }
-            
-            // if (node.heightUnscaled === undefined) {
-            //     node.heightUnscaled = 1;
-            // }
-            
-            // // Apply scaling to dimensions
-            // node.widthScaled = node.widthUnscaled * scaleConfig.size.w;
-            // node.heightScaled = node.heightUnscaled * scaleConfig.size.h;
-            
+
             // Recalculate anchor vector with scaled dimensions
             node.anchorVector = this.renderer.getNodeAnchor(node);
             

@@ -1,12 +1,11 @@
 const { Position, PositionType } = require('./position');
 
 class Dimensions {
-    constructor({ widthUnscaled, heightUnscaled, widthScaled, heightScaled, sizeType = 'COORDINATES' }) {
+    constructor({ widthUnscaled, heightUnscaled, widthScaled, heightScaled }) {
         this.widthUnscaled = widthUnscaled;
         this.heightUnscaled = heightUnscaled;
         this.widthScaled = widthScaled;
         this.heightScaled = heightScaled;
-        this.sizeType = sizeType;
     }
 //calculateDimensionsAndScale
     static calculateDimensionsAndScale(nodes, w, h, w_of, h_of, w_from, h_from, w_to, h_to, w_offset, h_offset, scaleConfig) {
@@ -32,8 +31,7 @@ class Dimensions {
             widthUnscaled: undefined,
             heightUnscaled: undefined,
             widthScaled: undefined,
-            heightScaled: undefined,
-            sizeType: 'coordinates'
+            heightScaled: undefined
         });
 
         if (w) {

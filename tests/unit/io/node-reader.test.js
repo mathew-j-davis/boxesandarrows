@@ -181,8 +181,8 @@ describe('NodeReader', () => {
       expect(node.label).toBe('Node 1');
       expect(node.x).toBe(10.5);
       expect(node.y).toBe(20.3);
-      expect(node.widthUnscaled).toBe(5);
-      expect(node.heightUnscaled).toBe(3);
+      expect(node.width).toBe(5);
+      expect(node.height).toBe(3);
 
     });
     
@@ -294,8 +294,8 @@ describe('NodeReader', () => {
       expect(mergedNode.label).toBe('First Label');
       expect(mergedNode.edge_color).toBe('#FF0000'); // From node1 (not overridden)
       expect(mergedNode.fillcolor).toBe('#00FF00');  // From node2
-      expect(mergedNode.widthUnscaled).toBe(5);      // From node2 (overrides node1)
-      expect(mergedNode.heightUnscaled).toBe(3);     // From node2 (overrides node1)
+      expect(mergedNode.width).toBe(5);      // From node2 (overrides node1)
+      expect(mergedNode.height).toBe(3);     // From node2 (overrides node1)
       
       // Check that tikz_object_attributes are concatenated
       expect(mergedNode.tikz_object_attributes).toBe('draw=red, fill=blue');
@@ -336,8 +336,8 @@ describe('NodeReader', () => {
       expect(node1.label).toBe('First Label');
       expect(node1.edge_color).toBe('#FF0000'); // From original (not overridden)
       expect(node1.fillcolor).toBe('#00FF00');  // From node2
-      expect(node1.widthUnscaled).toBe(5);      // From node2 (overrides original)
-      expect(node1.heightUnscaled).toBe(3);     // From node2 (overrides original)
+      expect(node1.width).toBe(5);      // From node2 (overrides original)
+      expect(node1.height).toBe(3);     // From node2 (overrides original)
       
       // Check that tikz_object_attributes are concatenated
       expect(node1.tikz_object_attributes).toBe('draw=red, fill=blue');

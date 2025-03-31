@@ -217,39 +217,7 @@ class BoundingBox {
             return { success: false, boundingBox: null };
         }
     }
-    
-    // /**
-    //  * Create a bounding box from width and height, centered at a point
-    //  * @param {Point2D} center - The center point
-    //  * @param {number} width - The width
-    //  * @param {number} height - The height 
-    //  * @returns {BoundingBox}
-    //  */
-    // static fromCenterWidthHeight(center, width, height) {
-    //     const halfWidth = width / 2;
-    //     const halfHeight = height / 2;
-    //     return new BoundingBox(
-    //         center.x - halfWidth,
-    //         center.y - halfHeight,
-    //         center.x + halfWidth,
-    //         center.y + halfHeight
-    //     );
-    // }
-    
-    // /**
-    //  * Create a bounding box from the legacy Box parameters (x, y, width, height)
-    //  * @param {number} x - The x coordinate (left)
-    //  * @param {number} y - The y coordinate (bottom)
-    //  * @param {number} width - The width
-    //  * @param {number} height - The height
-    //  * @returns {BoundingBox}
-    //  */
-    // static fromXYWH(x, y, width, height) {
-    //     return new BoundingBox(
-    //         x, y, 
-    //         x + width, y + height
-    //     );
-    // }
+
 }
 
 module.exports = {

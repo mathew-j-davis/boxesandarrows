@@ -52,8 +52,8 @@ describe('Position.calculatePositionFromReference', () => {
         // Add test nodes to the map
         allNodes.set('node1', {
             name: 'node1',
-            widthScaled: 50,
-            heightScaled: 30,
+            width: 50,
+            height: 30,
             anchor: 'center',
             position: {
                 xUnscaled: 100,
@@ -66,15 +66,14 @@ describe('Position.calculatePositionFromReference', () => {
                 widthUnscaled: 50,
                 heightUnscaled: 30,
                 widthScaled: 50,
-                heightScaled: 30,
-                sizeType: 'COORDINATES'
+                heightScaled: 30
             }
         });
         
         allNodes.set('node2', {
             name: 'node2',
-            widthScaled: 60,
-            heightScaled: 40,
+            width: 60,
+            height: 40,
             anchor: 'north',
             position: {
                 xUnscaled: 200,
@@ -87,15 +86,14 @@ describe('Position.calculatePositionFromReference', () => {
                 widthUnscaled: 60,
                 heightUnscaled: 40,
                 widthScaled: 60,
-                heightScaled: 40,
-                sizeType: 'COORDINATES'
+                heightScaled: 40
             }
         });
         
         allNodes.set('node3', {
             name: 'node3',
-            widthScaled: 70,
-            heightScaled: 50,
+            width: 70,
+            height: 50,
             anchor: 'east',
             position: {
                 xUnscaled: 300,
@@ -108,8 +106,7 @@ describe('Position.calculatePositionFromReference', () => {
                 widthUnscaled: 70,
                 heightUnscaled: 50,
                 widthScaled: 70,
-                heightScaled: 50,
-                sizeType: 'COORDINATES'
+                heightScaled: 50
             }
         });
     });

@@ -33,10 +33,8 @@ describe('Direct test of calculatePositionFromReference', () => {
         // Add test node
         allNodes.set('node1', {
             name: 'node1',
-            widthUnscaled: 50,
-            heightUnscaled: 30,
-            widthScaled: 50,
-            heightScaled: 30,
+            width: 50,
+            height: 30,
             anchor: 'center',
             position: {
                 xUnscaled: 100,
@@ -49,8 +47,7 @@ describe('Direct test of calculatePositionFromReference', () => {
                 widthUnscaled: 50,
                 heightUnscaled: 30,
                 widthScaled: 50,
-                heightScaled: 30,
-                sizeType: 'coordinates'
+                heightScaled: 30
             }
         });
     });

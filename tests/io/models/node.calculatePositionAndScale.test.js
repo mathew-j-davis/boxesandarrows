@@ -88,8 +88,7 @@ describe('Position.calculatePositionAndScale', () => {
                 widthUnscaled: 50,
                 heightUnscaled: 30,
                 widthScaled: 50,
-                heightScaled: 30,
-                sizeType: 'COORDINATES'
+                heightScaled: 30
             }
         });
         
@@ -115,8 +114,7 @@ describe('Position.calculatePositionAndScale', () => {
                 widthUnscaled: 60,
                 heightUnscaled: 40,
                 widthScaled: 60,
-                heightScaled: 40,
-                sizeType: 'COORDINATES'
+                heightScaled: 40
             }
         });
         
@@ -142,8 +140,7 @@ describe('Position.calculatePositionAndScale', () => {
                 widthUnscaled: 70,
                 heightUnscaled: 50,
                 widthScaled: 70,
-                heightScaled: 50,
-                sizeType: 'COORDINATES'
+                heightScaled: 50
             }
         });
         
