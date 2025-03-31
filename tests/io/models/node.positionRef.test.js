@@ -44,6 +44,13 @@ describe('Direct test of calculatePositionFromReference', () => {
                 xScaled: 100,
                 yScaled: 100,
                 positionType: PositionType.COORDINATES
+            },
+            dimensions: {
+                widthUnscaled: 50,
+                heightUnscaled: 30,
+                widthScaled: 50,
+                heightScaled: 30,
+                sizeType: 'coordinates'
             }
         });
     });

@@ -2,12 +2,6 @@
 const PositionReader = require('./io/readers/position-reader');
 const ReaderManager = require('./io/reader-manager');
 const LatexRenderer = require('./renderers/latex-renderer');
-const { 
-    //setPositionRelativeToNode, 
-    setSizeRelativeToNodes,
-    //setPositionFromReference,
-   // setPositionFromAnchorPoint 
-} = require('./io/readers/relative-node-processor');
 const { Node } = require('./io/models/node');
 const fs = require('fs');
 const LatexStyleHandler = require('./styles/latex-style-handler');
@@ -16,6 +10,7 @@ const { Direction } = require('./geometry/direction');
 const { getNodeConnectionPoint } = require('./geometry/node-connection-point');
 const EdgeReader = require('./io/readers/edge-reader');
 const { Position, PositionType } = require('./geometry/position');
+const Dimensions = require('./geometry/dimensions');
 
 class DiagramBuilder {
     constructor(options = {}) {
@@ -188,25 +183,27 @@ class DiagramBuilder {
             
             node["position"] = position;
 
+            node["dimensions"] = Dimensions.calculateDimensionsAndScale(nodes, node.widthUnscaled, node.heightUnscaled, node.w_of, node.h_of, node.w_from, node.h_from, node.w_to, node.h_to, node.w_offset, node.h_offset, scaleConfig);
+
             // First handle size relative to other nodes
-            setSizeRelativeToNodes(node, nodes, scaleConfig, this.log);
+            // setSizeRelativeToNodes(node, nodes, scaleConfig, this.log);
             
-            if (node.widthUnscaled === undefined) {
-                node.widthUnscaled = 1;
-            }
+            // if (node.widthUnscaled === undefined) {
+            //     node.widthUnscaled = 1;
+            // }
             
-            if (node.heightUnscaled === undefined) {
-                node.heightUnscaled = 1;
-            }
+            // if (node.heightUnscaled === undefined) {
+            //     node.heightUnscaled = 1;
+            // }
             
-            // Apply scaling to dimensions
-            node.widthScaled = node.widthUnscaled * scaleConfig.size.w;
-            node.heightScaled = node.heightUnscaled * scaleConfig.size.h;
+            // // Apply scaling to dimensions
+            // node.widthScaled = node.widthUnscaled * scaleConfig.size.w;
+            // node.heightScaled = node.heightUnscaled * scaleConfig.size.h;
             
             // Recalculate anchor vector with scaled dimensions
             node.anchorVector = this.renderer.getNodeAnchor(node);
             
-            this.log(`Scaled node '${nodeName}' to (${node?.position?.xScaled}, ${node?.position?.yScaled}) with dimensions ${node.widthScaled}x${node.heightScaled}`);
+            this.log(`Scaled node '${nodeName}' to (${node?.position?.xScaled}, ${node?.position?.yScaled}) with dimensions ${node.dimensions.widthScaled}x${node.dimensions.heightScaled}`);
         }
     }
 }

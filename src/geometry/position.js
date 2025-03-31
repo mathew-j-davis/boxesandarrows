@@ -96,7 +96,7 @@ class Position {
             }
         }
 
-
+ 
         // Simple case: direct reference without anchor transformation
         // Either we have a reference node with no anchor
         // Or we have a reference node with an attachment anchor that is the same as the reference node's own anchor
@@ -149,8 +149,8 @@ class Position {
             referenceNodeOwnAnchorCanonical === undefined ||
             ReferenceNode.position?.xScaled === undefined ||
             ReferenceNode.position?.yScaled === undefined ||
-            ReferenceNode.widthScaled === undefined ||
-            ReferenceNode.heightScaled === undefined
+            ReferenceNode.dimensions?.widthScaled === undefined ||
+            ReferenceNode.dimensions?.heightScaled === undefined
         ){
             position.success = true;
             position.atNode = ReferenceNodeName;
@@ -166,12 +166,12 @@ class Position {
 
         // Complex case: Transform anchors to calculate coordinates
         // Step 1: Get the center point of the reference node by adjusting for its own anchor
-        const refNodeCenterX = ReferenceNode.position.xScaled - (referenceNodeOwnAnchorVector.x * ReferenceNode.widthScaled/2);
-        const refNodeCenterY = ReferenceNode.position.yScaled - (referenceNodeOwnAnchorVector.y * ReferenceNode.heightScaled/2);
+        const refNodeCenterX = ReferenceNode.position.xScaled - (referenceNodeOwnAnchorVector.x * ReferenceNode.dimensions.widthScaled/2);
+        const refNodeCenterY = ReferenceNode.position.yScaled - (referenceNodeOwnAnchorVector.y * ReferenceNode.dimensions.heightScaled/2);
         
         // Step 2: Find the position of the specific anchor point on the reference node
-        const refAnchorPointX = refNodeCenterX + (referenceNodeAtAnchorVector.x * ReferenceNode.widthScaled/2);
-        const refAnchorPointY = refNodeCenterY + (referenceNodeAtAnchorVector.y * ReferenceNode.heightScaled/2);
+        const refAnchorPointX = refNodeCenterX + (referenceNodeAtAnchorVector.x * ReferenceNode.dimensions.widthScaled/2);
+        const refAnchorPointY = refNodeCenterY + (referenceNodeAtAnchorVector.y * ReferenceNode.dimensions.heightScaled/2);
         
         // Step 3: Apply offsets if specified
         const finalXScaled = refAnchorPointX + x_offset_safe_scaled;

@@ -162,8 +162,8 @@ class LatexRenderer extends Renderer {
         }
         
         // 2. Apply mandatory node attributes (important: these override the base style)
-        tikzAttributes['minimum width'] = `${node.widthScaled}cm`;
-        tikzAttributes['minimum height'] = `${node.heightScaled}cm`;
+        tikzAttributes['minimum width'] = `${node.dimensions.widthScaled}cm`;
+        tikzAttributes['minimum height'] = `${node.dimensions.heightScaled}cm`;
         
         // 3. Apply node-specific attributes from CSV
         if (node.shape) {
@@ -254,7 +254,7 @@ class LatexRenderer extends Renderer {
                 }
                 
                 // Build adjustbox parameters
-                let adjustboxParams = `max width=${node.widthScaled}cm, max height=${node.heightScaled}cm`;
+                let adjustboxParams = `max width=${node.dimensions.widthScaled}cm, max height=${node.dimensions.heightScaled}cm`;
                 
                 // Add custom adjustbox attributes from style if available
                 if (textStyle && textStyle.adjustbox && Object.keys(textStyle.adjustbox).length > 0) {
@@ -294,7 +294,7 @@ class LatexRenderer extends Renderer {
                 }
                 
                 // Build adjustbox parameters
-                let adjustboxParams = `max width=${node.widthScaled}cm, max height=${node.heightScaled}cm`;
+                let adjustboxParams = `max width=${node.dimensions.widthScaled}cm, max height=${node.dimensions.heightScaled}cm`;
                 
                 // Add custom adjustbox attributes from style if available
                 if (textStyle && textStyle.adjustbox && Object.keys(textStyle.adjustbox).length > 0) {
@@ -538,11 +538,11 @@ ${libraries}
         });
 
         // Add size styles if specified
-        if (node.heightScaled !== undefined) {
-            style['minimum height'] = `${node.heightScaled}cm`;
+        if (node.dimensions.heightScaled !== undefined) {
+            style['minimum height'] = `${node.dimensions.heightScaled}cm`;
         }
-        if (node.widthScaled !== undefined) {
-            style['minimum width'] = `${node.widthScaled}cm`;
+        if (node.dimensions.widthScaled !== undefined) {
+            style['minimum width'] = `${node.dimensions.widthScaled}cm`;
         }
 
         // Add colors if specified

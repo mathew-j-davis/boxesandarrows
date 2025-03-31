@@ -40,8 +40,8 @@ function getNodeConnectionPoint(node, scale, direction = null, offset = null) {
     
     // Calculate point from center using direction vector adjusted by anchor vector
     const nodePoint = new Point2D(
-        node.position.xUnscaled + ((directionVector.x - anchorVector.x) * node.widthScaled/(2 * scale.position.x)),
-        node.position.yUnscaled + ((directionVector.y - anchorVector.y) * node.heightScaled/(2 * scale.position.y))
+        node.position.xUnscaled + ((directionVector.x - anchorVector.x) * node.dimensions.widthScaled/(2 * scale.position.x)),
+        node.position.yUnscaled + ((directionVector.y - anchorVector.y) * node.dimensions.heightScaled/(2 * scale.position.y))
     );
     
     if (offset) {

@@ -85,6 +85,13 @@ describe('EdgeReader', () => {
         xScaled: 20,
         yScaled: 40,
         positionType: PositionType.COORDINATES
+      },
+      dimensions: {
+        widthUnscaled: 5,
+        heightUnscaled: 3,
+        widthScaled: 7.5,
+        heightScaled: 4.5,
+        sizeType: 'COORDINATES'
       }
     });
     mockNodes.set('node2', { 
@@ -100,6 +107,13 @@ describe('EdgeReader', () => {
         xScaled: 60,
         yScaled: 40,
         positionType: PositionType.COORDINATES
+      },
+      dimensions: {
+        widthUnscaled: 5,
+        heightUnscaled: 3,
+        widthScaled: 7.5,
+        heightScaled: 4.5,
+        sizeType: 'COORDINATES'
       }
     });
     mockNodes.set('node3', { 
@@ -115,6 +129,13 @@ describe('EdgeReader', () => {
         xScaled: 60,
         yScaled: 80,
         positionType: PositionType.COORDINATES
+      },
+      dimensions: {
+        widthUnscaled: 5,
+        heightUnscaled: 3,
+        widthScaled: 7.5,
+        heightScaled: 4.5,
+        sizeType: 'COORDINATES'
       }
     });
   });
@@ -319,6 +340,13 @@ describe('EdgeReader', () => {
             xScaled: 10,
             yScaled: 20,
             positionType: PositionType.COORDINATES
+          },
+          dimensions: {
+            widthUnscaled: 5,
+            heightUnscaled: 5,
+            widthScaled: 5,
+            heightScaled: 5,
+            sizeType: 'COORDINATES'
           }
         }],
         ['node2', { 
@@ -340,6 +368,13 @@ describe('EdgeReader', () => {
             xScaled: 30,
             yScaled: 20,
             positionType: PositionType.COORDINATES
+          },
+          dimensions: {
+            widthUnscaled: 5,
+            heightUnscaled: 5,
+            widthScaled: 5,
+            heightScaled: 5,
+            sizeType: 'COORDINATES'
           }
         }]
       ]);
@@ -387,6 +422,13 @@ describe('EdgeReader', () => {
             xScaled: 10,
             yScaled: 10,
             positionType: PositionType.COORDINATES
+          },
+          dimensions: {
+            widthUnscaled: 5,
+            heightUnscaled: 5,
+            widthScaled: 5,
+            heightScaled: 5,
+            sizeType: 'COORDINATES'
           }
         }],
         ['rectangle', { 
@@ -409,6 +451,13 @@ describe('EdgeReader', () => {
             xScaled: 10,
             yScaled: 30,
             positionType: PositionType.COORDINATES
+          },
+          dimensions: {
+            widthUnscaled: 10,
+            heightUnscaled: 5,
+            widthScaled: 10,
+            heightScaled: 5,
+            sizeType: 'COORDINATES'
           }
         }]
       ]);

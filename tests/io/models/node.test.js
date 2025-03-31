@@ -61,6 +61,13 @@ describe('Position.calculatePositionFromReference', () => {
                 xScaled: 100,
                 yScaled: 100,
                 positionType: PositionType.COORDINATES
+            },
+            dimensions: {
+                widthUnscaled: 50,
+                heightUnscaled: 30,
+                widthScaled: 50,
+                heightScaled: 30,
+                sizeType: 'COORDINATES'
             }
         });
         
@@ -75,6 +82,13 @@ describe('Position.calculatePositionFromReference', () => {
                 xScaled: 200,
                 yScaled: 150,
                 positionType: PositionType.COORDINATES
+            },
+            dimensions: {
+                widthUnscaled: 60,
+                heightUnscaled: 40,
+                widthScaled: 60,
+                heightScaled: 40,
+                sizeType: 'COORDINATES'
             }
         });
         
@@ -89,6 +103,13 @@ describe('Position.calculatePositionFromReference', () => {
                 xScaled: 300,
                 yScaled: 200,
                 positionType: PositionType.COORDINATES
+            },
+            dimensions: {
+                widthUnscaled: 70,
+                heightUnscaled: 50,
+                widthScaled: 70,
+                heightScaled: 50,
+                sizeType: 'COORDINATES'
             }
         });
     });

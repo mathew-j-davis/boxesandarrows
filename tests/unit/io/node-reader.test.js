@@ -183,6 +183,7 @@ describe('NodeReader', () => {
       expect(node.y).toBe(20.3);
       expect(node.widthUnscaled).toBe(5);
       expect(node.heightUnscaled).toBe(3);
+
     });
     
     test('should process attributes from the tikz_object_attributes field', () => {
