@@ -47,8 +47,8 @@ class Dimensions {
             }
             // If no width yet and both w_from and w_to are specified
             else if (w_from && w_to) {
-                const fromPosition = Position.calculatePositionFromReference(nodes, w_from, 0, 0, scaleConfig);
-                const toPosition = Position.calculatePositionFromReference(nodes, w_to, 0, 0, scaleConfig);
+                const fromPosition = Position.calculatePositionFromReference(nodes, w_from, undefined, undefined, 0, 0, scaleConfig);
+                const toPosition = Position.calculatePositionFromReference(nodes, w_to, undefined, undefined, 0, 0, scaleConfig);
                 
                 // Only proceed if we got valid coordinate positions
                 if (fromPosition.success && fromPosition.positionType === PositionType.COORDINATES &&
@@ -81,8 +81,8 @@ class Dimensions {
             }
             // If no height yet and both h_from and h_to are specified
             else if (h_from && h_to) {
-                const fromPosition = Position.calculatePositionFromReference(nodes, h_from, 0, 0, scaleConfig);
-                const toPosition = Position.calculatePositionFromReference(nodes, h_to, 0, 0, scaleConfig);
+                const fromPosition = Position.calculatePositionFromReference(nodes, h_from, undefined, undefined, 0, 0, scaleConfig);
+                const toPosition = Position.calculatePositionFromReference(nodes, h_to, undefined, undefined, 0, 0, scaleConfig);
                 
                 // Only proceed if we got valid coordinate positions
                 if (fromPosition.success && fromPosition.positionType === PositionType.COORDINATES &&

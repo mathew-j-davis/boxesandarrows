@@ -123,7 +123,7 @@ describe('Position.calculatePositionFromReference', () => {
             }
         };
         
-        const result = Position.calculatePositionFromReference(allNodes, 'nonexistent', 0, 0, scaleConfig);
+        const result = Position.calculatePositionFromReference(allNodes, 'nonexistent', undefined, undefined, 0, 0, scaleConfig);
         
         expect(result.success).toBe(false);
         expect(result.message).toContain('not found');
@@ -142,7 +142,7 @@ describe('Position.calculatePositionFromReference', () => {
             }
         };
         
-        const result = Position.calculatePositionFromReference(allNodes, 'node1', 10, 20, scaleConfig);
+        const result = Position.calculatePositionFromReference(allNodes, 'node1', undefined, undefined, 10, 20, scaleConfig);
         
         expect(result.success).toBe(true);
         expect(result.positionType).toBe(PositionType.COORDINATES);
@@ -163,7 +163,7 @@ describe('Position.calculatePositionFromReference', () => {
             }
         };
         
-        const result = Position.calculatePositionFromReference(allNodes, 'node1.center', 10, 20, scaleConfig);
+        const result = Position.calculatePositionFromReference(allNodes, 'node1.center', undefined, undefined, 10, 20, scaleConfig);
         
         expect(result.success).toBe(true);
         expect(result.positionType).toBe(PositionType.COORDINATES);
@@ -185,7 +185,7 @@ describe('Position.calculatePositionFromReference', () => {
             }
         };
         
-        const result = Position.calculatePositionFromReference(allNodes, 'node1.north', 10, 20, scaleConfig);
+        const result = Position.calculatePositionFromReference(allNodes, 'node1.north', undefined, undefined, 10, 20, scaleConfig);
         
         expect(result.success).toBe(true);
         expect(result.positionType).toBe(PositionType.COORDINATES);
@@ -212,7 +212,7 @@ describe('Position.calculatePositionFromReference', () => {
             }
         };
 
-        const result = Position.calculatePositionFromReference(allNodes, 'node1', 10, 20, scaleConfig);
+        const result = Position.calculatePositionFromReference(allNodes, 'node1', undefined, undefined, 10, 20, scaleConfig);
         
         expect(result.success).toBe(true);
         expect(result.positionType).toBe(PositionType.COORDINATES);
@@ -252,7 +252,7 @@ describe('Position.calculatePositionFromReference', () => {
             }
         };
         
-        const result = Position.calculatePositionFromReference(allNodes, 'incomplete.east', 0, 0, scaleConfig);
+        const result = Position.calculatePositionFromReference(allNodes, 'incomplete.east', undefined, undefined, 0, 0, scaleConfig);
         
         expect(result.success).toBe(true);
         expect(result.positionType).toBe(PositionType.NAMED);

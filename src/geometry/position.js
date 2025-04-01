@@ -42,7 +42,7 @@ class Position {
      * @param {Object} scaleConfig - Scaling configuration
      * @returns {Position} - Position instance with calculation results
      */
-    static calculatePositionFromReference(allNodes, position_of, x_offset, y_offset, scaleConfig) {
+    static calculatePositionFromReference(allNodes, position_of, x_by, y_by, x_offset, y_offset, scaleConfig) {
         // Initialize position object
         const position = new Position();
         
@@ -299,7 +299,7 @@ class Position {
 
         // Position relative to another node using position_of
         if (position_of) {
-            const refPosition = Position.calculatePositionFromReference(allNodes, position_of, x_offset, y_offset, scaleConfig);
+            const refPosition = Position.calculatePositionFromReference(allNodes, position_of, x_by, y_by, x_offset, y_offset, scaleConfig);
             
             if (refPosition.success) {
                 // If we got coordinates, copy coordinate information
@@ -343,7 +343,7 @@ class Position {
         
         // Process x coordinate using x_of
         if (x_of) {
-            xRefPosition = Position.calculatePositionFromReference(allNodes, x_of, x_offset, 0, scaleConfig);
+            xRefPosition = Position.calculatePositionFromReference(allNodes, x_of, x_by, undefined, x_offset, 0, scaleConfig);
             x_calculated = xRefPosition.success && xRefPosition.positionType === PositionType.COORDINATES;
             if (!x_calculated) {
                 position.message = xRefPosition.message;
@@ -353,7 +353,7 @@ class Position {
         
         // Process y coordinate using y_of
         if (y_of) {
-            yRefPosition = Position.calculatePositionFromReference(allNodes, y_of, 0, y_offset, scaleConfig);
+            yRefPosition = Position.calculatePositionFromReference(allNodes, y_of, undefined, y_by, 0, y_offset, scaleConfig);
             y_calculated = yRefPosition.success && yRefPosition.positionType === PositionType.COORDINATES;
             if (!y_calculated) {
                 position.message = yRefPosition.message;

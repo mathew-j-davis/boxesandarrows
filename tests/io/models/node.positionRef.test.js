@@ -69,6 +69,8 @@ describe('Direct test of calculatePositionFromReference', () => {
         const result = Position.calculatePositionFromReference(
             allNodes,
             'node1',  // position_of
+            undefined, // x_by
+            undefined, // y_by
             10,       // x_offset
             20,       // y_offset
             scaleConfig
@@ -107,6 +109,8 @@ describe('Direct test of calculatePositionFromReference', () => {
         const result = Position.calculatePositionFromReference(
             allNodes,
             'node1.north',  // position_of
+            undefined, // x_by
+            undefined, // y_by
             0,       // x_offset
             0,       // y_offset
             scaleConfig
