@@ -8,17 +8,17 @@ jest.mock('../../../src/geometry/direction', () => {
         Direction: {
             getStrictAnchorNameAndVector: (anchorName) => {
                 const anchors = {
-                    'center': { canonical: 'center', vector: { x: 0, y: 0 } },
-                    'north': { canonical: 'north', vector: { x: 0, y: 1 } },
-                    'south': { canonical: 'south', vector: { x: 0, y: -1 } },
-                    'east': { canonical: 'east', vector: { x: 1, y: 0 } },
-                    'west': { canonical: 'west', vector: { x: -1, y: 0 } },
-                    'northeast': { canonical: 'north east', vector: { x: 1, y: 1 } },
-                    'northwest': { canonical: 'north west', vector: { x: -1, y: 1 } },
-                    'southeast': { canonical: 'south east', vector: { x: 1, y: -1 } },
-                    'southwest': { canonical: 'south west', vector: { x: -1, y: -1 } }
+                    'center': { standard: 'center', vector: { x: 0, y: 0 } },
+                    'north': { standard: 'north', vector: { x: 0, y: 1 } },
+                    'south': { standard: 'south', vector: { x: 0, y: -1 } },
+                    'east': { standard: 'east', vector: { x: 1, y: 0 } },
+                    'west': { standard: 'west', vector: { x: -1, y: 0 } },
+                    'northeast': { standard: 'north east', vector: { x: 1, y: 1 } },
+                    'northwest': { standard: 'north west', vector: { x: -1, y: 1 } },
+                    'southeast': { standard: 'south east', vector: { x: 1, y: -1 } },
+                    'southwest': { standard: 'south west', vector: { x: -1, y: -1 } }
                 };
-                return anchors[anchorName] || { canonical: undefined, vector: undefined };
+                return anchors[anchorName] || { standard: undefined, vector: undefined };
             },
             getVector: (anchorName) => {
                 const vectors = {

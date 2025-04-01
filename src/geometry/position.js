@@ -54,20 +54,20 @@ class Position {
         
         // Parse reference position string
         const parts = position_of.split('.');
-        const ReferenceNodeName = parts[0];
-        const ReferenceNode = allNodes.get(ReferenceNodeName);
+        const referenceNodeName = parts[0];
+        const referenceNode = allNodes.get(referenceNodeName);
         
-        if (!ReferenceNode) {
-            position.message = `Reference node '${ReferenceNodeName}' not found`;
+        if (!referenceNode) {
+            position.message = `Reference node '${referenceNodeName}' not found`;
             return position;
         }
         
         let referenceNodeAtAnchor;
-        let referenceNodeAtAnchorCanonical;
+        let referenceNodeAtAnchorStandard;
         let referenceNodeAtAnchorVector;
 
         let referenceNodeOwnAnchor;
-        let referenceNodeOwnAnchorCanonical;
+        let referenceNodeOwnAnchorStandard;
         let referenceNodeOwnAnchorVector;
 
         // We have a reference node and an anchor
@@ -75,14 +75,14 @@ class Position {
             referenceNodeAtAnchor = parts[1];
             const ReferenceNodeAnchorInfo = Direction.getStrictAnchorNameAndVector(referenceNodeAtAnchor);
             
-            referenceNodeAtAnchorCanonical = ReferenceNodeAnchorInfo.canonical;
+            referenceNodeAtAnchorStandard = ReferenceNodeAnchorInfo.standard;
             referenceNodeAtAnchorVector = ReferenceNodeAnchorInfo.vector;
 
-            if (ReferenceNode.anchor !== undefined) {
-                referenceNodeOwnAnchor = ReferenceNode.anchor;
+            if (referenceNode.anchor !== undefined) {
+                referenceNodeOwnAnchor = referenceNode.anchor;
                 const ReferenceNodeOwnAnchorInfo = Direction.getStrictAnchorNameAndVector(referenceNodeOwnAnchor);
 
-                referenceNodeOwnAnchorCanonical = ReferenceNodeOwnAnchorInfo.canonical;
+                referenceNodeOwnAnchorStandard = ReferenceNodeOwnAnchorInfo.standard;
                 referenceNodeOwnAnchorVector = ReferenceNodeOwnAnchorInfo.vector;
             }
             // the default anchor for positioning is the center of the node
@@ -90,12 +90,17 @@ class Position {
             // center was used as the default
             else {
                 referenceNodeOwnAnchor = 'center';
-                referenceNodeOwnAnchorCanonical = 'center';
+                referenceNodeOwnAnchorStandard = 'center';
                 referenceNodeOwnAnchorVector = {x: 0, y: 0};
             }
         }
 
- 
+
+        let cleanAtAnchorName = referenceNodeAtAnchorStandard||referenceNodeAtAnchor||null;
+        let cleanReferenceNodeOwnAnchorName = referenceNodeOwnAnchorStandard||referenceNodeOwnAnchor||null;
+
+        let cleanReferenceNodeNameAndAtAnchorName = `${referenceNodeName}${cleanAtAnchorName?'.'+cleanAtAnchorName:''}`;
+
         // Simple case: direct reference without anchor transformation
         // Either we have a reference node with no anchor
         // Or we have a reference node with an attachment anchor that is the same as the reference node's own anchor
@@ -103,20 +108,20 @@ class Position {
             (
                 parts.length === 1 ||
                 (
-                    (referenceNodeOwnAnchorCanonical||referenceNodeOwnAnchor) === 
-                    (referenceNodeAtAnchorCanonical||referenceNodeAtAnchor)
+                    cleanAtAnchorName === 
+                    cleanReferenceNodeOwnAnchorName
                 )
             )
             &&
             !(
-                ReferenceNode.position?.xScaled === undefined ||
-                ReferenceNode.position?.yScaled === undefined 
+                referenceNode.position?.xScaled === undefined ||
+                referenceNode.position?.yScaled === undefined 
             )
         ){
             // Apply offsets if specified
 
-            const finalXScaled = ReferenceNode.position.xScaled + x_offset_safe_scaled;
-            const finalYScaled = ReferenceNode.position.yScaled + y_offset_safe_scaled;
+            const finalXScaled = referenceNode.position.xScaled + x_offset_safe_scaled;
+            const finalYScaled = referenceNode.position.yScaled + y_offset_safe_scaled;
             
             // Back-calculate to unscaled coordinates
             const finalX = finalXScaled / scaleConfig.position.x;
@@ -127,15 +132,17 @@ class Position {
             position.yUnscaled = finalY;
             position.xScaled = finalXScaled;
             position.yScaled = finalYScaled;
-            position.atNode = ReferenceNodeName;
-            position.atAnchor = referenceNodeOwnAnchorCanonical || referenceNodeOwnAnchor;
-            position.at = `${position.atNode}.${position.atAnchor}`;
+            position.atNode = referenceNodeName;
+            position.atAnchor = cleanAtAnchorName;
+            position.at = cleanReferenceNodeNameAndAtAnchorName;
             position.xAtNodeAnchorOffset = x_offset_safe;
             position.yAtNodeAnchorOffset = y_offset_safe;
             position.xAtNodeAnchorOffsetScaled = x_offset_safe_scaled;
             position.yAtNodeAnchorOffsetScaled = y_offset_safe_scaled;
             position.success = true;
             position.positionType = PositionType.COORDINATES;
+
+            
             return position;
         }
 
@@ -144,17 +151,17 @@ class Position {
         // - referenceNodeAtAnchor or referenceNodeOwnAnchor is undefined
         // - ReferenceNode dimensions (width/height) are missing
         if (
-            referenceNodeAtAnchorCanonical === undefined || 
-            referenceNodeOwnAnchorCanonical === undefined ||
-            ReferenceNode.position?.xScaled === undefined ||
-            ReferenceNode.position?.yScaled === undefined ||
-            ReferenceNode.dimensions?.widthScaled === undefined ||
-            ReferenceNode.dimensions?.heightScaled === undefined
+            referenceNodeAtAnchorStandard === undefined || referenceNodeAtAnchorStandard === null ||
+            referenceNodeOwnAnchorStandard === undefined || referenceNodeOwnAnchorStandard === null ||
+            referenceNode.position?.xScaled === undefined || referenceNode.position?.xScaled === null ||
+            referenceNode.position?.yScaled === undefined || referenceNode.position?.yScaled === null ||
+            referenceNode.dimensions?.widthScaled === undefined || referenceNode.dimensions?.widthScaled === null ||
+            referenceNode.dimensions?.heightScaled === undefined || referenceNode.dimensions?.heightScaled === null
         ){
             position.success = true;
-            position.atNode = ReferenceNodeName;
-            position.atAnchor = referenceNodeAtAnchorCanonical || referenceNodeAtAnchor;
-            position.at = `${position.atNode}.${position.atAnchor}`;
+            position.atNode = referenceNodeName;
+            position.atAnchor = cleanAtAnchorName;
+            position.at = cleanReferenceNodeNameAndAtAnchorName;
             position.xAtNodeAnchorOffset = x_offset_safe;
             position.yAtNodeAnchorOffset = y_offset_safe;
             position.xAtNodeAnchorOffsetScaled = x_offset_safe_scaled;
@@ -165,12 +172,12 @@ class Position {
 
         // Complex case: Transform anchors to calculate coordinates
         // Step 1: Get the center point of the reference node by adjusting for its own anchor
-        const refNodeCenterX = ReferenceNode.position.xScaled - (referenceNodeOwnAnchorVector.x * ReferenceNode.dimensions.widthScaled/2);
-        const refNodeCenterY = ReferenceNode.position.yScaled - (referenceNodeOwnAnchorVector.y * ReferenceNode.dimensions.heightScaled/2);
+        const refNodeCenterX = referenceNode.position.xScaled - (referenceNodeOwnAnchorVector.x * referenceNode.dimensions.widthScaled/2);
+        const refNodeCenterY = referenceNode.position.yScaled - (referenceNodeOwnAnchorVector.y * referenceNode.dimensions.heightScaled/2);
         
         // Step 2: Find the position of the specific anchor point on the reference node
-        const refAnchorPointX = refNodeCenterX + (referenceNodeAtAnchorVector.x * ReferenceNode.dimensions.widthScaled/2);
-        const refAnchorPointY = refNodeCenterY + (referenceNodeAtAnchorVector.y * ReferenceNode.dimensions.heightScaled/2);
+        const refAnchorPointX = refNodeCenterX + (referenceNodeAtAnchorVector.x * referenceNode.dimensions.widthScaled/2);
+        const refAnchorPointY = refNodeCenterY + (referenceNodeAtAnchorVector.y * referenceNode.dimensions.heightScaled/2);
         
         // Step 3: Apply offsets if specified
         const finalXScaled = refAnchorPointX + x_offset_safe_scaled;
@@ -185,9 +192,9 @@ class Position {
         position.yUnscaled = finalY;
         position.xScaled = finalXScaled;
         position.yScaled = finalYScaled;
-        position.atNode = ReferenceNodeName;
-        position.atAnchor = referenceNodeAtAnchorCanonical || referenceNodeAtAnchor;
-        position.at = `${position.atNode}.${position.atAnchor}`;
+        position.atNode = referenceNodeName;
+        position.atAnchor = cleanAtAnchorName;
+        position.at = cleanReferenceNodeNameAndAtAnchorName;
         position.xAtNodeAnchorOffset = x_offset_safe;
         position.yAtNodeAnchorOffset = y_offset_safe;
         position.xAtNodeAnchorOffsetScaled = x_offset_safe_scaled;
@@ -388,4 +395,243 @@ class Position {
     }
 }
 
-module.exports = { Position, PositionType }; 
+class AxisPosition {
+    constructor(options = {}) {
+        this.success = options.success || false;
+        this.valueUnscaled = options.valueUnscaled !== undefined ? options.valueUnscaled : null;
+        this.valueScaled = options.valueScaled !== undefined ? options.valueScaled : null;
+        this.atNode = options.atNode || null;
+        this.atAnchor = options.atAnchor || null;
+        this.at = options.at || null;
+        this.atNodeAnchorOffset = options.atNodeAnchorOffset !== undefined ? options.atNodeAnchorOffset : null;
+        this.atNodeAnchorOffsetScaled = options.atNodeAnchorOffsetScaled !== undefined ? options.atNodeAnchorOffsetScaled : null;
+        this.positionType = options.positionType || null;
+        this.message = options.message || null;
+    }
+
+    static calculateXFromReference(allNodes, position_of, x_by, x_offset, scaleConfig) {
+        const position = new AxisPosition();
+        
+        // Calculate x offset (if any)
+        const x_offset_safe = x_offset !== undefined && x_offset !== null ? parseFloat(x_offset) : 0;
+        const x_offset_safe_scaled = x_offset_safe * scaleConfig.position.x;
+        
+        // Parse reference position string
+        const parts = position_of.split('.');
+        const ReferenceNodeName = parts[0];
+        const ReferenceNode = allNodes.get(ReferenceNodeName);
+        
+        if (!ReferenceNode) {
+            position.message = `Reference node '${ReferenceNodeName}' not found`;
+            return position;
+        }
+        
+        let referenceNodeAtAnchor;
+        let referenceNodeAtAnchorStandard;
+        let referenceNodeAtAnchorVector;
+
+        let referenceNodeOwnAnchor;
+        let referenceNodeOwnAnchorStandard;
+        let referenceNodeOwnAnchorVector;
+
+        // We have a reference node and an anchor
+        if (parts.length > 1) {
+            referenceNodeAtAnchor = parts[1];
+            const ReferenceNodeAnchorInfo = Direction.getStrictAnchorNameAndVector(referenceNodeAtAnchor);
+            
+            referenceNodeAtAnchorStandard = ReferenceNodeAnchorInfo.standard;
+            referenceNodeAtAnchorVector = ReferenceNodeAnchorInfo.vector;
+
+            if (ReferenceNode.anchor !== undefined) {
+                referenceNodeOwnAnchor = ReferenceNode.anchor;
+                const ReferenceNodeOwnAnchorInfo = Direction.getStrictAnchorNameAndVector(referenceNodeOwnAnchor);
+
+                referenceNodeOwnAnchorStandard = ReferenceNodeOwnAnchorInfo.standard;
+                referenceNodeOwnAnchorVector = ReferenceNodeOwnAnchorInfo.vector;
+            }
+            else {
+                referenceNodeOwnAnchor = 'center';
+                referenceNodeOwnAnchorStandard = 'center';
+                referenceNodeOwnAnchorVector = {x: 0, y: 0};
+            }
+        }
+
+        // Simple case: direct reference without anchor transformation
+        if (
+            (
+                parts.length === 1 ||
+                (
+                    (referenceNodeOwnAnchorStandard||referenceNodeOwnAnchor) === 
+                    (referenceNodeAtAnchorStandard||referenceNodeAtAnchor)
+                )
+            )
+            &&
+            !(
+                ReferenceNode.position?.xScaled === undefined
+            )
+        ){
+            const finalXScaled = ReferenceNode.position.xScaled + x_offset_safe_scaled;
+            const finalX = finalXScaled / scaleConfig.position.x;
+            
+            position.valueUnscaled = finalX;
+            position.valueScaled = finalXScaled;
+            position.atNode = ReferenceNodeName;
+            position.atAnchor = referenceNodeOwnAnchorStandard || referenceNodeOwnAnchor;
+            position.at = `${position.atNode}.${position.atAnchor}`;
+            position.atNodeAnchorOffset = x_offset_safe;
+            position.atNodeAnchorOffsetScaled = x_offset_safe_scaled;
+            position.success = true;
+            position.positionType = PositionType.COORDINATES;
+            return position;
+        }
+
+        // If we can't convert anchors to coordinates, use the anchor reference directly
+        if (
+            referenceNodeAtAnchorStandard === undefined || 
+            referenceNodeOwnAnchorStandard === undefined ||
+            ReferenceNode.position?.xScaled === undefined ||
+            ReferenceNode.dimensions?.widthScaled === undefined
+        ){
+            position.success = true;
+            position.atNode = ReferenceNodeName;
+            position.atAnchor = referenceNodeAtAnchorStandard || referenceNodeAtAnchor;
+            position.at = `${position.atNode}.${position.atAnchor}`;
+            position.atNodeAnchorOffset = x_offset_safe;
+            position.atNodeAnchorOffsetScaled = x_offset_safe_scaled;
+            position.positionType = PositionType.NAMED;
+            return position;
+        }
+
+        // Complex case: Transform anchors to calculate coordinates
+        const refNodeCenterX = ReferenceNode.position.xScaled - (referenceNodeOwnAnchorVector.x * ReferenceNode.dimensions.widthScaled/2);
+        const refAnchorPointX = refNodeCenterX + (referenceNodeAtAnchorVector.x * ReferenceNode.dimensions.widthScaled/2);
+        const finalXScaled = refAnchorPointX + x_offset_safe_scaled;
+        const finalX = finalXScaled / scaleConfig.position.x;
+        
+        position.valueUnscaled = finalX;
+        position.valueScaled = finalXScaled;
+        position.atNode = ReferenceNodeName;
+        position.atAnchor = referenceNodeAtAnchorStandard || referenceNodeAtAnchor;
+        position.at = `${position.atNode}.${position.atAnchor}`;
+        position.atNodeAnchorOffset = x_offset_safe;
+        position.atNodeAnchorOffsetScaled = x_offset_safe_scaled;
+        position.positionType = PositionType.COORDINATES;
+        position.success = true;
+        
+        return position;
+    }
+
+    static calculateYFromReference(allNodes, position_of, y_by, y_offset, scaleConfig) {
+        const position = new AxisPosition();
+        
+        // Calculate y offset (if any)
+        const y_offset_safe = y_offset !== undefined && y_offset !== null ? parseFloat(y_offset) : 0;
+        const y_offset_safe_scaled = y_offset_safe * scaleConfig.position.y;
+        
+        // Parse reference position string
+        const parts = position_of.split('.');
+        const ReferenceNodeName = parts[0];
+        const ReferenceNode = allNodes.get(ReferenceNodeName);
+        
+        if (!ReferenceNode) {
+            position.message = `Reference node '${ReferenceNodeName}' not found`;
+            return position;
+        }
+        
+        let referenceNodeAtAnchor;
+        let referenceNodeAtAnchorStandard;
+        let referenceNodeAtAnchorVector;
+
+        let referenceNodeOwnAnchor;
+        let referenceNodeOwnAnchorStandard;
+        let referenceNodeOwnAnchorVector;
+
+        // We have a reference node and an anchor
+        if (parts.length > 1) {
+            referenceNodeAtAnchor = parts[1];
+            const ReferenceNodeAnchorInfo = Direction.getStrictAnchorNameAndVector(referenceNodeAtAnchor);
+            
+            referenceNodeAtAnchorStandard = ReferenceNodeAnchorInfo.standard;
+            referenceNodeAtAnchorVector = ReferenceNodeAnchorInfo.vector;
+
+            if (ReferenceNode.anchor !== undefined) {
+                referenceNodeOwnAnchor = ReferenceNode.anchor;
+                const ReferenceNodeOwnAnchorInfo = Direction.getStrictAnchorNameAndVector(referenceNodeOwnAnchor);
+
+                referenceNodeOwnAnchorStandard = ReferenceNodeOwnAnchorInfo.standard;
+                referenceNodeOwnAnchorVector = ReferenceNodeOwnAnchorInfo.vector;
+            }
+            else {
+                referenceNodeOwnAnchor = 'center';
+                referenceNodeOwnAnchorStandard = 'center';
+                referenceNodeOwnAnchorVector = {x: 0, y: 0};
+            }
+        }
+
+        // Simple case: direct reference without anchor transformation
+        if (
+            (
+                parts.length === 1 ||
+                (
+                    (referenceNodeOwnAnchorStandard||referenceNodeOwnAnchor) === 
+                    (referenceNodeAtAnchorStandard||referenceNodeAtAnchor)
+                )
+            )
+            &&
+            !(
+                ReferenceNode.position?.yScaled === undefined
+            )
+        ){
+            const finalYScaled = ReferenceNode.position.yScaled + y_offset_safe_scaled;
+            const finalY = finalYScaled / scaleConfig.position.y;
+            
+            position.valueUnscaled = finalY;
+            position.valueScaled = finalYScaled;
+            position.atNode = ReferenceNodeName;
+            position.atAnchor = referenceNodeOwnAnchorStandard || referenceNodeOwnAnchor;
+            position.at = `${position.atNode}.${position.atAnchor}`;
+            position.atNodeAnchorOffset = y_offset_safe;
+            position.atNodeAnchorOffsetScaled = y_offset_safe_scaled;
+            position.success = true;
+            position.positionType = PositionType.COORDINATES;
+            return position;
+        }
+
+        // If we can't convert anchors to coordinates, use the anchor reference directly
+        if (
+            referenceNodeAtAnchorStandard === undefined || 
+            referenceNodeOwnAnchorStandard === undefined ||
+            ReferenceNode.position?.yScaled === undefined ||
+            ReferenceNode.dimensions?.heightScaled === undefined
+        ){
+            position.success = true;
+            position.atNode = ReferenceNodeName;
+            position.atAnchor = referenceNodeAtAnchorStandard || referenceNodeAtAnchor;
+            position.at = `${position.atNode}.${position.atAnchor}`;
+            position.atNodeAnchorOffset = y_offset_safe;
+            position.atNodeAnchorOffsetScaled = y_offset_safe_scaled;
+            position.positionType = PositionType.NAMED;
+            return position;
+        }
+
+        // Complex case: Transform anchors to calculate coordinates
+        const refNodeCenterY = ReferenceNode.position.yScaled - (referenceNodeOwnAnchorVector.y * ReferenceNode.dimensions.heightScaled/2);
+        const refAnchorPointY = refNodeCenterY + (referenceNodeAtAnchorVector.y * ReferenceNode.dimensions.heightScaled/2);
+        const finalYScaled = refAnchorPointY + y_offset_safe_scaled;
+        const finalY = finalYScaled / scaleConfig.position.y;
+        
+        position.valueUnscaled = finalY;
+        position.valueScaled = finalYScaled;
+        position.atNode = ReferenceNodeName;
+        position.atAnchor = referenceNodeAtAnchorStandard || referenceNodeAtAnchor;
+        position.at = `${position.atNode}.${position.atAnchor}`;
+        position.atNodeAnchorOffset = y_offset_safe;
+        position.atNodeAnchorOffsetScaled = y_offset_safe_scaled;
+        position.positionType = PositionType.COORDINATES;
+        position.success = true;
+        
+        return position;
+    }
+}
+
+module.exports = { Position, PositionType, AxisPosition }; 
