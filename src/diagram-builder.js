@@ -179,7 +179,7 @@ class DiagramBuilder {
         // Single pass: handle both relative sizing and positioning
         for (const [nodeName, node] of nodes.entries()) {
             
-            const position = Position.calculatePositionAndScale(nodes, node.x, node.y, node.at, node.position_of, node.x_of, node.y_of, node.x_offset, node.y_offset, scaleConfig)
+            const position = Position.calculatePositionAndScale(nodes, node.x, node.y, node.at, node.position_of, node.x_of, node.y_of, undefined, undefined, node.x_offset, node.y_offset, scaleConfig)
             
             node["position"] = position;
 

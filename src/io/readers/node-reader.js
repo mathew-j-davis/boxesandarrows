@@ -73,24 +73,6 @@ class NodeReader {
         const render = new Map();
         const records = [{ ...record }];
 
-        /*
-        x
-        y
-
-        width
-        height
-
-        x_offset
-        y_offset
-        h_offset
-        w_offset
-
-        records
-
-        render
-
-        */
-
         let nodeProperties = {
             name: ValueParser.parse(record.name, 'string'),
             label: ValueParser.parse(record.label, 'string'),
@@ -141,14 +123,14 @@ class NodeReader {
                 positionType: PositionType.COORDINATES
             })
             
-            // ,
-            // // initialize dimensions
-            // dimensions: new Dimensions({
-            //     widthUnscaled: width,
-            //     heightUnscaled: height,
-            //     width: width,
-            //     height: height,
-            // })
+            ,
+            // initialize dimensions
+            dimensions: new Dimensions({
+                widthUnscaled: width,
+                heightUnscaled: height,
+                width: width,
+                height: height,
+            })
         };
 
         // Add any additional properties from the record that aren't already in nodeProperties

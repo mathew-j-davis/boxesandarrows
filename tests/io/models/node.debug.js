@@ -73,7 +73,18 @@ describe('Position.calculatePositionAndScale', () => {
     
     test('should position relative to another node', () => {
         const result = Position.calculatePositionAndScale(
-            {}, allNodes, null, null, null, 'center', 'node1', null, null, 10, 20, scaleConfig
+            allNodes,
+            null,
+            null,
+            null,
+            null,
+            'center',
+            'node1',
+            null,
+            null,
+            10,
+            20,
+            scaleConfig
         );
         
         expect(result.success).toBe(true);

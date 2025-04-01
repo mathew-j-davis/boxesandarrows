@@ -53,14 +53,25 @@ describe('Direct test of calculatePositionFromReference', () => {
     });
     
     test('Simple node reference without anchor', () => {
+
+        let scaleConfig = {
+            size: {
+                w: 1,
+                h: 1
+            },
+            position: {
+                x: 1,
+                y: 1
+            }
+        };
+
         // Direct call to the function
         const result = Position.calculatePositionFromReference(
             allNodes,
             'node1',  // position_of
             10,       // x_offset
             20,       // y_offset
-            1,        // xScale
-            1         // yScale
+            scaleConfig
         );
         
         //console.log('Result:', JSON.stringify(result, null, 2));
@@ -80,14 +91,25 @@ describe('Direct test of calculatePositionFromReference', () => {
     });
     
     test('Node reference with explicit anchor', () => {
+
+        let scaleConfig = {
+            size: {
+                w: 1,
+                h: 1
+            },
+            position: {
+                x: 1,
+                y: 1
+            }
+        };
+        
         // Direct call to the function
         const result = Position.calculatePositionFromReference(
             allNodes,
             'node1.north',  // position_of
             0,       // x_offset
             0,       // y_offset
-            1,        // xScale
-            1         // yScale
+            scaleConfig
         );
         
         //console.log('Result with explicit anchor:', JSON.stringify(result, null, 2));

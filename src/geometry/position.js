@@ -39,19 +39,18 @@ class Position {
      * @param {string} position_of - Reference position string (e.g., "node" or "node.anchor")
      * @param {number} x_offset - X offset from the reference position
      * @param {number} y_offset - Y offset from the reference position
-     * @param {number} xScale - X scale factor
-     * @param {number} yScale - Y scale factor
+     * @param {Object} scaleConfig - Scaling configuration
      * @returns {Position} - Position instance with calculation results
      */
-    static calculatePositionFromReference(allNodes, position_of, x_offset, y_offset, xScale, yScale) {
+    static calculatePositionFromReference(allNodes, position_of, x_offset, y_offset, scaleConfig) {
         // Initialize position object
         const position = new Position();
         
         // Calculate offsets (if any)
         const x_offset_safe = x_offset !== undefined && x_offset !== null ? parseFloat(x_offset) : 0;
         const y_offset_safe = y_offset !== undefined && y_offset !== null ? parseFloat(y_offset) : 0;
-        const x_offset_safe_scaled = x_offset_safe * xScale;
-        const y_offset_safe_scaled = y_offset_safe * yScale;
+        const x_offset_safe_scaled = x_offset_safe * scaleConfig.position.x;
+        const y_offset_safe_scaled = y_offset_safe * scaleConfig.position.y;
         
         // Parse reference position string
         const parts = position_of.split('.');
@@ -120,8 +119,8 @@ class Position {
             const finalYScaled = ReferenceNode.position.yScaled + y_offset_safe_scaled;
             
             // Back-calculate to unscaled coordinates
-            const finalX = finalXScaled / xScale;
-            const finalY = finalYScaled / yScale;
+            const finalX = finalXScaled / scaleConfig.position.x;
+            const finalY = finalYScaled / scaleConfig.position.y;
             
             // Update the position object
             position.xUnscaled = finalX;
@@ -178,8 +177,8 @@ class Position {
         const finalYScaled = refAnchorPointY + y_offset_safe_scaled;
         
         // Step 4: Back-calculate to unscaled coordinates
-        const finalX = finalXScaled / xScale;
-        const finalY = finalYScaled / yScale;
+        const finalX = finalXScaled / scaleConfig.position.x;
+        const finalY = finalYScaled / scaleConfig.position.y;
         
         // Update the position object
         position.xUnscaled = finalX;
@@ -212,7 +211,17 @@ class Position {
      * @param {Object} scaleConfig - Scaling configuration
      * @returns {Position} - Position instance with calculation results
      */
-    static calculatePositionAndScale(allNodes, x, y, at, position_of, x_of, y_of, x_offset, y_offset, scaleConfig) {
+    static calculatePositionAndScale(allNodes, x, y, at, position_of, x_of, y_of, x_by = 1.0, y_by = 1.0, x_offset = 0.0, y_offset = 0.0, scaleConfig) {
+
+
+
+        // x_by and y_by are used to scale the x and y coordinates
+        // currently, 
+        // x_by and y_by can only be used if the position can be converted to coordinates
+
+        // x_offset and y_offset are used to offset the x and y coordinates
+        // scaleConfig is used to get the scale factors for the x and y coordinates
+
         // Initialize position object
         const position = new Position();
         
@@ -220,24 +229,45 @@ class Position {
         const xScale = scaleConfig?.position?.x || 1;
         const yScale = scaleConfig?.position?.y || 1;
         
-        let xScaled = undefined;
-        let yScaled = undefined;
-
-        if (x !== undefined && x !== null){
-            xScaled = x * xScale;
+        scaleConfig = {
+            position: {
+                x: scaleConfig?.position?.x || 1.0,
+                y: scaleConfig?.position?.y || 1.0
+            },
+            size: {
+                w: scaleConfig?.size?.w || 1.0,
+                h: scaleConfig?.size?.h || 1.0
+            }
         }
+        
+        let x_safe = parseFloat(x) || 0;
+        let y_safe = parseFloat(y) || 0;
 
-        if (y !== undefined && y !== null){
-            yScaled = y * yScale;
-        }
+        x_by = parseFloat(x_by) || 1.0;
+        y_by = parseFloat(y_by) || 1.0;
+        x_offset = parseFloat(x_offset) || 0.0;
+        y_offset = parseFloat(y_offset) || 0.0;
 
-        let xUnscaled_safe = parseFloat(x) || 0;
-        let yUnscaled_safe = parseFloat(y) || 0;
+        let xUnscaled = (x_safe * x_by) + x_offset;
+        let xScaled = xUnscaled * xScale;
+
+        let yUnscaled = (y_safe * y_by) + y_offset;
+        let yScaled = yUnscaled * yScale;
 
         // Case : Direct positioning with x,y coordinates
-        if (xScaled !== undefined && xScaled !== null && yScaled !== undefined && yScaled !== null) {
-            position.xUnscaled = xUnscaled_safe;
-            position.yUnscaled = yUnscaled_safe;
+        // only used if the user has set x and y directly
+        if (
+            x !== undefined && 
+            x !== null &&
+            y !== null &&
+            y !== undefined &&
+            xUnscaled !== undefined && xUnscaled !== null &&
+            yUnscaled !== undefined && yUnscaled !== null &&
+            xScaled !== undefined && xScaled !== null &&
+            yScaled !== undefined && yScaled !== null
+        ) {
+            position.xUnscaled = xUnscaled;
+            position.yUnscaled = yUnscaled;
             position.xScaled = xScaled;
             position.yScaled = yScaled;
             position.success = true;
@@ -264,23 +294,12 @@ class Position {
         // so that we can use the rest of the code without having to check if the values are set
 
         // as we know that we don't have both x and y set
-        // we will attempt to position the node relative to another node or nodes using some combination of the parameters:
-
-        // position_of, 
-        // x_of, y_of
-        // x_offset, y_offset
-
-        xScaled = xUnscaled_safe * xScale;
-        yScaled = yUnscaled_safe * yScale;
-
-        // calculate offsets (if any)
-        const x_of_offset_safe = x_offset !== undefined && x_offset !== null ? parseFloat(x_offset) : 0;
-        const y_of_offset_safe = y_offset !== undefined && y_offset !== null ? parseFloat(y_offset) : 0;
+        // we will attempt to position the node relative to another node or nodes using some combination of the parameters
 
 
         // Position relative to another node using position_of
         if (position_of) {
-            const refPosition = Position.calculatePositionFromReference(allNodes, position_of, x_of_offset_safe, y_of_offset_safe, xScale, yScale);
+            const refPosition = Position.calculatePositionFromReference(allNodes, position_of, x_offset, y_offset, scaleConfig);
             
             if (refPosition.success) {
                 // If we got coordinates, copy coordinate information
@@ -324,7 +343,7 @@ class Position {
         
         // Process x coordinate using x_of
         if (x_of) {
-            xRefPosition = Position.calculatePositionFromReference(allNodes, x_of, x_of_offset_safe, 0, xScale, yScale);
+            xRefPosition = Position.calculatePositionFromReference(allNodes, x_of, x_offset, 0, scaleConfig);
             x_calculated = xRefPosition.success && xRefPosition.positionType === PositionType.COORDINATES;
             if (!x_calculated) {
                 position.message = xRefPosition.message;
@@ -334,7 +353,7 @@ class Position {
         
         // Process y coordinate using y_of
         if (y_of) {
-            yRefPosition = Position.calculatePositionFromReference(allNodes, y_of, 0, y_of_offset_safe, xScale, yScale);
+            yRefPosition = Position.calculatePositionFromReference(allNodes, y_of, 0, y_offset, scaleConfig);
             y_calculated = yRefPosition.success && yRefPosition.positionType === PositionType.COORDINATES;
             if (!y_calculated) {
                 position.message = yRefPosition.message;
@@ -349,7 +368,7 @@ class Position {
             position.positionType = PositionType.COORDINATES;
 
             if (!y_calculated) {
-                position.yUnscaled = yUnscaled_safe;
+                position.yUnscaled = y_safe;
                 position.yScaled = yScaled;
             }
         }
@@ -361,7 +380,7 @@ class Position {
             position.positionType = PositionType.COORDINATES;
 
             if (!x_calculated) {
-                position.xUnscaled = xUnscaled_safe;
+                position.xUnscaled = x_safe;
                 position.xScaled = xScaled;
             }
         }

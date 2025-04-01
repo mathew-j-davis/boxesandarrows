@@ -448,31 +448,35 @@ describe('EdgeReader', () => {
       // Create mock nodes
       const startNode = {
         name: 'start',
-        // xScaled: 0,
-        // yScaled: 0,
-        width: 10,
-        height: 10,
         position: {
           xUnscaled: 0,
           yUnscaled: 0,
           xScaled: 0,
           yScaled: 0,
           positionType: PositionType.COORDINATES
+        },
+        dimensions: {
+          widthUnscaled: 10,
+          heightUnscaled: 10,
+          widthScaled: 10,
+          heightScaled: 10
         }
       };
       
       const endNode = {
         name: 'end',
-        // xScaled: 20,
-        // yScaled: 0, 
-        width: 10,
-        height: 10,
         position: {
           xUnscaled: 20,
           yUnscaled: 0,
           xScaled: 20,
           yScaled: 0,
           positionType: PositionType.COORDINATES
+        },
+        dimensions: {
+          widthUnscaled: 10,
+          heightUnscaled: 10,
+          widthScaled: 10,
+          heightScaled: 10
         }
       };
       
@@ -486,31 +490,35 @@ describe('EdgeReader', () => {
       // Create mock nodes
       const startNode = {
         name: 'start',
-        // xScaled: 0,
-        // yScaled: 0,
-        width: 10,
-        height: 10,
         position: {
           xUnscaled: 0,
           yUnscaled: 0,
           xScaled: 0,
           yScaled: 0,
           positionType: PositionType.COORDINATES
+        },
+        dimensions: {
+          widthUnscaled: 10,
+          heightUnscaled: 10,
+          widthScaled: 10,
+          heightScaled: 10
         }
       };
       
       const endNode = {
         name: 'end',
-        // xScaled: 0,
-        // yScaled: 20,
-        width: 10,
-        height: 10,
         position: {
           xUnscaled: 0,
           yUnscaled: 20,
           xScaled: 0,
           yScaled: 20,
           positionType: PositionType.COORDINATES
+        },
+        dimensions: {
+          widthUnscaled: 10,
+          heightUnscaled: 10,
+          widthScaled: 10,
+          heightScaled: 10
         }
       };
       
@@ -523,31 +531,35 @@ describe('EdgeReader', () => {
     test('should honor explicit directions', () => {
       const startNode = {
         name: 'start',
-        // xScaled: 0,
-        // yScaled: 0,
-        width: 10,
-        height: 10,
         position: {
           xUnscaled: 0,
           yUnscaled: 0,
           xScaled: 0,
           yScaled: 0,
           positionType: PositionType.COORDINATES
+        },
+        dimensions: {
+          widthUnscaled: 10,
+          heightUnscaled: 10,
+          widthScaled: 10,
+          heightScaled: 10
         }
       };
       
       const endNode = {
         name: 'end',
-        // xScaled: 20,
-        // yScaled: 0,
-        width: 10,
-        height: 10,
         position: {
           xUnscaled: 20,
           yUnscaled: 0,
           xScaled: 20,
           yScaled: 0,
           positionType: PositionType.COORDINATES
+        },
+        dimensions: {
+          widthUnscaled: 10,
+          heightUnscaled: 10,
+          widthScaled: 10,
+          heightScaled: 10
         }
       };
       
@@ -561,31 +573,35 @@ describe('EdgeReader', () => {
       // Create mock nodes
       const startNode = {
         name: 'start',
-          // xScaled: 0,
-          // yScaled: 0,
-        width: 10,
-        height: 10,
         position: {
           xUnscaled: 0,
           yUnscaled: 0,
           xScaled: 0,
           yScaled: 0,
           positionType: PositionType.COORDINATES
+        },
+        dimensions: {
+          widthUnscaled: 10,
+          heightUnscaled: 10,
+          widthScaled: 10,
+          heightScaled: 10
         }
       };
       
       const endNode = {
         name: 'end',
-          // xScaled: -20,
-          // yScaled: 20,
-        width: 10,
-        height: 10,
         position: {
           xUnscaled: -20,
           yUnscaled: 20,
           xScaled: -20,
           yScaled: 20,
           positionType: PositionType.COORDINATES
+        },
+        dimensions: {
+          widthUnscaled: 10,
+          heightUnscaled: 10,
+          widthScaled: 10,
+          heightScaled: 10
         }
       };
       
@@ -602,29 +618,33 @@ describe('EdgeReader', () => {
       
       // Position 1: End node directly to the right
       const startNode1 = { 
-        // xScaled: 0, 
-        // yScaled: 0, 
-        width: 10, 
-        height: 10,
         position: {
           xUnscaled: 0,
           yUnscaled: 0,
           xScaled: 0,
           yScaled: 0,
           positionType: PositionType.COORDINATES
+        },
+        dimensions: {
+          widthUnscaled: 10,
+          heightUnscaled: 10,
+          widthScaled: 10,
+          heightScaled: 10
         }
       };
       const endNode1 = { 
-        // xScaled: 50, 
-        // yScaled: 0, 
-        width: 10, 
-        height: 10,
         position: {
           xUnscaled: 50,
           yUnscaled: 0,
           xScaled: 50,
           yScaled: 0,
           positionType: PositionType.COORDINATES
+        },
+        dimensions: {
+          widthUnscaled: 10,
+          heightUnscaled: 10,
+          widthScaled: 10,
+          heightScaled: 10
         }
       };
       const result1 = EdgeReader.setConnectionDirections(startNode1, endNode1, 'auto', 'auto');
@@ -634,29 +654,33 @@ describe('EdgeReader', () => {
       
       // Position 2: End node directly to the left
       const startNode2 = { 
-        // xScaled: 0, 
-        // yScaled: 0, 
-        width: 10, 
-        height: 10,
         position: {
           xUnscaled: 0,
           yUnscaled: 0,
           xScaled: 0,
           yScaled: 0,
           positionType: PositionType.COORDINATES
+        },
+        dimensions: {
+          widthUnscaled: 10,
+          heightUnscaled: 10,
+          widthScaled: 10,
+          heightScaled: 10
         }
       };
       const endNode2 = { 
-        // xScaled: -50, 
-        // yScaled: 0, 
-        width: 10, 
-        height: 10,
         position: {
           xUnscaled: -50,
           yUnscaled: 0,
           xScaled: -50,
           yScaled: 0,
           positionType: PositionType.COORDINATES
+        },
+        dimensions: {
+          widthUnscaled: 10,
+          heightUnscaled: 10,
+          widthScaled: 10,
+          heightScaled: 10
         }
       };
       const result2 = EdgeReader.setConnectionDirections(startNode2, endNode2, 'auto', 'auto');
@@ -666,29 +690,33 @@ describe('EdgeReader', () => {
       
       // Position 3: End node directly above
       const startNode3 = { 
-        // xScaled: 0, 
-        // yScaled: 0, 
-        width: 10, 
-        height: 10,
         position: {
           xUnscaled: 0,
           yUnscaled: 0,
           xScaled: 0,
           yScaled: 0,
           positionType: PositionType.COORDINATES
+        },
+        dimensions: {
+          widthUnscaled: 10,
+          heightUnscaled: 10,
+          widthScaled: 10,
+          heightScaled: 10
         }
       };
       const endNode3 = { 
-        // xScaled: 0, 
-        // yScaled: 50, 
-        width: 10, 
-        height: 10,
         position: {
           xUnscaled: 0,
           yUnscaled: 50,
           xScaled: 0,
           yScaled: 50,
           positionType: PositionType.COORDINATES
+        },
+        dimensions: {
+          widthUnscaled: 10,
+          heightUnscaled: 10,
+          widthScaled: 10,
+          heightScaled: 10
         }
       };
       const result3 = EdgeReader.setConnectionDirections(startNode3, endNode3, 'auto', 'auto');
@@ -697,60 +725,68 @@ describe('EdgeReader', () => {
       
       // Position 4: End node directly below
       const startNode4 = { 
-        // xScaled: 0, 
-        // yScaled: 0, 
-        width: 10, 
-        height: 10,
         position: {
           xUnscaled: 0,
           yUnscaled: 0,
           xScaled: 0,
           yScaled: 0,
           positionType: PositionType.COORDINATES
+        },
+        dimensions: {
+          widthUnscaled: 10,
+          heightUnscaled: 10,
+          widthScaled: 10,
+          heightScaled: 10
         }
       };
       const endNode4 = { 
-        // xScaled: 0, 
-        // yScaled: -50, 
-        width: 10, 
-        height: 10,
         position: {
           xUnscaled: 0,
           yUnscaled: -50,
           xScaled: 0,
           yScaled: -50,
           positionType: PositionType.COORDINATES
+        },
+        dimensions: {
+          widthUnscaled: 10,
+          heightUnscaled: 10,
+          widthScaled: 10,
+          heightScaled: 10
         }
       };
       const result4 = EdgeReader.setConnectionDirections(startNode4, endNode4, 'auto', 'auto');
       expect(result4.startAnchor).toBe('south');
       expect(result4.endAnchor).toBe('north');
       
-      // Position 5: End node to the upper left (diagonal) - like our failing test
+      // Position 5: End node to the upper left (diagonal)
       const startNode5 = { 
-        // xScaled: 0, 
-        // yScaled: 0, 
-        width: 10, 
-        height: 10,
         position: {
           xUnscaled: 0,
           yUnscaled: 0,
           xScaled: 0,
           yScaled: 0,
           positionType: PositionType.COORDINATES
+        },
+        dimensions: {
+          widthUnscaled: 10,
+          heightUnscaled: 10,
+          widthScaled: 10,
+          heightScaled: 10
         }
       };
       const endNode5 = { 
-        // xScaled: -20, 
-        // yScaled: 20, 
-        width: 10, 
-        height: 10,
         position: {
           xUnscaled: -20,
           yUnscaled: 20,
           xScaled: -20,
           yScaled: 20,
           positionType: PositionType.COORDINATES
+        },
+        dimensions: {
+          widthUnscaled: 10,
+          heightUnscaled: 10,
+          widthScaled: 10,
+          heightScaled: 10
         }
       };
       const result5 = EdgeReader.setConnectionDirections(startNode5, endNode5, 'auto', 'auto');
