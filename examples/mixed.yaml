@@ -25,6 +25,10 @@ h: 3
 w: 3
 edge_color: "#001122"
 textcolor: "#001122"
+_latex:
+  flags:
+    font: \sffamily
+    size: \small
 ---
 type: node
 name: b
