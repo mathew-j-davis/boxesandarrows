@@ -6,6 +6,7 @@ const { Node } = require('../models/node');
 const ValueParser = require('./value-parser');
 const { Position, PositionType } = require('../../geometry/position');
 const Dimensions = require('../../geometry/dimensions');
+const DynamicPropertyParser = require('./dynamic-property-parser');
 
 class NodeReader {
 
@@ -15,7 +16,30 @@ class NodeReader {
     }
 
     static async readRecordsFromCsv(nodeFile) {
-        return await CsvReader.readFile(nodeFile);
+        const records = await CsvReader.readFile(nodeFile);
+        
+        // Process each record for dynamic properties
+        return records.map(record => {
+            const dynamicProps = [];
+            
+            // Scan for dynamic property patterns (keys starting with underscore)
+            for (const [key, value] of Object.entries(record)) {
+                if (key.startsWith('_') && DynamicPropertyParser.isDynamicProperty(key)) {
+                    const property = DynamicPropertyParser.parse(key, value);
+                    dynamicProps.push(property);
+                }
+            }
+            
+            // Add dynamic properties to record if any were found
+            if (dynamicProps.length > 0) {
+                return {
+                    ...record,
+                    _dynamicProperties: dynamicProps
+                };
+            }
+            
+            return record;
+        });
     }
 
         /**
@@ -121,9 +145,8 @@ class NodeReader {
                 xScaled: 0,
                 yScaled: 0,
                 positionType: PositionType.COORDINATES
-            })
+            }),
             
-            ,
             // initialize dimensions
             dimensions: new Dimensions({
                 widthUnscaled: width,
@@ -140,6 +163,11 @@ class NodeReader {
             if (!(key in nodeProperties) && !processedKeys.has(key)) {
                 nodeProperties[key] = record[key];
             }
+        }
+
+        // Add dynamic properties to nodeProperties
+        if (record._dynamicProperties) {
+            nodeProperties._dynamicProperties = record._dynamicProperties;
         }
 
         return new Node(nodeProperties);

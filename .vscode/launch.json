@@ -215,6 +215,19 @@
             "windows": {
                 "program": "${workspaceFolder}/node_modules/jest/bin/jest"
             }
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Debug Current File",
+            "program": "${file}",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "console": "integratedTerminal",
+            "outFiles": [
+                "${workspaceFolder}/**/*.js"
+            ]
         }
     ]
 }
