@@ -1,6 +1,20 @@
 const DynamicPropertyMerger = require('../../src/io/readers/dynamic-property-merger');
 const DynamicPropertyParser = require('../../src/io/readers/dynamic-property-parser');
 
+// Helper function to create a property
+function createProperty(renderer, group, name, dataType, value, isFlag = false) {
+    return {
+        renderer,
+        group,
+        name,
+        dataType,
+        value,
+        isFlag,
+        groupPathArray: group ? group.split('.') : [],
+        namePathArray: name ? name.split('.') : []
+    };
+}
+
 describe('DynamicPropertyMerger', () => {
     // Define test renderer priorities (as would be provided by the latex renderer)
     const rendererPriorities = ['common', 'vector', 'latex'];
@@ -8,12 +22,12 @@ describe('DynamicPropertyMerger', () => {
     test('should merge properties based on renderer priorities', () => {
         // Sample dynamic properties
         const dynamicProperties = [
-            DynamicPropertyParser.parse('_common_label_string_font', 'Arial'),
-            DynamicPropertyParser.parse('_vector_label_string_font', 'Helvetica'),
-            DynamicPropertyParser.parse('_latex_label_string_font', 'Computer Modern'),
-            DynamicPropertyParser.parse('_common_object_float_margin', 5),
-            DynamicPropertyParser.parse('_latex__float_margin', 10), // No group
-            DynamicPropertyParser.parse('___boolean_visible', true)  // No renderer or group
+            createProperty('common', 'label', 'font', 'string', 'Arial'),
+            createProperty('vector', 'label', 'font', 'string', 'Helvetica'),
+            createProperty('latex', 'label', 'font', 'string', 'Computer Modern'),
+            createProperty('common', 'object', 'margin', 'float', 5),
+            createProperty('latex', '', 'margin', 'float', 10), // No group
+            createProperty('common', '', 'visible', 'boolean', true)  // No renderer or group
         ];
         
         // Merge the properties
@@ -38,11 +52,35 @@ describe('DynamicPropertyMerger', () => {
         expect(visibleProp.value).toBe(true);
     });
 
+    test('should only include properties with renderers in the priority list', () => {
+        // Create properties including one with a renderer not in the priorities
+        const dynamicProperties = [
+            createProperty('common', 'label', 'font', 'string', 'Arial'),
+            createProperty('unknown', 'label', 'color', 'string', 'red'),
+            createProperty('vector', 'label', 'size', 'float', 12)
+        ];
+        
+        const mergedProperties = DynamicPropertyMerger.mergeProperties(dynamicProperties, rendererPriorities);
+        
+        // Should only include the properties with renderers in the priority list
+        expect(mergedProperties.length).toBe(2);
+        
+        const fontProp = mergedProperties.find(p => p.name === 'font');
+        expect(fontProp).toBeTruthy();
+        
+        const sizeProp = mergedProperties.find(p => p.name === 'size');
+        expect(sizeProp).toBeTruthy();
+        
+        // The unknown renderer property should be excluded
+        const colorProp = mergedProperties.find(p => p.name === 'color');
+        expect(colorProp).toBeFalsy();
+    });
+    
     test('should treat common renderer and null renderer as equivalent', () => {
         // Create properties with matching names but different renderers
         let dynamicProperties = [
-            DynamicPropertyParser.parse('_common__string_font', 'Arial'),     // Has common renderer, no group
-            DynamicPropertyParser.parse('___string_font', 'Helvetica')        // No renderer, no group
+            createProperty('common', '', 'font', 'string', 'Arial'),     // Has common renderer, no group
+            createProperty(null, '', 'font', 'string', 'Helvetica')      // No renderer, no group
         ];
         
         let mergedProperties = DynamicPropertyMerger.mergeProperties(dynamicProperties, rendererPriorities);
@@ -53,8 +91,8 @@ describe('DynamicPropertyMerger', () => {
         
         // Now test in reverse order
         dynamicProperties = [
-            DynamicPropertyParser.parse('___string_font', 'Helvetica'),       // No renderer
-            DynamicPropertyParser.parse('_common__string_font', 'Arial')      // Common renderer
+            createProperty(null, '', 'font', 'string', 'Helvetica'),    // No renderer
+            createProperty('common', '', 'font', 'string', 'Arial')     // Common renderer
         ];
         
         mergedProperties = DynamicPropertyMerger.mergeProperties(dynamicProperties, rendererPriorities);
@@ -65,9 +103,9 @@ describe('DynamicPropertyMerger', () => {
         
         // Both should lose to a higher priority renderer
         dynamicProperties = [
-            DynamicPropertyParser.parse('___string_font', 'Helvetica'),       // No renderer
-            DynamicPropertyParser.parse('_common__string_font', 'Arial'),     // Common renderer
-            DynamicPropertyParser.parse('_vector__string_font', 'Sans')       // Vector renderer (higher priority)
+            createProperty(null, '', 'font', 'string', 'Helvetica'),     // No renderer
+            createProperty('common', '', 'font', 'string', 'Arial'),     // Common renderer
+            createProperty('vector', '', 'font', 'string', 'Sans')       // Vector renderer (higher priority)
         ];
         
         mergedProperties = DynamicPropertyMerger.mergeProperties(dynamicProperties, rendererPriorities);
@@ -81,9 +119,9 @@ describe('DynamicPropertyMerger', () => {
     test('should process dynamic properties directly', () => {
         // Create a dynamic properties array
         const dynamicProperties = [
-            DynamicPropertyParser.parse('_common_label_string_font', 'Arial'),
-            DynamicPropertyParser.parse('_vector_label_string_font', 'Helvetica'),
-            DynamicPropertyParser.parse('_latex_object_float_margin', 10)
+            createProperty('common', 'label', 'font', 'string', 'Arial'),
+            createProperty('vector', 'label', 'font', 'string', 'Helvetica'),
+            createProperty('latex', 'object', 'margin', 'float', 10)
         ];
         
         const mergedProperties = DynamicPropertyMerger.processDynamicProperties(dynamicProperties, rendererPriorities);
@@ -99,42 +137,107 @@ describe('DynamicPropertyMerger', () => {
         expect(marginProp.value).toBe(10);
     });
     
-    test('should handle hierarchical group paths', () => {
+    test('should handle hierarchical names by removing child properties with lower priority', () => {
+        // Create properties with hierarchical names
         const dynamicProperties = [
-            DynamicPropertyParser.parse('_latex_font.style_string_family', 'serif'),
-            DynamicPropertyParser.parse('_latex_font.style_boolean_bold', true),
-            DynamicPropertyParser.parse('_latex_font.style.weight_integer_thickness', 700)
+            createProperty('vector', 'donkey', 'thing.subthing', 'string', 'biscuit'),
+            createProperty('vector', 'donkey', 'thing.subthing.flavor', 'string', 'chocolate'),
+            createProperty('latex', 'donkey', 'thing.subthing.crunchiness', 'string', 'high')
         ];
         
         const mergedProperties = DynamicPropertyMerger.mergeProperties(dynamicProperties, rendererPriorities);
         
-        expect(mergedProperties.length).toBe(3);
+        // Since 'thing.subthing' is added first, it should remove 'thing.subthing.flavor'
+        // But not 'thing.subthing.crunchiness' which has higher priority
+        expect(mergedProperties.length).toBe(2);
         
-        const familyProp = mergedProperties.find(p => p.name === 'family');
-        expect(familyProp.group).toBe('font.style');
+        // Check the biscuit property is there
+        const biscuitProp = mergedProperties.find(p => 
+            p.group === 'donkey' && p.name === 'thing.subthing'
+        );
+        expect(biscuitProp).toBeTruthy();
+        expect(biscuitProp.value).toBe('biscuit');
         
-        const weightProp = mergedProperties.find(p => p.name === 'thickness');
-        expect(weightProp.group).toBe('font.style.weight');
+        // Check the flavor property is gone (equal priority and child of thing.subthing)
+        const flavorProp = mergedProperties.find(p => 
+            p.group === 'donkey' && p.name === 'thing.subthing.flavor'
+        );
+        expect(flavorProp).toBeFalsy();
+        
+        // Check the crunchiness property is still there (higher priority)
+        const crunchinessProp = mergedProperties.find(p => 
+            p.group === 'donkey' && p.name === 'thing.subthing.crunchiness'
+        );
+        expect(crunchinessProp).toBeTruthy();
+        expect(crunchinessProp.value).toBe('high');
     });
     
-    test('should convert merged properties to hierarchical structure', () => {
+    test('should handle null values', () => {
+        // Create properties with null values
         const dynamicProperties = [
-            DynamicPropertyParser.parse('_latex_font.style_string_family', 'serif'),
-            DynamicPropertyParser.parse('_latex_font.style_boolean_bold', true),
-            DynamicPropertyParser.parse('_latex_font.style.weight_integer_thickness', 700),
-            DynamicPropertyParser.parse('_latex__float_margin', 10),
-            DynamicPropertyParser.parse('___string_title', 'My Diagram')
+            createProperty('vector', 'test', 'prop1', 'string', 'value'),
+            createProperty('vector', 'test', 'prop1.child', 'string', 'child value'),
+            createProperty('vector', 'test', 'prop1', 'string', null) // null value should still replace children
+        ];
+        
+        const mergedProperties = DynamicPropertyMerger.mergeProperties(dynamicProperties, rendererPriorities);
+        
+        // Should have only the null-valued property (child was removed)
+        expect(mergedProperties.length).toBe(1);
+        
+        const nullProp = mergedProperties[0];
+        expect(nullProp.group).toBe('test');
+        expect(nullProp.name).toBe('prop1');
+        expect(nullProp.value).toBeNull();
+    });
+    
+    test('should only consider properties with same group when removing children', () => {
+        // Create properties with same name pattern but different groups
+        const dynamicProperties = [
+            createProperty('vector', 'group1', 'thing', 'string', 'value1'),
+            createProperty('vector', 'group1', 'thing.child', 'string', 'child1'),
+            createProperty('vector', 'group2', 'thing', 'string', 'value2'),
+            createProperty('vector', 'group2', 'thing.child', 'string', 'child2')
+        ];
+        
+        const mergedProperties = DynamicPropertyMerger.mergeProperties(dynamicProperties, rendererPriorities);
+        
+        // Should keep the parent properties and remove the children for each group
+        expect(mergedProperties.length).toBe(2);
+        
+        // Group1 property
+        const group1Prop = mergedProperties.find(p => p.group === 'group1');
+        expect(group1Prop).toBeTruthy();
+        expect(group1Prop.name).toBe('thing');
+        
+        // Group2 property
+        const group2Prop = mergedProperties.find(p => p.group === 'group2');
+        expect(group2Prop).toBeTruthy();
+        expect(group2Prop.name).toBe('thing');
+        
+        // Neither child property should remain
+        const childProps = mergedProperties.filter(p => p.name.includes('child'));
+        expect(childProps.length).toBe(0);
+    });
+    
+    test('should maintain parent-child relationships in the hierarchy output', () => {
+        const dynamicProperties = [
+            createProperty('vector', 'font', 'color', 'string', 'black'),
+            createProperty('vector', 'font', 'style.weight', 'string', 'bold'),
+            createProperty('vector', 'font', 'style.decoration', 'string', 'underline'),
+            createProperty('vector', '', 'margin.top', 'float', 10),
+            createProperty('vector', '', 'margin.bottom', 'float', 20)
         ];
         
         const mergedProperties = DynamicPropertyMerger.mergeProperties(dynamicProperties, rendererPriorities);
         const hierarchy = DynamicPropertyMerger.toHierarchy(mergedProperties);
         
-        // Check the hierarchy structure
-        expect(hierarchy.font.style.family).toBe('serif');
-        expect(hierarchy.font.style.bold).toBe(true);
-        expect(hierarchy.font.style.weight.thickness).toBe(700);
-        expect(hierarchy.margin).toBe(10);
-        expect(hierarchy.title).toBe('My Diagram');
+        // Check the hierarchy structure with dot notation in names
+        expect(hierarchy.font.color).toBe('black');
+        expect(hierarchy.font.style.weight).toBe('bold');
+        expect(hierarchy.font.style.decoration).toBe('underline');
+        expect(hierarchy.margin.top).toBe(10);
+        expect(hierarchy.margin.bottom).toBe(20);
     });
     
     test('should handle empty or invalid input', () => {
@@ -146,124 +249,49 @@ describe('DynamicPropertyMerger', () => {
         
         // Empty array
         expect(DynamicPropertyMerger.processDynamicProperties([], rendererPriorities)).toEqual([]);
+        
+        // Invalid renderer priorities
+        expect(DynamicPropertyMerger.processDynamicProperties([
+            createProperty('vector', 'test', 'prop', 'string', 'value')
+        ], null)).toEqual([]);
     });
     
-    test('should process hierarchical properties with deepest children taking priority', () => {
-        // Create properties with hierarchical names
+    test('should properly handle the example scenario', () => {
+        // The example scenario from the requirements
         const dynamicProperties = [
-            DynamicPropertyParser.parse('_string_latex__draw', 'solid'),
-            DynamicPropertyParser.parse('_string_latex__draw.color', 'red'),
-            DynamicPropertyParser.parse('_string_latex__draw.pattern', 'dashed'),
-            DynamicPropertyParser.parse('_string_latex__draw.pattern.color', 'blue'),
-            DynamicPropertyParser.parse('_float_latex__draw.width', 2),
-            DynamicPropertyParser.parse('_float_latex__draw.pattern.width', 1)
+            // First add some properties in various renderers
+            createProperty('common', 'donkey', 'thing.subthing.flavor', 'string', 'vanilla'),
+            createProperty('latex', 'donkey', 'thing.subthing.crunchiness', 'string', 'high'),
+            
+            // Then add the vector property which should remove flavor but not crunchiness
+            createProperty('vector', 'donkey', 'thing.subthing', 'string', 'biscuit')
         ];
         
-        // Process the hierarchical properties
-        const processedProperties = DynamicPropertyMerger.processHierarchicalProperties(dynamicProperties);
+        const mergedProperties = DynamicPropertyMerger.mergeProperties(dynamicProperties, rendererPriorities);
         
-        // Should have 4 properties (draw.color, draw.pattern.color, draw.width, draw.pattern.width)
-        // draw and draw.pattern are overridden by their children
-        expect(processedProperties.length).toBe(4);
+        // Should have two properties
+        expect(mergedProperties.length).toBe(2);
         
-        // Check that the correct properties were kept
-        const drawColorProp = processedProperties.find(p => p.name === 'draw.color');
-        expect(drawColorProp).toBeTruthy();
-        expect(drawColorProp.value).toBe('red');
+        // Check the biscuit property is there
+        const biscuitProp = mergedProperties.find(p => 
+            p.group === 'donkey' && p.name === 'thing.subthing'
+        );
+        expect(biscuitProp).toBeTruthy();
+        expect(biscuitProp.value).toBe('biscuit');
+        expect(biscuitProp.renderer).toBe('vector');
         
-        const drawPatternColorProp = processedProperties.find(p => p.name === 'draw.pattern.color');
-        expect(drawPatternColorProp).toBeTruthy();
-        expect(drawPatternColorProp.value).toBe('blue');
+        // Check the flavor property is gone (lower priority child)
+        const flavorProp = mergedProperties.find(p => 
+            p.group === 'donkey' && p.name === 'thing.subthing.flavor'
+        );
+        expect(flavorProp).toBeFalsy();
         
-        const drawWidthProp = processedProperties.find(p => p.name === 'draw.width');
-        expect(drawWidthProp).toBeTruthy();
-        expect(drawWidthProp.value).toBe(2);
-        
-        const drawPatternWidthProp = processedProperties.find(p => p.name === 'draw.pattern.width');
-        expect(drawPatternWidthProp).toBeTruthy();
-        expect(drawPatternWidthProp.value).toBe(1);
-        
-        // Check that the parent properties were removed
-        const drawProp = processedProperties.find(p => p.name === 'draw');
-        expect(drawProp).toBeFalsy();
-        
-        const drawPatternProp = processedProperties.find(p => p.name === 'draw.pattern');
-        expect(drawPatternProp).toBeFalsy();
-    });
-    
-    test('should handle complex hierarchical properties', () => {
-        // Create properties with complex hierarchical names
-        const dynamicProperties = [
-            DynamicPropertyParser.parse('_string_latex__draw', 'solid'),
-            DynamicPropertyParser.parse('_string_latex__draw.color', 'red'),
-            DynamicPropertyParser.parse('_string_latex__draw.pattern', 'dashed'),
-            DynamicPropertyParser.parse('_string_latex__draw.pattern.color', 'blue'),
-            DynamicPropertyParser.parse('_string_latex__draw.pattern.style', 'curved'),
-            DynamicPropertyParser.parse('_string_latex__draw.pattern.style.line', 'double'),
-            DynamicPropertyParser.parse('_string_latex__draw.pattern.style.line.width', 'thick'),
-            DynamicPropertyParser.parse('_float_latex__draw.width', 2),
-            DynamicPropertyParser.parse('_float_latex__draw.pattern.width', 1)
-        ];
-        
-        // Process the hierarchical properties
-        const processedProperties = DynamicPropertyMerger.processHierarchicalProperties(dynamicProperties);
-        
-        // Should have 6 properties (draw.color, draw.pattern.color, draw.pattern.style.line.width, draw.width, draw.pattern.width)
-        // draw, draw.pattern, and draw.pattern.style.line are overridden by their children
-        expect(processedProperties.length).toBe(6);
-        
-        // Check that the correct properties were kept
-        const drawColorProp = processedProperties.find(p => p.name === 'draw.color');
-        expect(drawColorProp).toBeTruthy();
-        expect(drawColorProp.value).toBe('red');
-        
-        const drawPatternColorProp = processedProperties.find(p => p.name === 'draw.pattern.color');
-        expect(drawPatternColorProp).toBeTruthy();
-        expect(drawPatternColorProp.value).toBe('blue');
-        
-        const drawPatternStyleLineWidthProp = processedProperties.find(p => p.name === 'draw.pattern.style.line.width');
-        expect(drawPatternStyleLineWidthProp).toBeTruthy();
-        expect(drawPatternStyleLineWidthProp.value).toBe('thick');
-        
-        const drawWidthProp = processedProperties.find(p => p.name === 'draw.width');
-        expect(drawWidthProp).toBeTruthy();
-        expect(drawWidthProp.value).toBe(2);
-        
-        const drawPatternWidthProp = processedProperties.find(p => p.name === 'draw.pattern.width');
-        expect(drawPatternWidthProp).toBeTruthy();
-        expect(drawPatternWidthProp.value).toBe(1);
-        
-        // Check that the parent properties were removed
-        const drawProp = processedProperties.find(p => p.name === 'draw');
-        expect(drawProp).toBeFalsy();
-        
-        const drawPatternProp = processedProperties.find(p => p.name === 'draw.pattern');
-        expect(drawPatternProp).toBeFalsy();
-        
-        const drawPatternStyleProp = processedProperties.find(p => p.name === 'draw.pattern.style');
-        expect(drawPatternStyleProp).toBeFalsy();
-        
-        const drawPatternStyleLineProp = processedProperties.find(p => p.name === 'draw.pattern.style.line');
-        expect(drawPatternStyleLineProp).toBeFalsy();
-    });
-    
-    test('should maintain order for properties at the same depth', () => {
-        // Create properties with the same depth but different names
-        const dynamicProperties = [
-            DynamicPropertyParser.parse('_string_latex__draw.color', 'red'),
-            DynamicPropertyParser.parse('_string_latex__draw.pattern', 'dashed'),
-            DynamicPropertyParser.parse('_string_latex__draw.width', 2)
-        ];
-        
-        // Process the hierarchical properties
-        const processedProperties = DynamicPropertyMerger.processHierarchicalProperties(dynamicProperties);
-        
-        // Should have 3 properties, all at the same depth
-        expect(processedProperties.length).toBe(3);
-        
-        // Check that the properties are in the same order as the input
-        expect(processedProperties[0].name).toBe('draw.color');
-        expect(processedProperties[1].name).toBe('draw.pattern');
-        expect(processedProperties[2].name).toBe('draw.width');
+        // Check the crunchiness property is still there (higher priority)
+        const crunchinessProp = mergedProperties.find(p => 
+            p.group === 'donkey' && p.name === 'thing.subthing.crunchiness'
+        );
+        expect(crunchinessProp).toBeTruthy();
+        expect(crunchinessProp.value).toBe('high');
+        expect(crunchinessProp.renderer).toBe('latex');
     });
 });
