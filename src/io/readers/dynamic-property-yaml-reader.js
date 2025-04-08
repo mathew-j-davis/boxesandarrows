@@ -17,6 +17,8 @@ function DynamicProperty(renderer, group, name, dataType, value, isFlag = false)
 
 /**
  * Reader for YAML files with custom tags for dynamic properties
+ * Simplified version that only uses !renderer, !group, and !flag tags
+ * !renderer tags must be at the top level of the document
  */
 class DynamicPropertyYamlReader {
   /**
@@ -24,264 +26,243 @@ class DynamicPropertyYamlReader {
    * @returns {yaml.Schema} Custom schema with dynamic property tags
    */
   static getSchema() {
-    // Define custom tag types - these will just add tag info to the objects
+    // Define custom tag types with explicit constructors that preserve tag info
     const rendererTag = new yaml.Type('!renderer', {
-      kind: 'mapping'
+      kind: 'mapping',
+      construct: function(data) {
+        return { 
+          __tag: 'renderer', 
+          data: data || {} 
+        };
+      }
     });
     
     const groupTag = new yaml.Type('!group', {
-      kind: 'mapping'
-    });
-    
-    const stringTag = new yaml.Type('!string', {
-      kind: 'scalar'
-    });
-    
-    const floatTag = new yaml.Type('!float', {
-      kind: 'scalar'
-    });
-    
-    const boolTag = new yaml.Type('!bool', {
-      kind: 'scalar'
+      kind: 'mapping',
+      construct: function(data) {
+        return { 
+          __tag: 'group', 
+          data: data || {} 
+        };
+      }
     });
     
     const flagTag = new yaml.Type('!flag', {
-      kind: 'scalar'
+      kind: 'scalar',
+      construct: function(data) {
+        return { 
+          __tag: 'flag', 
+          value: data 
+        };
+      }
     });
     
-    // Create schema with all our custom tags
+    // Create schema with our custom tags
     return yaml.DEFAULT_SCHEMA.extend([
-      rendererTag, groupTag, stringTag, floatTag, boolTag, flagTag
+      rendererTag, groupTag, flagTag
     ]);
   }
 
   /**
    * Load dynamic properties from YAML content
    * @param {string} yamlContent - YAML content to parse
-   * @returns {Array} Parsed dynamic properties
+   * @returns {Object} Parsed YAML with transformed renderer objects
    */
-  static loadDynamicProperties(yamlContent) {
+  static loadFromYaml(yamlContent) {
     try {
       // Create our custom schema
       const schema = this.getSchema();
       
-      // Parse the YAML with the schema to get an intermediate representation
+      // Parse the YAML with the schema
       const docs = yaml.loadAll(yamlContent, { schema });
       
-      // Transform the intermediate representation to dynamic properties
-      const properties = [];
-      for (const doc of docs) {
-        if (!doc) continue;
-        this.processDocument(doc, properties);
+      // Transform the documents
+      const transformedDocs = docs.map(doc => this.transformDocument(doc));
+      
+      // If only one document, return it directly
+      if (transformedDocs.length === 1) {
+        return transformedDocs[0];
       }
       
-      return properties;
+      // Otherwise return the array of documents
+      return transformedDocs;
     } catch (error) {
       console.error('Error parsing YAML:', error);
-      return [];
+      return null;
     }
   }
 
   /**
-   * Process a parsed YAML document
+   * Transform a parsed YAML document
+   * !renderer tags are only processed if they are at the top level
    * @param {Object} doc - YAML document
-   * @param {Array} properties - Array to collect properties
+   * @returns {Object} Transformed document
    */
-  static processDocument(doc, properties) {
-    // Process each renderer in the document
-    Object.entries(doc).forEach(([rendererName, rendererValue]) => {
-      // For each renderer, start a tag path for tracking
-      const tagPath = [];
-      this.processRendererProperties(rendererName, rendererValue, tagPath, properties);
+  static transformDocument(doc) {
+    if (!doc || typeof doc !== 'object') return doc;
+    
+    const result = {};
+    const allProperties = [];
+    
+    // Process each property in the document
+    Object.entries(doc).forEach(([key, value]) => {
+      // Only process renderer tags at the top level
+      if (this.hasTag(value, 'renderer')) {
+        // This is a renderer - transform it
+        const properties = [];
+        this.processRenderer(key, value, properties);
+        
+        // Add all properties to our collection
+        if (properties.length > 0) {
+          allProperties.push(...properties);
+        }
+      } else {
+        // For nested objects, recursively check and remove any renderer tags
+        if (typeof value === 'object' && value !== null) {
+          result[key] = this.removeNestedRenderers(value);
+        } else {
+          // Not a renderer - keep as is
+          result[key] = value;
+        }
+      }
     });
+    
+    // If we already have _dynamicProperties, append to it, otherwise create it
+    if (result._dynamicProperties && Array.isArray(result._dynamicProperties)) {
+      result._dynamicProperties.push(...allProperties);
+    } else {
+      result._dynamicProperties = allProperties;
+    }
+    
+    return result;
   }
 
   /**
-   * Determine whether an object has a YAML tag
+   * Remove any nested renderer tags from an object
+   * This ensures that only top-level renderers are processed
+   * @param {Object} obj - Object to clean
+   * @returns {Object} Object with nested renderer tags removed
+   */
+  static removeNestedRenderers(obj) {
+    if (!obj || typeof obj !== 'object') return obj;
+    
+    // If it's an array, process each element
+    if (Array.isArray(obj)) {
+      return obj.map(item => this.removeNestedRenderers(item));
+    }
+    
+    // If this is a renderer tag, return an empty object (ignoring it)
+    if (this.hasTag(obj, 'renderer')) {
+      return {};
+    }
+    
+    // For other objects, process each property
+    const result = {};
+    Object.entries(obj).forEach(([key, value]) => {
+      // Recursively process nested objects
+      if (typeof value === 'object' && value !== null) {
+        result[key] = this.removeNestedRenderers(value);
+      } else {
+        result[key] = value;
+      }
+    });
+    
+    return result;
+  }
+
+  /**
+   * Check if an object has our custom tag
    * @param {*} obj - Object to check
-   * @param {string} tag - Tag to check for (without !)
+   * @param {string} tagName - Tag name without !
    * @returns {boolean} - Whether the object has the tag
    */
-  static hasTag(obj, tag) {
+  static hasTag(obj, tagName) {
     return obj && 
            typeof obj === 'object' && 
-           obj.tag === `!${tag}`;
+           obj.__tag === tagName;
   }
 
   /**
-   * Process renderer properties
+   * Process a renderer
    * @param {string} renderer - Renderer name
    * @param {Object} rendererObj - Renderer object
-   * @param {Array} tagPath - Current tag path
-   * @param {Array} properties - Array to collect properties  
+   * @param {Array} properties - Array to collect properties
    */
-  static processRendererProperties(renderer, rendererObj, tagPath, properties) {
+  static processRenderer(renderer, rendererObj, properties) {
+    // Only process objects with renderer tag
+    if (!this.hasTag(rendererObj, 'renderer')) return;
+    
     // Process each property in the renderer
-    Object.entries(rendererObj).forEach(([key, value]) => {
+    const rendererData = rendererObj.data;
+    this.processProperties(renderer, rendererData, "", properties);
+  }
+
+  /**
+   * Process properties at a given level
+   * @param {string} renderer - Renderer name
+   * @param {Object} propsObj - Properties object
+   * @param {string} groupPath - Current group path
+   * @param {Array} properties - Array to collect properties
+   */
+  static processProperties(renderer, propsObj, groupPath, properties) {
+    if (!propsObj || typeof propsObj !== 'object') return;
+    
+    Object.entries(propsObj).forEach(([key, value]) => {
       if (this.hasTag(value, 'group')) {
-        // This is a tagged group - add to tag path and process
-        const groupTagPath = [...tagPath, key];
-        this.processGroupProperties(renderer, value, groupTagPath, properties);
-      } else if (this.hasTag(value, 'string')) {
-        // String property
-        this.addTypedProperty(renderer, tagPath.join('.'), key, 'string', value, properties);
-      } else if (this.hasTag(value, 'float')) {
-        // Float property
-        this.addTypedProperty(renderer, tagPath.join('.'), key, 'float', value, properties);
-      } else if (this.hasTag(value, 'bool')) {
-        // Boolean property
-        this.addTypedProperty(renderer, tagPath.join('.'), key, 'bool', value, properties);
+        // This is a group - process its properties with updated group path
+        const childGroupPath = groupPath ? `${groupPath}.${key}` : key;
+        this.processProperties(renderer, value.data, childGroupPath, properties);
       } else if (this.hasTag(value, 'flag')) {
-        // Flag property
-        this.addFlagProperty(renderer, tagPath.join('.'), key, value, properties);
-      } else if (typeof value === 'object' && value !== null) {
-        // Untagged object/mapping - treat as nested property in name
-        this.processNestedProperty(renderer, tagPath.join('.'), key, value, properties);
-      } else {
-        // Basic value
-        this.addUntaggedProperty(renderer, tagPath.join('.'), key, value, properties);
+        // This is a flag property
+        this.addProperty(renderer, groupPath, key, 'string', value.value, true, properties);
+      } else if (typeof value === 'object' && value !== null && !this.hasTag(value, 'renderer')) {
+        // This could be a nested object (without tag) or another type
+        // Ignore any nested renderer tags
+        this.processNestedObject(renderer, groupPath, key, value, properties);
+      } else if (!this.hasTag(value, 'renderer')) {
+        // This is a simple value (ignore renderer tags)
+        this.addUntaggedProperty(renderer, groupPath, key, value, properties);
       }
     });
   }
 
   /**
-   * Process a group and its properties
+   * Process a nested object (without !group tag)
    * @param {string} renderer - Renderer name
-   * @param {Object} groupObj - Group object
-   * @param {Array} tagPath - Current tag path
+   * @param {string} groupPath - Current group path
+   * @param {string} baseName - Base name for this object
+   * @param {Object} obj - Object to process
    * @param {Array} properties - Array to collect properties
    */
-  static processGroupProperties(renderer, groupObj, tagPath, properties) {
-    // Process each property in the group
-    Object.entries(groupObj).forEach(([key, value]) => {
-      if (this.hasTag(value, 'group')) {
-        // Nested group - add to tag path and process
-        const nestedTagPath = [...tagPath, key];
-        this.processGroupProperties(renderer, value, nestedTagPath, properties);
-      } else if (this.hasTag(value, 'string')) {
-        // String property
-        this.addTypedProperty(renderer, tagPath.join('.'), key, 'string', value, properties);
-      } else if (this.hasTag(value, 'float')) {
-        // Float property
-        this.addTypedProperty(renderer, tagPath.join('.'), key, 'float', value, properties);
-      } else if (this.hasTag(value, 'bool')) {
-        // Boolean property
-        this.addTypedProperty(renderer, tagPath.join('.'), key, 'bool', value, properties);
-      } else if (this.hasTag(value, 'flag')) {
-        // Flag property
-        this.addFlagProperty(renderer, tagPath.join('.'), key, value, properties);
-      } else if (typeof value === 'object' && value !== null) {
-        // Untagged object - process as nested properties with name path
-        this.processNestedProperty(renderer, tagPath.join('.'), key, value, properties);
-      } else {
-        // Basic value
-        this.addUntaggedProperty(renderer, tagPath.join('.'), key, value, properties);
-      }
-    });
-  }
-
-  /**
-   * Process a nested untagged property
-   * @param {string} renderer - Renderer name
-   * @param {string} groupPath - Current group path 
-   * @param {string} propName - Property name
-   * @param {Object} value - Property value
-   * @param {Array} properties - Array to collect properties
-   */
-  static processNestedProperty(renderer, groupPath, propName, value, properties) {
-    if (typeof value !== 'object' || value === null) {
-      // Not an object, just add as a property
-      this.addUntaggedProperty(renderer, groupPath, propName, value, properties);
-      return;
-    }
-
-    // Process each property in the nested object
-    Object.entries(value).forEach(([key, nestedValue]) => {
-      const nestedName = `${propName}.${key}`;
+  static processNestedObject(renderer, groupPath, baseName, obj, properties) {
+    // For an object value that's not tagged as a group, we create dotted property names
+    Object.entries(obj).forEach(([key, value]) => {
+      const propName = `${baseName}.${key}`;
       
-      if (typeof nestedValue === 'object' && nestedValue !== null && !nestedValue.tag) {
-        // Further nesting
-        this.processNestedProperty(renderer, groupPath, nestedName, nestedValue, properties);
-      } else if (nestedValue && nestedValue.tag) {
-        // Tagged value
-        if (nestedValue.tag === '!string') {
-          this.addTypedProperty(renderer, groupPath, nestedName, 'string', nestedValue, properties);
-        } else if (nestedValue.tag === '!float') {
-          this.addTypedProperty(renderer, groupPath, nestedName, 'float', nestedValue, properties);
-        } else if (nestedValue.tag === '!bool') {
-          this.addTypedProperty(renderer, groupPath, nestedName, 'bool', nestedValue, properties);
-        } else if (nestedValue.tag === '!flag') {
-          this.addFlagProperty(renderer, groupPath, nestedName, nestedValue, properties);
-        } else if (nestedValue.tag === '!group') {
-          // Group tag inside untagged object - not expected, but handle it
-          const newGroupPath = groupPath ? `${groupPath}.${propName}` : propName;
-          this.processGroupProperties(renderer, nestedValue, [newGroupPath, key], properties);
-        }
-      } else {
-        // Basic value
-        this.addUntaggedProperty(renderer, groupPath, nestedName, nestedValue, properties);
+      if (this.hasTag(value, 'flag')) {
+        // Flag property
+        this.addProperty(renderer, groupPath, propName, 'string', value.value, true, properties);
+      } else if (typeof value === 'object' && value !== null && !value.__tag) {
+        // Further nested object
+        this.processNestedObject(renderer, groupPath, propName, value, properties);
+      } else if (!this.hasTag(value, 'renderer')) {
+        // Basic value (ignore renderer tags)
+        this.addUntaggedProperty(renderer, groupPath, propName, value, properties);
       }
     });
   }
-  
-  /**
-   * Add a typed property
-   * @param {string} renderer - Renderer name
-   * @param {string} group - Group path
-   * @param {string} name - Property name
-   * @param {string} type - Property type (string, float, bool)
-   * @param {*} value - Property value
-   * @param {Array} properties - Array to collect properties
-   */
-  static addTypedProperty(renderer, group, name, type, value, properties) {
-    let dataType = 'string';
-    let processedValue = value;
-    
-    switch (type) {
-      case 'string':
-        dataType = 'string';
-        break;
-      case 'float':
-        dataType = 'float';
-        processedValue = typeof value === 'string' ? parseFloat(value) : value;
-        break;
-      case 'bool':
-        dataType = 'boolean';
-        if (typeof value === 'string') {
-          processedValue = value.toLowerCase() === 'true';
-        } else {
-          processedValue = Boolean(value);
-        }
-        break;
-    }
-    
-    this.addProperty(renderer, group, name, dataType, false, processedValue, properties);
-  }
-  
-  /**
-   * Add a flag property
-   * @param {string} renderer - Renderer name
-   * @param {string} group - Group path
-   * @param {string} name - Property name
-   * @param {*} value - Property value
-   * @param {Array} properties - Array to collect properties
-   */
-  static addFlagProperty(renderer, group, name, value, properties) {
-    // Handle flag property (value could be null, empty string, or a value)
-    this.addProperty(renderer, group, name, 'string', true, value, properties);
-  }
-  
+
   /**
    * Add a property to the properties array
    * @param {string} renderer - Renderer name
    * @param {string} group - Group path
    * @param {string} name - Property name
    * @param {string} dataType - Data type
-   * @param {boolean} isFlag - Whether this is a flag property
    * @param {*} value - Property value
+   * @param {boolean} isFlag - Whether this is a flag property
    * @param {Array} properties - Array to collect properties
    */
-  static addProperty(renderer, group, name, dataType, isFlag, value, properties) {
+  static addProperty(renderer, group, name, dataType, value, isFlag, properties) {
     properties.push(new DynamicProperty(
       renderer,
       group,
@@ -302,28 +283,62 @@ class DynamicPropertyYamlReader {
    */
   static addUntaggedProperty(renderer, group, name, value, properties) {
     let dataType = 'string';
+    let isFlag = false;
     
-    // Auto-detect type
+    // Auto-detect type based on JavaScript type
     if (typeof value === 'number') {
       dataType = Number.isInteger(value) ? 'integer' : 'float';
     } else if (typeof value === 'boolean') {
       dataType = 'boolean';
     }
     
-    this.addProperty(renderer, group, name, dataType, false, value, properties);
+    this.addProperty(renderer, group, name, dataType, value, isFlag, properties);
   }
 
   /**
-   * Read dynamic properties from a YAML file
+   * Read and parse YAML from a file
    * @param {string} file - Path to YAML file
-   * @returns {Promise<Array>} - Promise resolving to array of dynamic properties
+   * @returns {Promise<Object>} - Promise resolving to parsed YAML with transformed renderer objects
    */
   static async readFile(file) {
     try {
       const content = fs.readFileSync(file, 'utf8');
-      return this.loadDynamicProperties(content);
+      return this.loadFromYaml(content);
     } catch (error) {
       console.error('Error reading file:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Legacy method to maintain backward compatibility
+   * @param {string} yamlContent - YAML content to parse
+   * @returns {Array} Array of dynamic properties
+   */
+  static loadDynamicProperties(yamlContent) {
+    try {
+      // Create our custom schema
+      const schema = this.getSchema();
+      
+      // Parse the YAML with the schema
+      const docs = yaml.loadAll(yamlContent, { schema });
+      
+      // Extract properties from all renderers
+      const properties = [];
+      for (const doc of docs) {
+        if (!doc) continue;
+        
+        // Process each renderer in the document
+        Object.entries(doc).forEach(([rendererName, rendererValue]) => {
+          if (this.hasTag(rendererValue, 'renderer')) {
+            this.processRenderer(rendererName, rendererValue, properties);
+          }
+        });
+      }
+      
+      return properties;
+    } catch (error) {
+      console.error('Error parsing YAML:', error);
       return [];
     }
   }

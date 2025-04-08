@@ -1,4 +1,4 @@
-const DynamicPropertyYamlReader = require('../src/io/readers/dynamic-property-yaml-reader');
+const DynamicPropertyYamlReader = require('../cull/dynamic-property-yaml-reader');
 const util = require('util');
 
 // Example YAML with proper tag syntax, nested properties and null handling
