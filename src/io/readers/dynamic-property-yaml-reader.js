@@ -1,19 +1,6 @@
 const yaml = require('js-yaml');
 const fs = require('fs');
-
-/**
- * Dynamic Property Class
- */
-function DynamicProperty(renderer, group, name, dataType, value, isFlag = false) {
-  this.renderer = renderer;
-  this.group = group;
-  this.groupPathArray = group ? group.split('.') : [];
-  this.name = name;
-  this.namePathArray = name ? name.split('.') : [];
-  this.dataType = dataType;
-  this.isFlag = isFlag;
-  this.value = value;
-}
+const DynamicProperty = require('../models/dynamic-property');
 
 /**
  * Reader for YAML files with custom tags for dynamic properties
@@ -56,7 +43,7 @@ class DynamicPropertyYamlReader {
         };
       }
     });
-    
+
     // Create schema with our custom tags
     return yaml.DEFAULT_SCHEMA.extend([
       rendererTag, groupTag, flagTag
@@ -262,15 +249,15 @@ class DynamicPropertyYamlReader {
    * @param {boolean} isFlag - Whether this is a flag property
    * @param {Array} properties - Array to collect properties
    */
-  static addProperty(renderer, group, name, dataType, value, isFlag, properties) {
-    properties.push(new DynamicProperty(
+  static addProperty(renderer, group, name, dataType, value, isFlag, properties, clearChildren = false) {
+    properties.push(new DynamicProperty({
       renderer,
       group,
       name,
       dataType,
       value,
       isFlag
-    ));
+    }));
   }
 
   /**

@@ -1,6 +1,6 @@
 const yaml = require('js-yaml');
 const util = require('util');
-const DynamicPropertyYamlReader = require('../src/io/readers/dynamic-property-yaml-reader');
+const DynamicPropertyYamlReader = require('../src/io/readers/dynamic-property-yaml-reader-simplified');
 
 // Example YAML with both regular data and renderers
 const exampleYaml = `

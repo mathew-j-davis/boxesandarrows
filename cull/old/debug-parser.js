@@ -1,4 +1,4 @@
-const DynamicPropertyParser = require('../src/io/readers/dynamic-property-parser');
+const DynamicPropertyParser = require('../../src/io/readers/dynamic-property-parser');
 
 // Test the parser with different patterns
 console.log('Testing Parser with new format:');
