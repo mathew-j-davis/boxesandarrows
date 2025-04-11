@@ -7,7 +7,7 @@ class DynamicProperty {
    * Create a new dynamic property
    * @param {Object} options - Configuration options
    * @param {string} [options.renderer='common'] - The renderer name
-   * @param {string} [options.group=''] - The group path
+   * @param {string} [options.groupPath=''] - The group path
    * @param {string} [options.namePath=''] - The property name path
    * @param {string} [options.dataType='string'] - The data type
    * @param {*} [options.value=null] - The property value
@@ -17,7 +17,7 @@ class DynamicProperty {
   constructor(options = {}) {
     const defaults = {
       renderer: 'common',
-      group: '',
+      groupPath: '',
       namePath: '',
       dataType: 'string',
       value: null,
@@ -28,8 +28,25 @@ class DynamicProperty {
     const config = { ...defaults, ...options };
     
     this.renderer = config.renderer;
-    this.group = config.group;
-    this.groupPathArray = config.group ? config.group.split('.') : [];
+    this.groupPath = config.groupPath;
+    
+    // Parse the groupPath to determine which parts are names and which are indices
+    this.groupPathArray = [];
+    this.groupPathTypes = []; // 'name' or 'index'
+    
+    if (config.groupPath) {
+      const parts = config.groupPath.split('.');
+      parts.forEach(part => {
+        this.groupPathArray.push(part);
+        // Check if the part is a numeric index
+        if (/^\d+$/.test(part)) {
+          this.groupPathTypes.push('index');
+        } else {
+          this.groupPathTypes.push('name');
+        }
+      });
+    }
+    
     this.namePath = config.namePath;
     
     // Parse the namePath to determine which parts are names and which are indices
@@ -64,11 +81,11 @@ class DynamicProperty {
 
   /**
    * Create a property key string for this dynamic property
-   * @returns {string} The property key string in the format _renderer:group:type:namePath
+   * @returns {string} The property key string in the format _renderer:groupPath:type:namePath
    */
   toPropertyKey() {
     const type = this.isFlag ? 'flag' : this.dataType;
-    return `_${this.renderer}:${this.group}:${type}:${this.namePath}`;
+    return `_${this.renderer}:${this.groupPath}:${type}:${this.namePath}`;
   }
 
   /**
@@ -76,10 +93,35 @@ class DynamicProperty {
    * @returns {string} The fully qualified path
    */
   getFullPath() {
-    if (!this.group) {
+    if (!this.groupPath) {
       return this.namePath;
     }
-    return `${this.group}.${this.namePath}`;
+    return `${this.groupPath}.${this.namePath}`;
+  }
+  
+  /**
+   * Check if a specific part of the groupPath is an index
+   * @param {number} position - The position in the groupPathArray to check
+   * @returns {boolean} True if the part at the specified position is an index
+   */
+  isGroupPathIndex(position) {
+    if (position < 0 || position >= this.groupPathTypes.length) {
+      return false;
+    }
+    return this.groupPathTypes[position] === 'index';
+  }
+  
+  /**
+   * Get the groupPathArray with indices converted to numbers
+   * @returns {Array} The groupPathArray with indices as numbers
+   */
+  getGroupPathArrayWithIndices() {
+    return this.groupPathArray.map((part, index) => {
+      if (this.groupPathTypes[index] === 'index') {
+        return parseInt(part, 10);
+      }
+      return part;
+    });
   }
   
   /**

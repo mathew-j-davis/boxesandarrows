@@ -6,8 +6,8 @@ class DynamicPropertyParser {
 
     static isDynamicProperty(propertyString) {
         // Check if the name matches the dynamic property pattern
-        // Pattern: _[renderer]:[group]:[type]:[name](:[tags])?
-        // Renderer, group are optional. Tags are optional.
+        // Pattern: _[renderer]:[groupPath]:[type]:[name](:[tags])?
+        // Renderer, groupPath are optional. Tags are optional.
         /**
          * Regex breakdown:
          * ^                      - Start of the string
@@ -65,7 +65,7 @@ class DynamicPropertyParser {
          *
          * Match array indices (approximate based on optional groups):
          * match[1]: renderer (optional)
-         * match[2]: group (optional)
+         * match[2]: groupPath (optional)
          * match[3]: type
          * match[4]: name
          * match[5]: tagsString (optional)
@@ -79,7 +79,7 @@ class DynamicPropertyParser {
 
         // Extract the components from the match groups
         const renderer = match[1] || 'common';
-        const group = match[2] || '';
+        const groupPath = match[2] || '';
         const type = match[3]; // Type is mandatory
         const name = match[4]; // Name is mandatory
         const tagsString = match[5] || ''; // Optional tags part
@@ -96,7 +96,7 @@ class DynamicPropertyParser {
         // Create the property object with potentially updated clearChildren
         return new DynamicProperty({
             renderer,
-            group,
+            groupPath,
             namePath: name,
             dataType: type === 'flag' ? 'string' : type,
             isFlag: type === 'flag',
