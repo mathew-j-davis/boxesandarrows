@@ -110,20 +110,20 @@ math: !renderer
     test('should preserve property values correctly', () => {
       // Check specific property values
       const fontProp = transformedYaml._dynamicProperties.find(
-        p => p.renderer === 'common' && p.group === 'label.text' && p.name === 'above.font'
+        p => p.renderer === 'common' && p.group === 'label.text' && p.namePath === 'above.font'
       );
       expect(fontProp).toBeDefined();
       expect(fontProp.value).toBe('Arial');
       
       const colorProp = transformedYaml._dynamicProperties.find(
-        p => p.renderer === 'common' && p.group === 'arrows.start' && p.name === 'fill.color'
+        p => p.renderer === 'common' && p.group === 'arrows.start' && p.namePath === 'fill.color'
       );
       expect(colorProp).toBeDefined();
     expect(colorProp.value).toBe('black');
     
       // Test flag property
       const flagProp = transformedYaml._dynamicProperties.find(
-        p => p.renderer === 'latex' && p.name === 'pattern'
+        p => p.renderer === 'latex' && p.namePath === 'pattern'
       );
       expect(flagProp).toBeDefined();
       expect(flagProp.isFlag).toBe(true);
@@ -131,10 +131,10 @@ math: !renderer
       
       // Test null values
       const nullProp1 = transformedYaml._dynamicProperties.find(
-        p => p.renderer === 'latex' && p.name === 'visible1'
+        p => p.renderer === 'latex' && p.namePath === 'visible1'
       );
       const nullProp2 = transformedYaml._dynamicProperties.find(
-        p => p.renderer === 'latex' && p.name === 'visible2'
+        p => p.renderer === 'latex' && p.namePath === 'visible2'
       );
       expect(nullProp1).toBeDefined();
       expect(nullProp2).toBeDefined();
@@ -150,7 +150,7 @@ math: !renderer
       originalProperties.forEach(origProp => {
         const matchingProp = transformedYaml._dynamicProperties.find(p => 
           p.renderer === origProp.renderer && 
-          p.name === origProp.name && 
+          p.namePath === origProp.namePath && 
           p.group === origProp.group
         );
         
@@ -167,7 +167,7 @@ math: !renderer
       commonProps.forEach(prop => {
         expect(prop.renderer).toBe('common');
         expect(prop.group).toBeDefined();
-        expect(prop.name).toBeDefined();
+        expect(prop.namePath).toBeDefined();
         expect(prop.dataType).toBeDefined();
         expect('value' in prop).toBe(true);
         expect('isFlag' in prop).toBe(true);
@@ -208,14 +208,14 @@ math: !renderer
     test('should extract properties from top-level renderers only', () => {
       // Check specific properties
       const textProp = transformedYaml._dynamicProperties.find(
-        p => p.renderer === 'common' && p.group === 'label' && p.name === 'text'
+        p => p.renderer === 'common' && p.group === 'label' && p.namePath === 'text'
       );
       expect(textProp).toBeDefined();
       expect(textProp.value).toBe('Above');
       
       // Math renderer should have formula property
       const formulaProp = transformedYaml._dynamicProperties.find(
-        p => p.renderer === 'math' && p.name === 'formula'
+        p => p.renderer === 'math' && p.namePath === 'formula'
       );
       expect(formulaProp).toBeDefined();
       expect(formulaProp.value).toBe('E=mc^2');
@@ -252,7 +252,7 @@ math: !renderer
           {
             renderer: 'existing',
             group: 'test',
-            name: 'prop1', 
+            namePath: 'prop1', 
             dataType: 'string',
             value: 'test value',
             isFlag: false,
@@ -273,13 +273,13 @@ math: !renderer
       
       // Should have the existing property
       const existingProp = transformed._dynamicProperties.find(
-        p => p.renderer === 'existing' && p.name === 'prop1'
+        p => p.renderer === 'existing' && p.namePath === 'prop1'
       );
       expect(existingProp).toBeDefined();
       
       // Should also have the new property from the renderer
       const newProp = transformed._dynamicProperties.find(
-        p => p.renderer === 'common' && p.name === 'testProp'
+        p => p.renderer === 'common' && p.namePath === 'testProp'
       );
       expect(newProp).toBeDefined();
       

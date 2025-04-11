@@ -421,18 +421,18 @@ class DynamicPropertyYamlReader {
    * 
    * @param {string} renderer - Renderer name
    * @param {string} group - Group path
-   * @param {string} name - Property name
+   * @param {string} namePath - Property name path
    * @param {string} dataType - Data type
    * @param {*} value - Property value
    * @param {boolean} isFlag - Whether this is a flag property
    * @param {Array} properties - Array to collect properties
    * @param {boolean} clearChildren - Whether to clear child properties when this property is set
    */
-  static addProperty(renderer, group, name, dataType, value, isFlag, properties, clearChildren = false) {
+  static addProperty(renderer, group, namePath, dataType, value, isFlag, properties, clearChildren = false) {
     properties.push(new DynamicProperty({
       renderer,
       group,
-      name,
+      namePath,
       dataType,
       value,
       isFlag,

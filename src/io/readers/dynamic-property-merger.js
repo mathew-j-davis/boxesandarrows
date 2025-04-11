@@ -205,7 +205,7 @@ class DynamicPropertyMerger {
             }
             
             // For the property name, we need to handle dot notation
-            const namePathArray = prop.name.split('.');
+            const namePathArray = prop.namePath.split('.');
             
             // Navigate to the deepest level
             for (let i = 0; i < namePathArray.length - 1; i++) {

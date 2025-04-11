@@ -97,7 +97,7 @@ class DynamicPropertyParser {
         return new DynamicProperty({
             renderer,
             group,
-            name,
+            namePath: name,
             dataType: type === 'flag' ? 'string' : type,
             isFlag: type === 'flag',
             clearChildren: clearChildren, // Set based on !clear tag

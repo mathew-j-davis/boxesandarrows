@@ -57,13 +57,16 @@ const dynamicProps = DynamicPropertyYamlReader.loadDynamicProperties(sampleYaml)
 console.log("\n=== ALL PROPERTIES ===");
 dynamicProps.forEach((prop, index) => {
   console.log(`\nProperty #${index + 1}:`);
-  console.log(`Renderer: ${prop.renderer}`);
-  console.log(`Group: ${prop.group || '(none)'}`);
-  console.log(`Name: ${prop.name}`);
-  console.log(`Value: ${JSON.stringify(prop.value)}`);
-  console.log(`Type: ${prop.dataType}`);
-  console.log(`isFlag: ${prop.isFlag}`);
-  console.log(`clearChildren: ${!!prop.clearChildren}`);
+
+  console.log(`${JSON.stringify(prop)}`);
+
+  // console.log(`Renderer: ${prop.renderer}`);
+  // console.log(`Group: ${prop.group || '(none)'}`);
+  // console.log(`Name: ${prop.namePath}`);
+  // console.log(`Value: ${JSON.stringify(prop.value)}`);
+  // console.log(`Type: ${prop.dataType}`);
+  // console.log(`isFlag: ${prop.isFlag}`);
+  // console.log(`clearChildren: ${!!prop.clearChildren}`);
 });
 
 // Analyze properties by type
@@ -76,12 +79,12 @@ const objectProps = dynamicProps.filter(p =>
 
 // Check for non-leaf objects (objects representing parent nodes only)
 const nonLeafProps = objectProps.filter(p => {
-  // A non-leaf property would have children with its name as prefix
+  // A non-leaf property would have children with its namePath as prefix
   const hasChildren = dynamicProps.some(child => 
     child !== p && 
     child.renderer === p.renderer &&
     child.group === p.group &&
-    child.name.startsWith(p.name + '.')
+    child.namePath.startsWith(p.namePath + '.')
   );
   return hasChildren;
 });
@@ -101,31 +104,31 @@ console.log(`Non-leaf object properties: ${nonLeafProps.length}`);
 if (nonLeafProps.length > 0) {
   console.log("\n=== NON-LEAF OBJECT PROPERTIES ===");
   nonLeafProps.forEach(prop => {
-    console.log(`${prop.renderer}.${prop.group ? prop.group + '.' : ''}${prop.name}: ${JSON.stringify(prop.value)}`);
+    console.log(`${prop.renderer}.${prop.group ? prop.group + '.' : ''}${prop.namePath}: ${JSON.stringify(prop.value)}`);
     
     // Find children
     const children = dynamicProps.filter(child => 
       child !== prop && 
       child.renderer === prop.renderer &&
       child.group === prop.group &&
-      child.name.startsWith(prop.name + '.')
+      child.namePath.startsWith(prop.namePath + '.')
     );
     
     console.log(`Children (${children.length}):`);
     children.forEach(child => {
-      console.log(`  - ${child.name}: ${JSON.stringify(child.value)}`);
+      console.log(`  - ${child.namePath}: ${JSON.stringify(child.value)}`);
     });
     console.log();
   });
 }
 
 // Check for dots in names
-const dotsInName = dynamicProps.filter(p => p.name.includes('.'));
-console.log(`\nProperties with dots in name: ${dotsInName.length}`);
+const dotsInName = dynamicProps.filter(p => p.namePath.includes('.'));
+console.log(`\nProperties with dots in namePath: ${dotsInName.length}`);
 if (dotsInName.length > 0) {
-  console.log("Sample properties with dots in name:");
+  console.log("Sample properties with dots in namePath:");
   dotsInName.slice(0, 5).forEach(p => {
-    console.log(`- ${p.renderer}.${p.group ? p.group + '.' : ''}${p.name}: ${JSON.stringify(p.value)}`);
+    console.log(`- ${p.renderer}.${p.group ? p.group + '.' : ''}${p.namePath}: ${JSON.stringify(p.value)}`);
   });
 }
 
@@ -133,11 +136,11 @@ if (dotsInName.length > 0) {
 const noValueProps = dynamicProps.filter(p => p.value === undefined);
 console.log(`\nProperties without values: ${noValueProps.length}`);
 
-// Check property name patterns
+// Check property namePath patterns
 console.log("\n=== NAME PATTERNS ===");
 const namePatterns = {};
 dynamicProps.forEach(p => {
-  const segments = p.name.split('.');
+  const segments = p.namePath.split('.');
   const pattern = segments.length > 1 ? `${segments.length} segments` : "flat";
   namePatterns[pattern] = (namePatterns[pattern] || 0) + 1;
 });
