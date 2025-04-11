@@ -1,8 +1,7 @@
 const DynamicPropertyMerger = require('../../src/io/readers/dynamic-property-merger');
-const DynamicPropertyParser = require('../../src/io/readers/dynamic-property-parser');
 
-// Helper function to create a property
-function createProperty(renderer, group, name, dataType, value, isFlag = false) {
+// Helper function to create a property with namePathArray
+function createProperty(renderer, group, name, dataType, value, isFlag = false, clearChildren = false) {
     return {
         renderer,
         group,
@@ -10,288 +9,257 @@ function createProperty(renderer, group, name, dataType, value, isFlag = false) 
         dataType,
         value,
         isFlag,
+        clearChildren,
         groupPathArray: group ? group.split('.') : [],
         namePathArray: name ? name.split('.') : []
     };
 }
 
 describe('DynamicPropertyMerger', () => {
-    // Define test renderer priorities (as would be provided by the latex renderer)
-    const rendererPriorities = ['common', 'vector', 'latex'];
+    // Define compatible renderers for testing
+    const rendererCompatibility = ['common', 'vector', 'latex'];
     
-    test('should merge properties based on renderer priorities', () => {
-        // Sample dynamic properties
-        const dynamicProperties = [
-            createProperty('common', 'label', 'font', 'string', 'Arial'),
-            createProperty('vector', 'label', 'font', 'string', 'Helvetica'),
-            createProperty('latex', 'label', 'font', 'string', 'Computer Modern'),
-            createProperty('common', 'object', 'margin', 'float', 5),
-            createProperty('latex', '', 'margin', 'float', 10), // No group
-            createProperty('common', '', 'visible', 'boolean', true)  // No renderer or group
+    test('should merge simple properties correctly', () => {
+        const properties = [
+            createProperty('common', 'test', 'prop1', 'string', 'value1'),
+            createProperty('vector', 'test', 'prop2', 'string', 'value2'),
+            createProperty('latex', 'test', 'prop3', 'string', 'value3')
         ];
         
-        // Merge the properties
-        const mergedProperties = DynamicPropertyMerger.mergeProperties(dynamicProperties, rendererPriorities);
+        const merged = DynamicPropertyMerger.mergeProperties(properties, rendererCompatibility);
         
-        // Check that the correct properties were kept
-        const fontProp = mergedProperties.find(p => p.name === 'font' && p.group === 'label');
-        expect(fontProp).toBeTruthy();
-        expect(fontProp.renderer).toBe('latex');
-        expect(fontProp.value).toBe('Computer Modern');
-        
-        // Check property with no group
-        const marginProp = mergedProperties.find(p => p.name === 'margin' && p.group === '');
-        expect(marginProp).toBeTruthy();
-        expect(marginProp.renderer).toBe('latex');
-        expect(marginProp.value).toBe(10);
-        
-        // Check property with no renderer or group
-        const visibleProp = mergedProperties.find(p => p.name === 'visible' && p.group === '');
-        expect(visibleProp).toBeTruthy();
-        expect(visibleProp.renderer).toBe('common');
-        expect(visibleProp.value).toBe(true);
-    });
-
-    test('should only include properties with renderers in the priority list', () => {
-        // Create properties including one with a renderer not in the priorities
-        const dynamicProperties = [
-            createProperty('common', 'label', 'font', 'string', 'Arial'),
-            createProperty('unknown', 'label', 'color', 'string', 'red'),
-            createProperty('vector', 'label', 'size', 'float', 12)
-        ];
-        
-        const mergedProperties = DynamicPropertyMerger.mergeProperties(dynamicProperties, rendererPriorities);
-        
-        // Should only include the properties with renderers in the priority list
-        expect(mergedProperties.length).toBe(2);
-        
-        const fontProp = mergedProperties.find(p => p.name === 'font');
-        expect(fontProp).toBeTruthy();
-        
-        const sizeProp = mergedProperties.find(p => p.name === 'size');
-        expect(sizeProp).toBeTruthy();
-        
-        // The unknown renderer property should be excluded
-        const colorProp = mergedProperties.find(p => p.name === 'color');
-        expect(colorProp).toBeFalsy();
+        expect(merged.length).toBe(3);
+        expect(merged[0].value).toBe('value1');
+        expect(merged[1].value).toBe('value2');
+        expect(merged[2].value).toBe('value3');
     });
     
-    test('should treat common renderer and null renderer as equivalent', () => {
-        // Create properties with matching names but different renderers
-        let dynamicProperties = [
-            createProperty('common', '', 'font', 'string', 'Arial'),     // Has common renderer, no group
-            createProperty(null, '', 'font', 'string', 'Helvetica')      // No renderer, no group
+    test('should handle exact match with chronological ordering', () => {
+        const properties = [
+            createProperty('common', 'test', 'prop', 'string', 'common value'),
+            createProperty('vector', 'test', 'prop', 'string', 'vector value'),
+            createProperty('latex', 'test', 'prop', 'string', 'latex value')
         ];
         
-        let mergedProperties = DynamicPropertyMerger.mergeProperties(dynamicProperties, rendererPriorities);
+        const merged = DynamicPropertyMerger.mergeProperties(properties, rendererCompatibility);
         
-        // Only one of them should exist since they should be treated the same
-        expect(mergedProperties.length).toBe(1);
-        expect(mergedProperties[0].value).toBe('Helvetica'); // The last one should win
-        
-        // Now test in reverse order
-        dynamicProperties = [
-            createProperty(null, '', 'font', 'string', 'Helvetica'),    // No renderer
-            createProperty('common', '', 'font', 'string', 'Arial')     // Common renderer
-        ];
-        
-        mergedProperties = DynamicPropertyMerger.mergeProperties(dynamicProperties, rendererPriorities);
-        
-        // Again, only one property should be in the result
-        expect(mergedProperties.length).toBe(1);
-        expect(mergedProperties[0].value).toBe('Arial'); // The last one should win
-        
-        // Both should lose to a higher priority renderer
-        dynamicProperties = [
-            createProperty(null, '', 'font', 'string', 'Helvetica'),     // No renderer
-            createProperty('common', '', 'font', 'string', 'Arial'),     // Common renderer
-            createProperty('vector', '', 'font', 'string', 'Sans')       // Vector renderer (higher priority)
-        ];
-        
-        mergedProperties = DynamicPropertyMerger.mergeProperties(dynamicProperties, rendererPriorities);
-        
-        // Should have only kept the vector renderer version
-        expect(mergedProperties.length).toBe(1);
-        expect(mergedProperties[0].renderer).toBe('vector');
-        expect(mergedProperties[0].value).toBe('Sans');
+        // Last one in the array wins
+        expect(merged.length).toBe(1);
+        expect(merged[0].renderer).toBe('latex');
+        expect(merged[0].value).toBe('latex value');
     });
     
-    test('should process dynamic properties directly', () => {
-        // Create a dynamic properties array
-        const dynamicProperties = [
-            createProperty('common', 'label', 'font', 'string', 'Arial'),
-            createProperty('vector', 'label', 'font', 'string', 'Helvetica'),
-            createProperty('latex', 'object', 'margin', 'float', 10)
+    test('should handle exact match with chronological ordering regardless of renderer', () => {
+        const properties = [
+            createProperty('latex', 'test', 'prop', 'string', 'latex value'),
+            createProperty('vector', 'test', 'prop', 'string', 'vector value'),
+            createProperty('common', 'test', 'prop', 'string', 'common value')
         ];
         
-        const mergedProperties = DynamicPropertyMerger.processDynamicProperties(dynamicProperties, rendererPriorities);
+        const merged = DynamicPropertyMerger.mergeProperties(properties, rendererCompatibility);
         
-        expect(mergedProperties).toBeTruthy();
-        expect(Array.isArray(mergedProperties)).toBe(true);
-        
-        // Check that properties are correctly merged
-        const fontProp = mergedProperties.find(p => p.name === 'font' && p.group === 'label');
-        expect(fontProp.value).toBe('Helvetica');
-        
-        const marginProp = mergedProperties.find(p => p.name === 'margin' && p.group === 'object');
-        expect(marginProp.value).toBe(10);
+        // Last one wins, regardless of renderer type
+        expect(merged.length).toBe(1);
+        expect(merged[0].renderer).toBe('common');
+        expect(merged[0].value).toBe('common value');
     });
     
-    test('should handle hierarchical names by removing child properties with lower priority', () => {
-        // Create properties with hierarchical names
-        const dynamicProperties = [
-            createProperty('vector', 'donkey', 'thing.subthing', 'string', 'biscuit'),
-            createProperty('vector', 'donkey', 'thing.subthing.flavor', 'string', 'chocolate'),
-            createProperty('latex', 'donkey', 'thing.subthing.crunchiness', 'string', 'high')
+    test('should allow child properties with a parent property when clearChildren=false', () => {
+        const properties = [
+            createProperty('vector', 'group', 'parent', 'string', 'parent value'),
+            createProperty('vector', 'group', 'parent.child1', 'string', 'child1 value'),
+            createProperty('vector', 'group', 'parent.child2', 'string', 'child2 value')
         ];
         
-        const mergedProperties = DynamicPropertyMerger.mergeProperties(dynamicProperties, rendererPriorities);
+        const merged = DynamicPropertyMerger.mergeProperties(properties, rendererCompatibility);
         
-        // Since 'thing.subthing' is added first, it should remove 'thing.subthing.flavor'
-        // But not 'thing.subthing.crunchiness' which has higher priority
-        expect(mergedProperties.length).toBe(2);
-        
-        // Check the biscuit property is there
-        const biscuitProp = mergedProperties.find(p => 
-            p.group === 'donkey' && p.name === 'thing.subthing'
-        );
-        expect(biscuitProp).toBeTruthy();
-        expect(biscuitProp.value).toBe('biscuit');
-        
-        // Check the flavor property is gone (equal priority and child of thing.subthing)
-        const flavorProp = mergedProperties.find(p => 
-            p.group === 'donkey' && p.name === 'thing.subthing.flavor'
-        );
-        expect(flavorProp).toBeFalsy();
-        
-        // Check the crunchiness property is still there (higher priority)
-        const crunchinessProp = mergedProperties.find(p => 
-            p.group === 'donkey' && p.name === 'thing.subthing.crunchiness'
-        );
-        expect(crunchinessProp).toBeTruthy();
-        expect(crunchinessProp.value).toBe('high');
+        expect(merged.length).toBe(3);
+        expect(merged[0].name).toBe('parent');
+        expect(merged[0].value).toBe('parent value');
     });
     
-    test('should handle null values', () => {
-        // Create properties with null values
-        const dynamicProperties = [
-            createProperty('vector', 'test', 'prop1', 'string', 'value'),
-            createProperty('vector', 'test', 'prop1.child', 'string', 'child value'),
-            createProperty('vector', 'test', 'prop1', 'string', null) // null value should still replace children
+    test('should keep properties from different renderers when paths differ', () => {
+        const properties = [
+            createProperty('common', 'group', 'parent', 'string', 'parent value'),
+            createProperty('vector', 'group', 'parent.child1', 'string', 'child1 value'),
+            createProperty('latex', 'group', 'parent.child2', 'string', 'child2 value')
         ];
         
-        const mergedProperties = DynamicPropertyMerger.mergeProperties(dynamicProperties, rendererPriorities);
+        const merged = DynamicPropertyMerger.mergeProperties(properties, rendererCompatibility);
         
-        // Should have only the null-valued property (child was removed)
-        expect(mergedProperties.length).toBe(1);
-        
-        const nullProp = mergedProperties[0];
-        expect(nullProp.group).toBe('test');
-        expect(nullProp.name).toBe('prop1');
-        expect(nullProp.value).toBeNull();
+        expect(merged.length).toBe(3);
+        expect(merged.find(p => p.name === 'parent')).toBeTruthy();
+        expect(merged.find(p => p.name === 'parent.child1')).toBeTruthy();
+        expect(merged.find(p => p.name === 'parent.child2')).toBeTruthy();
     });
     
-    test('should only consider properties with same group when removing children', () => {
-        // Create properties with same name pattern but different groups
-        const dynamicProperties = [
-            createProperty('vector', 'group1', 'thing', 'string', 'value1'),
-            createProperty('vector', 'group1', 'thing.child', 'string', 'child1'),
-            createProperty('vector', 'group2', 'thing', 'string', 'value2'),
-            createProperty('vector', 'group2', 'thing.child', 'string', 'child2')
+    test('should keep properties from different groups separate', () => {
+        const properties = [
+            createProperty('vector', 'group1', 'prop', 'string', 'group1 value'),
+            createProperty('vector', 'group2', 'prop', 'string', 'group2 value'),
+            createProperty('vector', 'group1', 'prop.child', 'string', 'group1 child'),
+            createProperty('vector', 'group2', 'prop.child', 'string', 'group2 child')
         ];
         
-        const mergedProperties = DynamicPropertyMerger.mergeProperties(dynamicProperties, rendererPriorities);
+        const merged = DynamicPropertyMerger.mergeProperties(properties, rendererCompatibility);
         
-        // Should keep the parent properties and remove the children for each group
-        expect(mergedProperties.length).toBe(2);
+        expect(merged.length).toBe(4);
         
-        // Group1 property
-        const group1Prop = mergedProperties.find(p => p.group === 'group1');
-        expect(group1Prop).toBeTruthy();
-        expect(group1Prop.name).toBe('thing');
+        const group1 = merged.filter(p => p.group === 'group1');
+        expect(group1).toBeTruthy();
+        expect(group1.length).toBe(2);
+        expect(group1[0].name).toBe('prop');
+        expect(group1[1].name).toBe('prop.child');
         
-        // Group2 property
-        const group2Prop = mergedProperties.find(p => p.group === 'group2');
-        expect(group2Prop).toBeTruthy();
-        expect(group2Prop.name).toBe('thing');
-        
-        // Neither child property should remain
-        const childProps = mergedProperties.filter(p => p.name.includes('child'));
-        expect(childProps.length).toBe(0);
+        const group2 = merged.filter(p => p.group === 'group2');
+        expect(group2).toBeTruthy();
+        expect(group2.length).toBe(2);
+        expect(group2[0].name).toBe('prop');
+        expect(group2[1].name).toBe('prop.child');
     });
     
-    test('should maintain parent-child relationships in the hierarchy output', () => {
-        const dynamicProperties = [
-            createProperty('vector', 'font', 'color', 'string', 'black'),
-            createProperty('vector', 'font', 'style.weight', 'string', 'bold'),
-            createProperty('vector', 'font', 'style.decoration', 'string', 'underline'),
-            createProperty('vector', '', 'margin.top', 'float', 10),
-            createProperty('vector', '', 'margin.bottom', 'float', 20)
+    test('should handle complex hierarchical relationships with clearChildren=true', () => {
+        const properties = [
+            // Add properties in a mixed order to test the algorithm thoroughly
+            createProperty('common', 'test', 'a.b.c.d', 'string', 'abcd common'),
+            createProperty('vector', 'test', 'a.b', 'string', 'ab vector', false, true),
+            createProperty('latex', 'test', 'a.b.c', 'string', 'abc latex', false, true),
+            createProperty('common', 'test', 'a', 'string', 'a common'),
+            createProperty('vector', 'test', 'a.b.c.d.e', 'string', 'abcde vector')
         ];
         
-        const mergedProperties = DynamicPropertyMerger.mergeProperties(dynamicProperties, rendererPriorities);
-        const hierarchy = DynamicPropertyMerger.toHierarchy(mergedProperties);
+        const merged = DynamicPropertyMerger.mergeProperties(properties, rendererCompatibility);
         
-        // Check the hierarchy structure with dot notation in names
-        expect(hierarchy.font.color).toBe('black');
-        expect(hierarchy.font.style.weight).toBe('bold');
-        expect(hierarchy.font.style.decoration).toBe('underline');
-        expect(hierarchy.margin.top).toBe(10);
-        expect(hierarchy.margin.bottom).toBe(20);
+        // With the clearChildren flags:
+        // - 'a.b' clears any children (a.b.c.d) processed before it
+        // - 'a.b.c' clears any children processed before it
+        // - 'a.b.c.d.e' is added after the clearChildren processing
+        
+        expect(merged.length).toBe(4);
+        expect(merged.find(p => p.name === 'a')).toBeTruthy();
+        expect(merged.find(p => p.name === 'a.b')).toBeTruthy();
+        expect(merged.find(p => p.name === 'a.b.c')).toBeTruthy();
+        expect(merged.find(p => p.name === 'a.b.c.d.e')).toBeTruthy();
+        expect(merged.find(p => p.name === 'a.b.c.d')).toBeFalsy(); // Cleared by a.b
     });
     
-    test('should handle empty or invalid input', () => {
-        // Null input
-        expect(DynamicPropertyMerger.processDynamicProperties(null, rendererPriorities)).toEqual([]);
-        
-        // Not an array
-        expect(DynamicPropertyMerger.processDynamicProperties({}, rendererPriorities)).toEqual([]);
-        
-        // Empty array
-        expect(DynamicPropertyMerger.processDynamicProperties([], rendererPriorities)).toEqual([]);
-        
-        // Invalid renderer priorities
-        expect(DynamicPropertyMerger.processDynamicProperties([
-            createProperty('vector', 'test', 'prop', 'string', 'value')
-        ], null)).toEqual([]);
-    });
-    
-    test('should properly handle the example scenario', () => {
-        // The example scenario from the requirements
-        const dynamicProperties = [
-            // First add some properties in various renderers
+    test('should handle the biscuit example with clearChildren=true', () => {
+        const properties = [
             createProperty('common', 'donkey', 'thing.subthing.flavor', 'string', 'vanilla'),
             createProperty('latex', 'donkey', 'thing.subthing.crunchiness', 'string', 'high'),
-            
-            // Then add the vector property which should remove flavor but not crunchiness
-            createProperty('vector', 'donkey', 'thing.subthing', 'string', 'biscuit')
+            createProperty('vector', 'donkey', 'thing.subthing', 'string', 'biscuit', false, true)
         ];
         
-        const mergedProperties = DynamicPropertyMerger.mergeProperties(dynamicProperties, rendererPriorities);
+        const merged = DynamicPropertyMerger.mergeProperties(properties, rendererCompatibility);
         
-        // Should have two properties
-        expect(mergedProperties.length).toBe(2);
+        // The vector renderer's thing.subthing property with clearChildren=true
+        // should remove all children
+        expect(merged.length).toBe(1);
         
-        // Check the biscuit property is there
-        const biscuitProp = mergedProperties.find(p => 
-            p.group === 'donkey' && p.name === 'thing.subthing'
-        );
+        const biscuitProp = merged.find(p => p.name === 'thing.subthing');
         expect(biscuitProp).toBeTruthy();
-        expect(biscuitProp.value).toBe('biscuit');
         expect(biscuitProp.renderer).toBe('vector');
+        expect(biscuitProp.value).toBe('biscuit');
         
-        // Check the flavor property is gone (lower priority child)
-        const flavorProp = mergedProperties.find(p => 
-            p.group === 'donkey' && p.name === 'thing.subthing.flavor'
-        );
-        expect(flavorProp).toBeFalsy();
+        // Child properties should be cleared by clearChildren=true
+        expect(merged.find(p => p.name === 'thing.subthing.flavor')).toBeFalsy();
+        expect(merged.find(p => p.name === 'thing.subthing.crunchiness')).toBeFalsy();
+    });
+    
+    test('should handle null values correctly with clearChildren', () => {
+        const properties = [
+            createProperty('vector', 'test', 'prop1', 'string', 'value'),
+            createProperty('vector', 'test', 'prop1.child', 'string', 'child value'),
+            createProperty('vector', 'test', 'prop1', 'string', null, false, true)
+        ];
         
-        // Check the crunchiness property is still there (higher priority)
-        const crunchinessProp = mergedProperties.find(p => 
-            p.group === 'donkey' && p.name === 'thing.subthing.crunchiness'
-        );
-        expect(crunchinessProp).toBeTruthy();
-        expect(crunchinessProp.value).toBe('high');
-        expect(crunchinessProp.renderer).toBe('latex');
+        const merged = DynamicPropertyMerger.mergeProperties(properties, rendererCompatibility);
+        
+        // With clearChildren=true, null value clears children
+        expect(merged.length).toBe(1);
+        expect(merged[0].name).toBe('prop1');
+        expect(merged[0].value).toBeNull();
+    });
+    
+    test('should filter renderers not in compatibility list', () => {
+        const properties = [
+            createProperty('common', 'test', 'prop1', 'string', 'common'),
+            createProperty('unknown', 'test', 'prop2', 'string', 'unknown'),
+            createProperty('vector', 'test', 'prop3', 'string', 'vector')
+        ];
+        
+        const merged = DynamicPropertyMerger.mergeProperties(properties, rendererCompatibility);
+        
+        // Should exclude 'unknown' renderer
+        expect(merged.length).toBe(2);
+        expect(merged.find(p => p.renderer === 'unknown')).toBeFalsy();
+    });
+    
+    test('should use chronological order when same property appears multiple times', () => {
+        // Add properties in sequence to test last-one-wins
+        const properties = [
+            createProperty('common', 'test', 'prop', 'string', 'common value'),
+            createProperty('vector', 'test', 'prop.child', 'string', 'vector child'),
+            createProperty('vector', 'test', 'prop', 'string', 'vector value', false, true),
+            createProperty('latex', 'test', 'prop', 'string', 'latex value', false, true),
+        ];
+        
+        const merged = DynamicPropertyMerger.mergeProperties(properties, rendererCompatibility);
+        
+        // Last definition of 'prop' (latex) wins and has clearChildren=true
+        expect(merged.length).toBe(1);
+        expect(merged[0].renderer).toBe('latex');
+        expect(merged[0].value).toBe('latex value');
+    });
+
+    test('should preserve child properties when parent has clearChildren=false', () => {
+        const properties = [
+            createProperty('vector', 'test', 'parent.child1', 'string', 'child1 value'),
+            createProperty('vector', 'test', 'parent.child2', 'string', 'child2 value'),
+            // Parent with clearChildren=false (default)
+            createProperty('vector', 'test', 'parent', 'string', 'parent value')
+        ];
+        
+        const merged = DynamicPropertyMerger.mergeProperties(properties, rendererCompatibility);
+        
+        // All properties should be kept with clearChildren=false
+        expect(merged.length).toBe(3);
+        
+        // Verify parent and both children exist
+        expect(merged.find(p => p.name === 'parent')).toBeTruthy();
+        expect(merged.find(p => p.name === 'parent.child1')).toBeTruthy();
+        expect(merged.find(p => p.name === 'parent.child2')).toBeTruthy();
+    });
+
+    test('should directly compare clearChildren=true vs clearChildren=false behavior', () => {
+        // Setup for clearChildren=false
+        const propertiesWithoutClear = [
+            createProperty('vector', 'test', 'parent.child1', 'string', 'child1 value'),
+            createProperty('vector', 'test', 'parent.child2', 'string', 'child2 value'),
+            createProperty('vector', 'test', 'parent', 'string', 'parent value', false, false) // Explicitly false
+        ];
+        
+        const mergedWithoutClear = DynamicPropertyMerger.mergeProperties(propertiesWithoutClear, rendererCompatibility);
+        
+        // With clearChildren=false, we expect parent and both children
+        expect(mergedWithoutClear.length).toBe(3);
+        expect(mergedWithoutClear.find(p => p.name === 'parent')).toBeTruthy();
+        expect(mergedWithoutClear.find(p => p.name === 'parent.child1')).toBeTruthy();
+        expect(mergedWithoutClear.find(p => p.name === 'parent.child2')).toBeTruthy();
+        
+        // Setup for clearChildren=true with identical properties
+        const propertiesWithClear = [
+            createProperty('vector', 'test', 'parent.child1', 'string', 'child1 value'),
+            createProperty('vector', 'test', 'parent.child2', 'string', 'child2 value'),
+            createProperty('vector', 'test', 'parent', 'string', 'parent value', false, true) // True!
+        ];
+        
+        const mergedWithClear = DynamicPropertyMerger.mergeProperties(propertiesWithClear, rendererCompatibility);
+        
+        // With clearChildren=true, we expect only the parent
+        expect(mergedWithClear.length).toBe(1);
+        expect(mergedWithClear[0].name).toBe('parent');
+        expect(mergedWithClear.find(p => p.name === 'parent.child1')).toBeFalsy();
+        expect(mergedWithClear.find(p => p.name === 'parent.child2')).toBeFalsy();
     });
 });

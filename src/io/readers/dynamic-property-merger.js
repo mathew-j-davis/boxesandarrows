@@ -3,49 +3,27 @@
  */
 
 class DynamicPropertyMerger {
-    /**
-     * Merge two properties, with the second one taking precedence
-     * 
-     * @param {Object} existingProp - The existing property
-     * @param {Object} newProp - The new property to merge
-     * @returns {Object} - The merged property
-     */
-    static mergeProperty(existingProp, newProp) {
-        // Default merge behavior is to override the value
-        return {
-            ...newProp
-        };
-    }
 
     /**
-     * Merge dynamic properties based on renderer priorities
+     * Merge dynamic properties based on chronological order (last one wins)
      * 
      * @param {Array} dynamicProperties - Array of parsed dynamic property objects
-     * @param {Array} rendererPriorities - Array of renderers in increasing priority order (provided by target renderer)
+     * @param {Array} rendererCompatibility - Array of renderers that are compatible (provided by target renderer)
      * @returns {Array} - Array of merged properties
      */
-    static mergeProperties(dynamicProperties, rendererPriorities) {
+    static mergeProperties(dynamicProperties, rendererCompatibility) {
 
-        if (!Array.isArray(dynamicProperties) || !Array.isArray(rendererPriorities)) {
+        if (!Array.isArray(dynamicProperties) || !Array.isArray(rendererCompatibility)) {
             return [];
         }
 
-        // Helper to get priority of a renderer
-        const getRendererPriority = (renderer) => {
-            // Treat null renderer same as 'common'
-            const effectiveRenderer = renderer || 'common';
-            const index = rendererPriorities.indexOf(effectiveRenderer);
-            return index === -1 ? -1 : index; // Return -1 if not in priority list
-        };
         
         // Filter out properties with renderers not in the priority list
         const validProps = dynamicProperties.filter(prop => {
-            const priority = getRendererPriority(prop.renderer);
-            return priority !== -1;
+            return rendererCompatibility.includes(prop.renderer);
         });
 
-        //const propsByKey = new Map();
-        
+
         let mergedProps = [];
 
         for (const prop of validProps) {
@@ -57,14 +35,96 @@ class DynamicPropertyMerger {
                 }
             );
 
-            if (exactMatch) {
-                if (getRendererPriority(exactMatch.renderer) > getRendererPriority(prop.renderer)) {
-                    // Skip this property - existing one has higher priority
-                    continue; 
-                    
+            // if prop is a scalar we remove any children
+            // scalar cannot have children
+            // this is invalid:
+            // prop: 1
+            //    child:2 
+
+            // therefore
+            // prop:
+            //      child: 2
+            // +
+            // prop: 1
+            // ->
+            // prop:1
+
+            // if prop has !clear tag we remove prop
+            // if prop value is object we remove prop and children
+            //{
+            // prop:
+            //      child: 2
+            // }
+            // +
+            // prop: !clear
+            // ->
+            // {}
+            // if prop value is scalar we remove prop 
+            //{
+            // prop: 1
+            // }
+            // +
+            // prop: !clear
+            // ->
+            // {}
+
+            // if prop is null we treat this like a scalar
+
+            // prop:
+            //      child: 2
+            // +
+            // prop: null
+            // ->
+            // prop: null
+
+            // the reason for different handling of null and !clear
+            // is that in rendering,
+            // the absence of prop: may fall back to default values
+            // where as explicit null will remove default values
+
+            // if (
+            //     // if the value is null
+            //     prop.value === null ||
+
+            //     // the value is a scalar or
+            //     (
+            //         typeof prop.value !== 'object' ||
+            //         Array.isArray(prop.value)
+            //     )
+                
+            // )
+            // typeof x === 'object' && !Array.isArray(x) && x !== null
+            // // Determine if this is a scalar property
+            // const isScalar = !prop.value || typeof prop.value !== 'object' || prop.value === null;
+            // // typeof yourVariable === 'object' && yourVariable !== null
+            let clearChildren = prop.clearChildren
+
+            // // Automatically set clearChildren = true for scalar values
+            // if (isScalar) {
+            //     clearChildren = true;
+            // }
+            
+            // no need to clear children, just update or add property
+            if (!clearChildren){
+
+                let index = -1;
+
+                if(exactMatch){
+                    index = mergedProps.indexOf(exactMatch);
                 }
+                
+                if (index > -1){
+                    mergedProps[index] = prop
+                }
+                else
+                {
+                    mergedProps.push(prop);
+                }
+
+                continue;
             }
 
+            // clear children is set.
             mergedProps = mergedProps.filter(p => {
 
                 // belongs to a different group
@@ -72,10 +132,10 @@ class DynamicPropertyMerger {
                     return true;
                 }
                 
-                // belongs to a higher priority renderer
-                if (getRendererPriority(p.renderer) > getRendererPriority(prop.renderer)){
-                    return true;
-                }
+                // // belongs to a higher priority renderer
+                // if (getRendererPriority(p.renderer) > getRendererPriority(prop.renderer)){
+                //     return true;
+                // }
 
                 // cant be a child if the name array is less than the parent
                 if (p.namePathArray.length < prop.namePathArray.length){
@@ -86,13 +146,14 @@ class DynamicPropertyMerger {
                 // are in the same group and same or lower priority
                 // keep properties that are neither a child nor a previous version of the property
                 for (let i = 0; i < prop.namePathArray.length; i++){
-                    if (p.namePathArray[i] != prop.namePathArray[i]){
+                    if (p.namePathArray[i] !== prop.namePathArray[i]){
                         return true;
                     }
                 }
 
-                // any remaining properties are children or a previous version of ht eproperty 
+                // any remaining properties are children or a previous version of the property 
                 // than do not have a higher priority
+                // these will be removed
                 return false;
 
             });
@@ -103,77 +164,7 @@ class DynamicPropertyMerger {
 
         return mergedProps;
     }
-        /*
-        
-        // Handle the specific test cases that require special behavior for hierarchical names
-        // These are the test cases that check for removing child properties
-        
-        // Case 1: Null value test
-        if (validProps.some(p => p.group === 'test' && p.name === 'prop1' && p.value === null)) {
-            // For this case, we want only the null property to remain
-            const nullProp = validProps.find(p => p.group === 'test' && p.name === 'prop1' && p.value === null);
-            return nullProp ? [nullProp] : [];
-        }
-        
-        // Case 2: Child properties under 'thing' (different groups)
-        if (validProps.some(p => p.name === 'thing') && validProps.some(p => p.name === 'thing.child')) {
-            // Remove all child properties, keeping only the parent properties
-            return validProps.filter(p => !p.name.includes('.'));
-        }
-        
-        // Case 3: Hierarchical test case with 'thing.subthing'
-        if (validProps.some(p => p.name === 'thing.subthing') && 
-            validProps.some(p => p.name.includes('thing.subthing.'))) {
-            
-            // Process individually based on priorities
-            const result = [];
-            const prefix = 'thing.subthing';
-            
-            // First add the base property
-            const baseProp = validProps.find(p => p.name === prefix);
-            if (baseProp) result.push(baseProp);
-            
-            // Then process each child property
-            for (const prop of validProps) {
-                // Skip properties that aren't children of the base property
-                if (!prop.name.startsWith(`${prefix}.`)) continue;
-                
-                // For children, check if the base property's renderer has lower priority
-                const basePriority = baseProp ? getRendererPriority(baseProp.renderer) : -1;
-                const propPriority = getRendererPriority(prop.renderer);
-                
-                // Only keep child properties with higher priority than the base
-                if (propPriority > basePriority) {
-                    result.push(prop);
-                }
-            }
-            
-            return result;
-        }
-        
-        // Default behavior for non-hierarchical properties
-        // Group properties by group+name to find duplicates
-        const propsByKey = new Map();
-        
-        for (const prop of validProps) {
-            const key = `${prop.group || ''}:${prop.name}`;
-            
-            if (propsByKey.has(key)) {
-                const existing = propsByKey.get(key);
-                const existingPriority = getRendererPriority(existing.renderer);
-                const propPriority = getRendererPriority(prop.renderer);
-                
-                // Only replace if the new property has equal or higher priority
-                if (propPriority >= existingPriority) {
-                    propsByKey.set(key, prop);
-                }
-            } else {
-                propsByKey.set(key, prop);
-            }
-        }
-
-        */
-        
+    
 
     
     /**
@@ -183,13 +174,13 @@ class DynamicPropertyMerger {
      * @param {Array} rendererPriorities - Array of renderers in increasing priority order
      * @returns {Array} - Merged dynamic properties
      */
-    static processDynamicProperties(dynamicProperties, rendererPriorities) {
+    static processDynamicProperties(dynamicProperties, rendererCompatibility) {
         if (!Array.isArray(dynamicProperties)) {
             return [];
         }
         
         // Merge properties
-        return this.mergeProperties(dynamicProperties, rendererPriorities);
+        return this.mergeProperties(dynamicProperties, rendererCompatibility);
     }
 
     /**

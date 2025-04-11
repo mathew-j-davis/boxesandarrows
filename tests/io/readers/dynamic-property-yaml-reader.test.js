@@ -22,7 +22,7 @@ common: !renderer
     start: !group
       fill:
         color: black
-      width: 1.5
+    width: 1.5
 
 # Another regular section
 settings:
@@ -119,8 +119,8 @@ math: !renderer
         p => p.renderer === 'common' && p.group === 'arrows.start' && p.name === 'fill.color'
       );
       expect(colorProp).toBeDefined();
-      expect(colorProp.value).toBe('black');
-      
+    expect(colorProp.value).toBe('black');
+    
       // Test flag property
       const flagProp = transformedYaml._dynamicProperties.find(
         p => p.renderer === 'latex' && p.name === 'pattern'
@@ -262,7 +262,7 @@ math: !renderer
         ],
         common: {
           __tag: 'renderer',
-          data: {
+          __data: {
             testProp: 'value'
           }
         }
@@ -287,4 +287,4 @@ math: !renderer
       expect(transformed._dynamicProperties.length).toBe(2);
     });
   });
-}); 
+});

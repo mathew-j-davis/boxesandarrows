@@ -7,49 +7,63 @@ This document outlines the specific changes needed to implement the `!clear` tag
 The `!clear` tag will mark properties so that during merging, their child properties can be optionally cleared. The implementation needs to:
 
 1. Support scalar values (direct tag use)
-2. Support mapping values with `_value` property
+2. Support mapping values with `__value` property
 3. Preserve nested properties and process them as hierarchical dynamic properties
-4. Set the `clearChildren` flag on tagged properties
+4. Set the `__clear` flag on tagged properties
 
 ## Implementation Steps
 
-### 1. Add the `!clear` Tag Type to the Schema
+### 1. Add the `!clear` Tag Types to the Schema
 
-Add this to the `getSchema()` method:
+Add these to the `getSchema()` method:
 
 ```javascript
-// Define custom tag type for !clear
-const clearTag = new yaml.Type('!clear', {
-  kind: ['scalar', 'mapping'],
+// !clear tag (scalar form): Marks a property to clear children during merging
+const clearScalarTag = new yaml.Type('!clear', {
+  kind: 'scalar',
   construct: function(data) {
-    // For scalar form: a: !clear value
-    if (typeof data !== 'object' || data === null) {
+    return { 
+      __tag: 'clear', 
+      __value: data,
+      __clear: true
+    };
+  }
+});
+
+// !clear tag (mapping form): Same as scalar form but for mappings
+const clearMappingTag = new yaml.Type('!clear', {
+  kind: 'mapping',
+  construct: function(data) {
+    // If there's no data or it's not an object, return a simple value
+    if (!data || typeof data !== 'object') {
       return { 
         __tag: 'clear', 
-        value: data,
-        clearChildren: true
+        __value: data,
+        __clear: true 
+      };
+    }
+
+    // If __value is specified, extract it and don't include the rest
+    if ('__value' in data) {
+      return { 
+        __tag: 'clear', 
+        __value: data.__value,
+        __clear: true 
       };
     }
     
-    // For mapping form with _value: a: !clear \n  _value: value
-    let value = undefined;
-    if ('_value' in data) {
-      value = data._value;
-    }
-    
-    // Return object that preserves both the clear flag and any nested data
+    // Otherwise use the whole object as the value
     return { 
       __tag: 'clear', 
-      data: data, // Preserve all nested properties
-      value: value, // Extract specific _value if present
-      clearChildren: true 
+      __value: data,
+      __clear: true 
     };
   }
 });
 
 // Add to schema extension
 return yaml.DEFAULT_SCHEMA.extend([
-  rendererTag, groupTag, flagTag, clearTag
+  rendererTag, groupTag, flagTag, clearScalarTag, clearMappingTag
 ]);
 ```
 
@@ -62,40 +76,31 @@ static processProperties(renderer, propsObj, groupPath, properties) {
   if (!propsObj || typeof propsObj !== 'object') return;
   
   Object.entries(propsObj).forEach(([key, value]) => {
-    // Check for !clear tag
-    let clearChildren = false;
-    
     if (this.hasTag(value, 'clear')) {
-      clearChildren = true;
-      
-      // If it has a direct value, process it as a property with clearChildren flag
-      if (value.value !== undefined) {
-        this.addUntaggedProperty(renderer, groupPath, key, value.value, properties, clearChildren);
-      } else {
-        // Add an "empty" property with just the clearChildren flag 
-        // (type doesn't matter as much since we're just using it for the flag)
+      // This is a clear property
+      const clearChildren = value.__clear; // Should be true
+
+      // Process the value based on its type
+      if (value.__value === undefined || value.__value === null) {
+        // No value or null value - just add with the clearChildren flag
         this.addProperty(renderer, groupPath, key, 'string', null, false, properties, clearChildren);
-      }
-      
-      // Process any nested properties in the data
-      if (value.data && typeof value.data === 'object') {
-        // Filter out _value which was already handled
-        const nestedObj = Object.fromEntries(
-          Object.entries(value.data).filter(([k]) => k !== '_value')
-        );
+      } else if (typeof value.__value === 'object' && !Array.isArray(value.__value)) {
+        // Value is an object - create the parent property with clearChildren flag
+        this.addProperty(renderer, groupPath, key, 'string', null, false, properties, clearChildren);
         
-        // Process nested properties (without the clearChildren flag)
-        if (Object.keys(nestedObj).length > 0) {
-          this.processNestedObject(renderer, groupPath, key, nestedObj, properties);
-        }
+        // Then process the object properties as nested
+        this.processNestedObject(renderer, groupPath, key, value.__value, properties);
+      } else {
+        // Simple scalar value - add with the clearChildren flag
+        this.addUntaggedProperty(renderer, groupPath, key, value.__value, properties, clearChildren);
       }
     } else if (this.hasTag(value, 'group')) {
       // Existing group handling
       const childGroupPath = groupPath ? `${groupPath}.${key}` : key;
-      this.processProperties(renderer, value.data, childGroupPath, properties);
+      this.processProperties(renderer, value.__data, childGroupPath, properties);
     } else if (this.hasTag(value, 'flag')) {
       // Existing flag handling
-      this.addProperty(renderer, groupPath, key, 'string', value.value, true, properties);
+      this.addProperty(renderer, groupPath, key, 'string', value.__value, true, properties);
     } else if (typeof value === 'object' && value !== null && !this.hasTag(value, 'renderer')) {
       // Existing nested object handling
       this.processNestedObject(renderer, groupPath, key, value, properties);
@@ -147,18 +152,18 @@ a: !clear houseboat
 ```
 
 Processing:
-1. Tag constructor creates `{ __tag: 'clear', value: 'houseboat', clearChildren: true }`
+1. Tag constructor creates `{ __tag: 'clear', __value: 'houseboat', __clear: true }`
 2. `processProperties` sees tag, sets `clearChildren = true`
 3. Property `a` is created with value 'houseboat' and `clearChildren = true`
 
-### Pattern 2: Mapping with _value
+### Pattern 2: Mapping with __value
 ```yaml
 a: !clear 
-    _value: null
+    __value: null
 ```
 
 Processing:
-1. Tag constructor creates `{ __tag: 'clear', data: { _value: null }, value: null, clearChildren: true }`
+1. Tag constructor creates `{ __tag: 'clear', __value: null, __clear: true }`
 2. `processProperties` sees tag, sets `clearChildren = true`
 3. Property `a` is created with value `null` and `clearChildren = true`
 
@@ -169,7 +174,7 @@ a: !clear
 ```
 
 Processing:
-1. Tag constructor creates `{ __tag: 'clear', data: { b: 'value' }, value: undefined, clearChildren: true }`
+1. Tag constructor creates `{ __tag: 'clear', __value: { b: 'value' }, __clear: true }`
 2. `processProperties` sees tag, sets `clearChildren = true`
 3. Property `a` is created with no value and `clearChildren = true`
 4. `processNestedObject` is called to handle `{ b: 'value' }`
@@ -180,8 +185,8 @@ Processing:
 Test all patterns to ensure they work correctly:
 
 1. Scalar form with various value types
-2. Mapping form with _value
-3. Nested properties with and without _value
+2. Mapping form with __value
+3. Nested properties with and without __value
 4. Combinations with other tags (!group, !flag)
 
 Verify that:
@@ -198,4 +203,4 @@ This implementation preserves all the desired functionality:
 - The tag is handled consistently with the existing schema
 - The clearChildren flag is set appropriately
 
-The main conceptual change is recognizing that !clear needs to both set a flag AND potentially process nested data, unlike simpler tags. 
+The main improvement is the simplified intermediate representation that consistently uses `__value` for all value types, making the processing code more straightforward. 

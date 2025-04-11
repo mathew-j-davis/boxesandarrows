@@ -1,0 +1,17 @@
+
+# Sample YAML with nested structures
+settings:
+  font:
+    size: 12
+    family: Arial
+    style: normal
+  colors:
+    background: '#ffffff'
+    foreground: '#000000'
+  layout:
+    - header
+    - content
+    - footer
+  enabled: true
+  opacity: 0.8
+  metadata: null

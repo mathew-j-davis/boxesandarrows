@@ -188,7 +188,7 @@ class DynamicPropertyYamlReader {
       return null;
     }
   }
-  
+
   /**
    * Transform a parsed YAML document
    * 
@@ -350,7 +350,7 @@ class DynamicPropertyYamlReader {
           
           // Then process the object properties as nested
           this.processNestedObject(renderer, groupPath, key, value.__value, properties);
-      } else {
+        } else {
           // Simple scalar value - add with the clearChildren flag
           this.addUntaggedProperty(renderer, groupPath, key, value.__value, properties, clearChildren);
         }
@@ -364,7 +364,7 @@ class DynamicPropertyYamlReader {
       }
     });
   }
-  
+
   /**
    * Process a nested object (without !group tag)
    * 
@@ -413,7 +413,7 @@ class DynamicPropertyYamlReader {
       }
     });
   }
-  
+
   /**
    * Add a property to the properties array
    * 
@@ -462,6 +462,9 @@ class DynamicPropertyYamlReader {
       dataType = Number.isInteger(value) ? 'integer' : 'float';
     } else if (typeof value === 'boolean') {
       dataType = 'boolean';
+    } else if (Array.isArray(value)) {
+      // NEW: Detect arrays and set the appropriate data type
+      dataType = 'array';
     }
     
     this.addProperty(renderer, group, name, dataType, value, isFlag, properties, clearChildren);
