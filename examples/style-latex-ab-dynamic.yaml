@@ -1,0 +1,88 @@
+---
+# Page configuration
+type: page
+scale:
+  position:
+    x: 2
+    y: 2
+  size:
+    h: 2
+    w: 2
+margin:
+  h: 1
+  w: 1
+---
+# Base style
+type: style
+name: base
+node:
+  object:
+    tikz:
+      shape: rectangle
+      fill: "#ffffff"
+      draw: "#000000"
+      minimum width: 1cm
+      minimum height: 0.5cm
+      rounded corners: 0.005cm
+      line width: 0.02cm
+      text opacity: 1
+      font: \footnotesize
+      inner sep: 0pt
+  text:
+    adjustbox:
+      stack: l
+    latex:
+      flags:
+        font: \sffamily
+        size: \small
+edge:
+  object:
+    tikz:
+      draw: "#000000"
+      line width: 0.02cm
+      rounded corners: 0.05cm
+  arrow:
+    tikz:
+      default:
+        shape: Circle
+        width: 0.2cm
+        length: 0.2cm
+      start:
+        shape: Circle
+        width: 0.2cm
+        length: 0.2cm
+      end:
+        shape: Triangle
+        width: 0.2cm
+        length: 0.2cm
+  text:
+    tikz:
+      default:
+        pos: "0.5"
+      start:
+        pos: "0.1"
+      end:
+        pos: "0.9"
+    latex:
+      default:
+        flags:
+          font: \sffamily
+          size: \small
+      start:
+        flags:
+          font: \sffamily
+          size: \small
+      end:
+        flags:
+          font: \sffamily
+          size: \small
+---
+# Bend left 50 degrees style
+type: style
+name: bend_l_50
+_latex: !renderer
+  edge: !group
+    object: !group
+      tikz: !group
+        bend left: "50"
+---

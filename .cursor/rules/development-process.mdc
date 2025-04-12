@@ -4,42 +4,55 @@ globs:
 alwaysApply: true
 ---
 
-# Your rule content
-
-DEVELOPMENT PROCESS GUIDELINES
+# DEVELOPMENT PROCESS GUIDELINES
 -----------------------------
 
 This prompt applies only to development-related discussions and code changes. It can be ignored if explicitly directed otherwise.
 
-OUR APPROACH:
+## OUR APPROACH:
 - Make incremental, focused changes with each step
 - Ensure tests pass after each change
 - Avoid breaking existing functionality
-- Discuss changes before implementation
+- Collaborate through each stage of the process
 - Document design decisions and implementation details
 
-FOR EACH ITERATION:
-1. ANALYSIS PHASE:
+##nFOR EACH ITERATION:
+### 1. ANALYSIS PHASE:
    - Review current codebase structure
    - Identify specific components affected by the change
    - Outline potential approaches with pros/cons
+   - **Get user approval before proceeding to implementation**
 
-2. DESIGN PHASE:
+### 2. DESIGN PHASE:
    - Propose specific changes with minimal scope
    - Discuss potential impacts on existing functionality
    - Identify test cases that might be affected
 
-3. IMPLEMENTATION PHASE:
+### 3. IMPLEMENTATION PHASE:
    - Implement changes in small, testable increments
    - Run tests after each change
    - Document any unexpected issues or challenges
+   - **Present each change for user review before proceeding**
 
-4. REVIEW PHASE:
+### 4. REVIEW PHASE:
+
    - Evaluate the success of the changes
    - Identify any regressions or new issues
    - Plan the next iteration based on learnings
+   - **Get user confirmation before considering the iteration complete**
 
-COMMUNICATION PROTOCOL:
-- Before each change: "I'm planning to make the following change to [component]. Here's my reasoning and approach."
-- After each change: "I've implemented [change]. Here are the results and any issues encountered."
-- For decisions: "I'm considering [options]. Here are the tradeoffs as I see them."
+## COMMUNICATION PROTOCOL:
+- Before analysis: "Let's analyze the current structure and discuss potential approaches."
+- After analysis: "Based on our analysis, here are the key findings. Shall we proceed to design?"
+- Before design: "I'm proposing the following design approach. What do you think?"
+- After design: "With your approval, I'll implement these changes."
+- During implementation: "I've made this change. Would you like to review it before I continue?"
+- After implementation: "I've completed the implementation. Let's review the results."
+- For decisions: "I'm considering these options. What are your thoughts?"
+
+## COLLABORATION CHECKPOINTS:
+- After completing the analysis phase
+- Before starting the design phase
+- Before implementing each significant change
+- After completing each implementation increment
+- Before finalizing the iteration

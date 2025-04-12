@@ -315,14 +315,15 @@ class LatexStyleHandler {
     /**
      * Process YAML documents from the style YAML file
      * @param {Array} documents - Array of YAML documents
+     * @returns {Array} - Collection of style records
      */
     processYamlDocuments(documents) {
-        if (!documents || !Array.isArray(documents) || documents.length === 0) return;
-        
-        // Initialize stylesheet structure if needed
-        if (!this.stylesheet) {
-            this.stylesheet = this.getBlankStylesheet();
+        if (!documents || !Array.isArray(documents) || documents.length === 0) {
+            return [];
         }
+        
+        // Initialize result array to collect all style records
+        const result = [];
         
         // Process each document based on its type
         for (const doc of documents) {
@@ -338,8 +339,8 @@ class LatexStyleHandler {
                     }
                 };
                 
-                // Merge with existing page config
-                this.mergeStylesheet(pageConfig);
+                // Add to result array
+                result.push(pageConfig);
             }
             
             // Process style definitions
@@ -357,10 +358,12 @@ class LatexStyleHandler {
                     }
                 }
                 
-                // Merge with existing styles
-                this.mergeStylesheet(styleData);
+                // Add to result array
+                result.push(styleData);
             }
         }
+        
+        return result;
     }
 
     /**

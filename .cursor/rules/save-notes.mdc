@@ -1,0 +1,44 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Save Notes Request Handler
+
+When a user asks to "save notes" or requests saving documentation, follow these steps:
+
+1. Create a new markdown file with the naming convention:
+   - `ai_readme_[topic].md` for general documentation
+   - `ai_readme_[component]_[aspect].md` for specific component documentation
+   - Use descriptive, lowercase names with underscores
+
+2. Structure the content with:
+   - Clear headings using markdown syntax (# for main title, ## for sections)
+   - Bullet points for lists
+   - Code blocks for code examples
+   - Tables for structured data
+   - Links for references
+
+3. Include these sections when appropriate:
+   - Overview/Introduction
+   - Key Components
+   - Methods/Functions
+   - Usage Examples
+   - Configuration Options
+   - Dependencies
+   - Notes/Caveats
+
+4. Format the content to be:
+   - Clear and concise
+   - Well-organized
+   - Easy to read
+   - Searchable
+   - Maintainable
+
+5. After creating the file:
+   - Confirm the file creation
+   - Provide a brief summary of what was saved
+   - Ask if any additional information should be added
+
+Example response:
+"I've created a new file `ai_readme_[topic].md` with the documentation. The file includes [brief description of content]. Would you like me to add any additional information or make any changes to the documentation?"

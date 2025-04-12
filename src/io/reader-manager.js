@@ -22,14 +22,18 @@ class ReaderManager {
     /**
      * Process style files (JSON or YAML)
      * @param {Array} styleFiles - Array of file paths to process
-     * @returns {Object} - Processed style definitions
+     * @param {Object} styleHandler - Style handler for processing styles
+     * @returns {Array} - Combined collection of style records
      */
     async processStyleFiles(styleFiles, styleHandler) {
-        // Return empty object if no style files provided
+        // Return empty array if no style files provided
         if (!styleFiles || styleFiles.length === 0) {
             console.info('No style files provided, using empty style set');
-            return {};
+            return [];
         }
+        
+        // Initialize result array to collect all style records
+        const result = [];
         
         // Process each file
         for (const file of styleFiles) {
@@ -38,27 +42,26 @@ class ReaderManager {
             
             // Process based on file extension
             try {
-                
                 if (fileExtension === 'json') {
                     let stylesheet = await StyleReader.readFromJson(file);
-                    styleHandler.mergeStylesheet(stylesheet);
-
+                    // Add to result array
+                    result.push(stylesheet);
                 } else if (fileExtension === 'yaml' || fileExtension === 'yml') {
                     let styleDocuments = await StyleReader.readFromYaml(file);   
-                    // Process the documents directly with the style handler
-                    styleHandler.processYamlDocuments(styleDocuments);    
+                    // Process the documents with the style handler
+                    const yamlStyles = styleHandler.processYamlDocuments(styleDocuments);
+                    // Add to result array
+                    result.push(...yamlStyles);
                 } else {
                     console.warn(`Unsupported file format for styles: ${fileExtension}`);
                     continue;
                 }
-                
-                // Merge the new styles with the consolidated styles
-                
-                    
             } catch (error) {
                 console.error(`Error processing style file ${file}:`, error);
             }
         }
+        
+        return result;
     }
     
     /**

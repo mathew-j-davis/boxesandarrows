@@ -1,0 +1,38 @@
+---
+# Page configuration
+type: page
+scale:
+  position:
+    x: 2
+    y: 2
+  size:
+    h: 2
+    w: 2
+margin:
+  h: 1
+  w: 1
+---
+# Node 1
+type: node
+name: node1
+label: "Node 1"
+x: 1
+y: 1
+w: 1
+h: 0.5
+---
+# Node 2
+type: node
+name: node2
+label: "Node 2"
+x: 3
+y: 1
+w: 1
+h: 0.5
+---
+# Edge with bend_l_50 style
+type: edge
+from: node1
+to: node2
+style: bend_l_50
+label: "Connection" 

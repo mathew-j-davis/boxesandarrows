@@ -67,17 +67,27 @@ class DiagramBuilder {
 
     async loadData(stylePaths, nodePaths, edgePaths, positionFile, mixedYamlFile) {
         try {
-
+            // Process style files
             const styleFiles = Array.isArray(stylePaths) ? stylePaths : (stylePaths ? [stylePaths] : []);
+            let allStyleRecords = [];
+            
             if(styleFiles.length > 0) {
                 this.log(`Processing styles from ${styleFiles.length} dedicated style files`);
-                await this.readerManager.processStyleFiles(styleFiles, this.renderer.styleHandler);
+                allStyleRecords = await this.readerManager.processStyleFiles(styleFiles, this.renderer.styleHandler);
             }
 
             // Process edges from mixed YAML file if provided
             if (mixedYamlFile) {
                 this.log(`Processing styles from mixed YAML file: ${mixedYamlFile}`);
-                await this.readerManager.processStyleFiles([mixedYamlFile], this.renderer.styleHandler);
+                const mixedStyleRecords = await this.readerManager.processStyleFiles([mixedYamlFile], this.renderer.styleHandler);
+                
+                // Add mixed style records to all style records
+                allStyleRecords = [...allStyleRecords, ...mixedStyleRecords];
+            }
+            
+            // Apply all collected styles to the style handler
+            for (const styleRecord of allStyleRecords) {
+                this.renderer.styleHandler.mergeStylesheet(styleRecord);
             }
 
             // Handle node files (CSV or YAML)
@@ -98,8 +108,8 @@ class DiagramBuilder {
             this.log('Merging all node records');
             const mergedRecords = this.readerManager.mergeNodeRecords();
             
-            // Create Node objects from merged records
-            this.log('Creating Node objects from merged records');
+            // Create nodes from the merged records
+            this.log('Creating nodes from merged records');
             this.readerManager.createNodesFromRecords(mergedRecords);
 
             // Load and apply position data
@@ -127,7 +137,7 @@ class DiagramBuilder {
             }
 
         } catch (error) {
-            console.error('Error loading data:', error);
+            this.log(`Error loading data: ${error.message}`);
             throw error;
         }
     }
