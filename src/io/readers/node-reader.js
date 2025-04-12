@@ -7,6 +7,7 @@ const ValueParser = require('./value-parser');
 const { Position, PositionType } = require('../../geometry/position');
 const Dimensions = require('../../geometry/dimensions');
 const DynamicPropertyParser = require('./dynamic-property-parser');
+const DynamicPropertyYamlReader = require('./dynamic-property-yaml-reader');
 
 class NodeReader {
 
@@ -48,7 +49,10 @@ class NodeReader {
      * @returns {Promise<Array>} - Array of node records
      */
     static async readRecordsFromYaml(yamlFile) {
-        return await YamlReader.readFile(yamlFile, { 
+        // return await YamlReader.readFile(yamlFile, { 
+        //     filter: doc => doc && doc.type === 'node' 
+        // });
+        return await DynamicPropertyYamlReader.readFile(yamlFile, { 
             filter: doc => doc && doc.type === 'node' 
         });
     }
