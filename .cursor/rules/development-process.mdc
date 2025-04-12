@@ -1,0 +1,45 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+
+# Your rule content
+
+DEVELOPMENT PROCESS GUIDELINES
+-----------------------------
+
+This prompt applies only to development-related discussions and code changes. It can be ignored if explicitly directed otherwise.
+
+OUR APPROACH:
+- Make incremental, focused changes with each step
+- Ensure tests pass after each change
+- Avoid breaking existing functionality
+- Discuss changes before implementation
+- Document design decisions and implementation details
+
+FOR EACH ITERATION:
+1. ANALYSIS PHASE:
+   - Review current codebase structure
+   - Identify specific components affected by the change
+   - Outline potential approaches with pros/cons
+
+2. DESIGN PHASE:
+   - Propose specific changes with minimal scope
+   - Discuss potential impacts on existing functionality
+   - Identify test cases that might be affected
+
+3. IMPLEMENTATION PHASE:
+   - Implement changes in small, testable increments
+   - Run tests after each change
+   - Document any unexpected issues or challenges
+
+4. REVIEW PHASE:
+   - Evaluate the success of the changes
+   - Identify any regressions or new issues
+   - Plan the next iteration based on learnings
+
+COMMUNICATION PROTOCOL:
+- Before each change: "I'm planning to make the following change to [component]. Here's my reasoning and approach."
+- After each change: "I've implemented [change]. Here are the results and any issues encountered."
+- For decisions: "I'm considering [options]. Here are the tradeoffs as I see them."
