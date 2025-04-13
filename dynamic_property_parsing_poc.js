@@ -66,7 +66,7 @@ dynamicProps.forEach((prop, index) => {
   // console.log(`Value: ${JSON.stringify(prop.value)}`);
   // console.log(`Type: ${prop.dataType}`);
   // console.log(`isFlag: ${prop.isFlag}`);
-  // console.log(`clearChildren: ${!!prop.clearChildren}`);
+  // console.log(`clear: ${!!prop.clear}`);
 });
 
 // Analyze properties by type
@@ -89,15 +89,15 @@ const nonLeafProps = objectProps.filter(p => {
   return hasChildren;
 });
 
-// Analyze properties with clearChildren flag
-const clearChildrenProps = dynamicProps.filter(p => p.clearChildren);
+// Analyze properties with clear flag
+const clearChildrenProps = dynamicProps.filter(p => p.clear);
 
 // Statistics
 console.log("\n=== PROPERTY ANALYSIS ===");
 console.log(`Total properties: ${dynamicProps.length}`);
 console.log(`Scalar/Array properties: ${scalarProps.length}`);
 console.log(`Object properties: ${objectProps.length}`);
-console.log(`Properties with clearChildren flag: ${clearChildrenProps.length}`);
+console.log(`Properties with clear flag: ${clearChildrenProps.length}`);
 console.log(`Non-leaf object properties: ${nonLeafProps.length}`);
 
 // Show non-leaf properties if any

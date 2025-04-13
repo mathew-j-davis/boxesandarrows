@@ -35,7 +35,8 @@ class DynamicPropertyParser {
          * )?                     - The tags group is optional
          * $                      - End of the string
          */
-        const pattern = /^_([a-zA-Z][a-zA-Z0-9]*)?:([a-zA-Z](?:[_.]?[a-zA-Z0-9]+)*)?:([a-zA-Z]+):([a-zA-Z](?:[_.]?[a-zA-Z0-9]+)*)(?::(.*))?$/;
+        //const pattern = /^_([a-zA-Z][a-zA-Z0-9]*)?:([a-zA-Z](?:[_.]?[a-zA-Z0-9]+)*)?:([a-zA-Z]+):([a-zA-Z](?:[_.]?[a-zA-Z0-9]+)*)(?::(.*))?$/;
+        const pattern = /^_([a-zA-Z][a-zA-Z0-9]*)?:([a-zA-Z]+):([a-zA-Z](?:[_.]?[a-zA-Z0-9]+)*)(?::(.*))?$/;
         return pattern.test(propertyString);
     }
 
@@ -63,26 +64,25 @@ class DynamicPropertyParser {
          * )?                     - The tags group is optional
          * $                      - End of the string
          *
-         * Match array indices (approximate based on optional groups):
+         * Match array indices (based on the current regex):
          * match[1]: renderer (optional)
-         * match[2]: groupPath (optional)
-         * match[3]: type
-         * match[4]: name
-         * match[5]: tagsString (optional)
+         * match[2]: type
+         * match[3]: namePath
+         * match[4]: tagsString (optional)
          */
-        const pattern = /^_([a-zA-Z][a-zA-Z0-9]*)?:([a-zA-Z](?:[_.]?[a-zA-Z0-9]+)*)?:([a-zA-Z]+):([a-zA-Z](?:[_.]?[a-zA-Z0-9]+)*)(?::(.*))?$/;
+        //const pattern = /^_([a-zA-Z][a-zA-Z0-9]*)?:([a-zA-Z](?:[_.]?[a-zA-Z0-9]+)*)?:([a-zA-Z]+):([a-zA-Z](?:[_.]?[a-zA-Z0-9]+)*)(?::(.*))?$/;
+        const pattern = /^_([a-zA-Z][a-zA-Z0-9]*)?:([a-zA-Z]+):([a-zA-Z](?:[_.]?[a-zA-Z0-9]+)*)(?::(.*))?$/;
         const match = propertyString.match(pattern);
         
         if (!match) {
             throw new Error(`Failed to parse dynamic property name: ${propertyString}`);
         }
 
-        // Extract the components from the match groups
+        // Extract the components from the match groups using corrected indices
         const renderer = match[1] || 'common';
-        const groupPath = match[2] || '';
-        const type = match[3]; // Type is mandatory
-        const name = match[4]; // Name is mandatory
-        const tagsString = match[5] || ''; // Optional tags part
+        const type = match[2]; // Correct index for type
+        const namePath = match[3]; // Correct index for name path
+        const tagsString = match[4] || ''; // Correct index for optional tags
 
         // Validate the type
         if (!this.VALID_TYPES.includes(type)) {
@@ -91,16 +91,16 @@ class DynamicPropertyParser {
         
         // Process tags
         const tags = tagsString ? tagsString.split(' ').filter(tag => tag) : [];
-        const clearChildren = tags.includes('!clear');
+        const clear = tags.includes('!clear');
 
-        // Create the property object with potentially updated clearChildren
+        // Create the property object without groupPath
         return new DynamicProperty({
             renderer,
-            groupPath,
-            namePath: name,
+            //groupPath,
+            namePath: namePath,
             dataType: type === 'flag' ? 'string' : type,
             isFlag: type === 'flag',
-            clearChildren: clearChildren, // Set based on !clear tag
+            clear: clear, // Set based on !clear tag
             tags: tags // Store all tags if needed later
         });
     }

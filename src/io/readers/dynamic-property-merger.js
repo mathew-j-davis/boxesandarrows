@@ -28,138 +28,72 @@ class DynamicPropertyMerger {
 
         for (const prop of validProps) {
 
-            // Check for exact match first
-            const exactMatch = mergedProps.find(
-                p => {
-                    return p.name == prop.name && p.group == prop.group;
-                }
-            );
-
-            // if prop is a scalar we remove any children
-            // scalar cannot have children
-            // this is invalid:
-            // prop: 1
-            //    child:2 
-
-            // therefore
-            // prop:
-            //      child: 2
-            // +
-            // prop: 1
-            // ->
-            // prop:1
-
-            // if prop has !clear tag we remove prop
-            // if prop value is object we remove prop and children
-            //{
-            // prop:
-            //      child: 2
-            // }
-            // +
-            // prop: !clear
-            // ->
-            // {}
-            // if prop value is scalar we remove prop 
-            //{
-            // prop: 1
-            // }
-            // +
-            // prop: !clear
-            // ->
-            // {}
-
-            // if prop is null we treat this like a scalar
-
-            // prop:
-            //      child: 2
-            // +
-            // prop: null
-            // ->
-            // prop: null
-
-            // the reason for different handling of null and !clear
-            // is that in rendering,
-            // the absence of prop: may fall back to default values
-            // where as explicit null will remove default values
-
-            // if (
-            //     // if the value is null
-            //     prop.value === null ||
-
-            //     // the value is a scalar or
-            //     (
-            //         typeof prop.value !== 'object' ||
-            //         Array.isArray(prop.value)
-            //     )
-                
-            // )
-            // typeof x === 'object' && !Array.isArray(x) && x !== null
-            // // Determine if this is a scalar property
-            // const isScalar = !prop.value || typeof prop.value !== 'object' || prop.value === null;
-            // // typeof yourVariable === 'object' && yourVariable !== null
-            let clearChildren = prop.clearChildren
-
-            // // Automatically set clearChildren = true for scalar values
-            // if (isScalar) {
-            //     clearChildren = true;
-            // }
-            
-            // no need to clear children, just update or add property
-            if (!clearChildren){
-
-                let index = -1;
-
-                if(exactMatch){
-                    index = mergedProps.indexOf(exactMatch);
-                }
-                
-                if (index > -1){
-                    mergedProps[index] = prop
-                }
-                else
-                {
-                    mergedProps.push(prop);
-                }
-
-                continue;
-            }
-
+ 
             // clear children is set.
+            // Filter existing properties. Remove any property that is a child of the current prop 
+            // (i.e., its namePath starts with the current prop's namePath) or is the same property.
             mergedProps = mergedProps.filter(p => {
 
-                // belongs to a different group
-                if (p.group != prop.group){
-                    return true;
+                // path length is less than prop's path length
+                // so it is either a parent or on a different branch
+                // it is not a child or the same property
+
+                if (p.namePathArray.length < prop.namePathArray.length) {
+
+                    // we are removing the current property
+                    // so we will not need to remove any parents
+
+                    if(prop.clear){
+                        return true;
+                    }
+
+                    // property is not being removed,
+                    // therefore any parent properties must be paths only
+                    // they cannot have a simple value
+
+                    else{
+
+                        // Check if p's namePath items match 
+                        // prop's namePath 
+                        // to the depth of p's namePathArray
+                        // if they deviate, they are on a different branch
+                        // so we will not remove it
+
+                        for (let i = 0; i < p.namePathArray.length; i++){
+                            if (p.namePathArray[i] !== prop.namePathArray[i]){
+                                // Paths diverge, p is not a parent
+                                return true;
+                            }
+                        }
+
+                        // this is a parent property with a value
+                        // we need to clear it
+
+                        return false;
+                    }
                 }
                 
-                // // belongs to a higher priority renderer
-                // if (getRendererPriority(p.renderer) > getRendererPriority(prop.renderer)){
-                //     return true;
-                // }
 
-                // cant be a child if the name array is less than the parent
-                if (p.namePathArray.length < prop.namePathArray.length){
-                    return true;
-                }
+                // whether we are removing the current property or setting it to a new value
+                // we need to clear children
+                // to maintain the integrity of the property tree
 
-                // at this point we are looking at properties that
-                // are in the same group and same or lower priority
-                // keep properties that are neither a child nor a previous version of the property
                 for (let i = 0; i < prop.namePathArray.length; i++){
                     if (p.namePathArray[i] !== prop.namePathArray[i]){
+                        // Paths diverge, p is not a child or the same property
                         return true;
                     }
                 }
 
-                // any remaining properties are children or a previous version of the property 
-                // than do not have a higher priority
-                // these will be removed
+                // If we reach here, p's namePath starts with or is identical to prop's namePath.
+                // Remove it (it's either the property itself being overwritten or a child).
                 return false;
-
             });
 
-            mergedProps.push(prop);
-            
+            // if we are not clearing, we need to add the property
+            if (!prop.clear){
+                mergedProps.push(prop);
+            }
         }
 
         return mergedProps;
@@ -187,31 +121,25 @@ class DynamicPropertyMerger {
      * Converts merged dynamic properties to a hierarchical structure
      * 
      * @param {Array} mergedProperties - Array of merged dynamic properties
-     * @returns {Object} - Hierarchical object with properties organized by group path
+     * @returns {Object} - Hierarchical object with properties organized by namePath
      */
     static toHierarchy(mergedProperties) {
         const hierarchy = {};
         
         for (const prop of mergedProperties) {
-            const groupArray = prop.group ? prop.group.split('.') : [];
+            // Removed group path handling
+            // const groupArray = prop.group ? prop.group.split('.') : []; 
             let current = hierarchy;
             
-            // Navigate or create the group path
-            for (const group of groupArray) {
-                if (!current[group]) {
-                    current[group] = {};
-                }
-                current = current[group];
-            }
-            
-            // For the property name, we need to handle dot notation
-            const namePathArray = prop.namePath.split('.');
-            
-            // Navigate to the deepest level
+            // Navigate or create the path using only namePath
+            const namePathArray = prop.namePathArray || (prop.namePath ? prop.namePath.split('.') : []);
+            if (namePathArray.length === 0) continue; // Skip if no name path
+
+            // Navigate to the deepest level but one
             for (let i = 0; i < namePathArray.length - 1; i++) {
                 const segment = namePathArray[i];
-                if (!current[segment]) {
-                    current[segment] = {};
+                if (!current[segment] || typeof current[segment] !== 'object') {
+                    current[segment] = {}; // Create/overwrite if not an object
                 }
                 current = current[segment];
             }
@@ -225,3 +153,22 @@ class DynamicPropertyMerger {
 }
 
 module.exports = DynamicPropertyMerger;
+
+
+
+            // // Check if p's namePath starts with prop's namePath
+            // for (let i = 0; i < prop.namePathArray.length; i++){
+            //     if (p.namePathArray[i] !== prop.namePathArray[i]){
+            //         // Paths diverge, p is not a child or the same property
+            //         return true;
+            //     }
+            // }
+
+
+
+            // // Check for exact match (same namePath, same renderer)
+            // const exactMatch = mergedProps.find(
+            //     p => p.namePath === prop.namePath
+            // );
+
+  

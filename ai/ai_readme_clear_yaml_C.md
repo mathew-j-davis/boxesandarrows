@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document provides a step-by-step plan for implementing the `!clear` tag functionality as described in ai_readme_clear_tag.md. The `!clear` tag allows marking certain properties so that, during a subsequent merge, any child properties are removed if the parent property is flagged with `clearChildren`.
+This document provides a step-by-step plan for implementing the `!clear` tag functionality as described in ai_readme_clear_tag.md. The `!clear` tag allows marking certain properties so that, during a subsequent merge, any child properties are removed if the parent property is flagged with `clear`.
 
 --------------------------------------------------------------------------------
 
@@ -14,7 +14,7 @@ This document provides a step-by-step plan for implementing the `!clear` tag fun
    {  
      __tag: 'clear',  
      value: [actualValue],  
-     clearChildren: true  
+     clear: true  
    }  
 
 Example:
@@ -31,7 +31,7 @@ const clearTag = new yaml.Type('!clear', {
     return {
       __tag: 'clear',
       value,
-      clearChildren: true
+      clear: true
     };
   }
 });
@@ -48,20 +48,20 @@ When the YAML content is parsed, any `!clear` occurrences will be turned into th
 At the start of each iteration (where we handle a key-value pair), check if the value is a `!clear` object:
 
  if (this.hasTag(value, 'clear')) {
-   // Mark clearChildren = true
+   // Mark clear = true
    // Extract the actual underlying value from value.value
  }
 
-Then proceed as usual with the underlying value once we’ve captured whether this property should clear its children. Pass a new parameter (clearChildren = true/false) to the existing methods that create DynamicProperty instances.
+Then proceed as usual with the underlying value once we’ve captured whether this property should clear its children. Pass a new parameter (clear = true/false) to the existing methods that create DynamicProperty instances.
 
 --------------------------------------------------------------------------------
 
-## 3. Using `clearChildren` in DynamicProperty
+## 3. Using `clear` in DynamicProperty
 
-Once the property is identified as `!clear`, we set property.clearChildren = true in the `DynamicProperty` object. This means:
+Once the property is identified as `!clear`, we set property.clear = true in the `DynamicProperty` object. This means:
 
 1. The existing data remains the same except for the new boolean flag.  
-2. If the user merges these properties later, seeing clearChildren = true means we should remove any child properties in the final data structure.
+2. If the user merges these properties later, seeing clear = true means we should remove any child properties in the final data structure.
 
 --------------------------------------------------------------------------------
 
@@ -70,7 +70,7 @@ Once the property is identified as `!clear`, we set property.clearChildren = tru
 To avoid breaking tests or other logic:
 
 • Maintain the same method signatures in the YAML reader.  
-• By default, keep clearChildren = false if not specifically set.  
+• By default, keep clear = false if not specifically set.  
 • Only set it to true if the parsed data includes a `!clear` tag.
 
 --------------------------------------------------------------------------------
@@ -82,16 +82,16 @@ To avoid breaking tests or other logic:
    nested:  
      child: !clear { _value: 42 }  
 
-2. Confirm that properties in these test cases have clearChildren = true and the correct underlying value.  
+2. Confirm that properties in these test cases have clear = true and the correct underlying value.  
 3. Verify that existing tests still pass to ensure backward compatibility.
 
 --------------------------------------------------------------------------------
 
 ## 6. Potential Merge Logic
 
-The merging code can look for clearChildren on each property. If clearChildren is true, remove child properties accordingly:
+The merging code can look for clear on each property. If clear is true, remove child properties accordingly:
 
-if (prop.clearChildren) {
+if (prop.clear) {
   // Remove children from the hierarchy
 }
 

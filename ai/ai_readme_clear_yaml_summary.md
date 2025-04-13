@@ -14,7 +14,7 @@ All four plans correctly identify the core implementation needs:
 ### Plan A (ai_readme_clear_yaml_A.md)
 - Clear explanation of the reasoning behind each implementation step
 - Emphasizes not changing method signatures if possible
-- Focuses on avoiding recursive propagation of the clearChildren flag
+- Focuses on avoiding recursive propagation of the clear flag
 
 ### Plan B (ai_readme_clear_yaml_B.md)
 - Most comprehensive implementation details
@@ -54,7 +54,7 @@ const clearTag = new yaml.Type('!clear', {
     return {
       __tag: 'clear',
       value: data?._value ?? data,
-      clearChildren: true
+      clear: true
     };
   }
 });
@@ -129,15 +129,15 @@ Object.entries(propsObj).forEach(([key, value]) => {
 
 ### 10. Document the Feature
 - Add documentation explaining the !clear tag usage
-- Document how clearChildren affects property merging
+- Document how clear affects property merging
 
 ## Key Implementation Considerations
 
-1. **Avoid Breaking Changes:** The existing methods may already have clearChildren parameters. Verify their signatures before modifying.
+1. **Avoid Breaking Changes:** The existing methods may already have clear parameters. Verify their signatures before modifying.
 
 2. **Local Variables:** Use local variables like `actualValue` and `clearFlag` to avoid modifying the original value object.
 
-3. **Don't Recurse the Flag:** The clearChildren flag applies only to the specific tagged property, not its children.
+3. **Don't Recurse the Flag:** The clear flag applies only to the specific tagged property, not its children.
 
 4. **Defensive Programming:** Check if `value` is null/undefined before calling `hasTag()`.
 

@@ -62,15 +62,15 @@ class DynamicPropertyYamlReader {
      * 
      * This creates: { __tag: 'group', __data: { font: 'Arial' } }
      */
-    const groupTag = new yaml.Type('!group', {
-      kind: 'mapping',
-      construct: function(data) {
-        return { 
-          __tag: 'group', 
-          __data: data || {} 
-        };
-      }
-    });
+    // const groupTag = new yaml.Type('!group', {
+    //   kind: 'mapping',
+    //   construct: function(data) {
+    //     return { 
+    //       __tag: 'group', 
+    //       __data: data || {} 
+    //     };
+    //   }
+    // });
     
     /**
      * !flag tag: Represents a flag property (a string with special handling)
@@ -150,7 +150,11 @@ class DynamicPropertyYamlReader {
     // Create schema by extending the default schema with our custom tags
     // This allows all standard YAML syntax plus our custom tags
     return yaml.DEFAULT_SCHEMA.extend([
-      rendererTag, groupTag, flagTag, clearScalarTag, clearMappingTag
+      rendererTag, 
+      // groupTag, // Removed group tag
+      flagTag, 
+      clearScalarTag, 
+      clearMappingTag
     ]);
   }
 
@@ -310,7 +314,7 @@ class DynamicPropertyYamlReader {
     
     // Process each property in the renderer
     const rendererData = rendererObj.__data;
-    this.processProperties(renderer, rendererData, "", properties);
+    this.processProperties(renderer, rendererData, properties);
   }
 
   /**
@@ -322,45 +326,40 @@ class DynamicPropertyYamlReader {
    * 
    * @param {string} renderer - Renderer name
    * @param {Object} propsObj - Properties object
-   * @param {string} groupPath - Current group path
    * @param {Array} properties - Array to collect properties
    */
-  static processProperties(renderer, propsObj, groupPath, properties) {
+  static processProperties(renderer, propsObj, properties) {
     if (!propsObj || typeof propsObj !== 'object') return;
     
     Object.entries(propsObj).forEach(([key, value]) => {
-      if (this.hasTag(value, 'group')) {
-        // This is a group - process its properties with updated group path
-        const childGroupPath = groupPath ? `${groupPath}.${key}` : key;
-        this.processProperties(renderer, value.__data, childGroupPath, properties);
-      } else if (this.hasTag(value, 'flag')) {
-        // This is a flag property
-        this.addProperty(renderer, groupPath, key, 'string', value.__value, true, properties);
+      if (this.hasTag(value, 'flag')) {
+        // This is a flag property - groupPath is empty
+        this.addProperty(renderer, key, 'string', value.__value, true, properties);
       } else if (this.hasTag(value, 'clear')) {
-        // This is a clear property
-        const clearChildren = value.__clear; // Should be true
+        // This is a clear property - groupPath is empty
+        const clear = value.__clear; // Should be true
 
         // Process the value based on its type
         if (value.__value === undefined || value.__value === null) {
-          // No value or null value - just add with the clearChildren flag
-          this.addProperty(renderer, groupPath, key, 'string', null, false, properties, clearChildren);
+          // No value or null value - add with clear flag
+          this.addProperty(renderer, key, 'string', null, false, properties, clear);
         } else if (typeof value.__value === 'object' && !Array.isArray(value.__value)) {
-          // Value is an object - create the parent property with clearChildren flag
-          this.addProperty(renderer, groupPath, key, 'string', null, false, properties, clearChildren);
+          // Value is an object - create the parent property with clear flag
+          this.addProperty(renderer, key, 'string', null, false, properties, clear);
           
           // Then process the object properties as nested
-          this.processNestedObject(renderer, groupPath, key, value.__value, properties);
-      } else {
-          // Simple scalar value - add with the clearChildren flag
-          this.addUntaggedProperty(renderer, groupPath, key, value.__value, properties, clearChildren);
+          this.processNestedObject(renderer, key, value.__value, properties);
+        } else {
+          // Simple scalar value - add with clear flag
+          this.addUntaggedProperty(renderer, key, value.__value, properties, clear);
         }
       } else if (typeof value === 'object' && value !== null && !this.hasTag(value, 'renderer')) {
-        // This could be a nested object (without tag) or another type
-        // Ignore any nested renderer tags
-        this.processNestedObject(renderer, groupPath, key, value, properties);
+        // This is a nested object (no !group needed)
+        // Process it to create dotted property names
+        this.processNestedObject(renderer, key, value, properties);
       } else if (!this.hasTag(value, 'renderer')) {
-        // This is a simple value (ignore renderer tags)
-        this.addUntaggedProperty(renderer, groupPath, key, value, properties);
+        // This is a simple value (ignore renderer tags) - groupPath is empty
+        this.addUntaggedProperty(renderer, key, value, properties);
       }
     });
   }
@@ -373,43 +372,42 @@ class DynamicPropertyYamlReader {
    * font: { size: 12 } becomes font.size: 12
    * 
    * @param {string} renderer - Renderer name
-   * @param {string} groupPath - Current group path
    * @param {string} baseName - Base name for this object
    * @param {Object} obj - Object to process
    * @param {Array} properties - Array to collect properties
    */
-  static processNestedObject(renderer, groupPath, baseName, obj, properties) {
+  static processNestedObject(renderer, baseName, obj, properties) {
     // For an object value that's not tagged as a group, we create dotted property names
     Object.entries(obj).forEach(([key, value]) => {
       const propName = `${baseName}.${key}`;
       
       if (this.hasTag(value, 'flag')) {
         // Flag property
-        this.addProperty(renderer, groupPath, propName, 'string', value.__value, true, properties);
+        this.addProperty(renderer, propName, 'string', value.__value, true, properties);
       } else if (this.hasTag(value, 'clear')) {
         // This is a clear property
-        const clearChildren = value.__clear; // Should be true
+        const clear = value.__clear; // Should be true
 
         // Process the value based on its type
         if (value.__value === undefined || value.__value === null) {
-          // No value or null value - just add with the clearChildren flag
-          this.addProperty(renderer, groupPath, propName, 'string', null, false, properties, clearChildren);
+          // No value or null value - just add with the clear flag
+          this.addProperty(renderer, propName, 'string', null, false, properties, clear);
         } else if (typeof value.__value === 'object' && !Array.isArray(value.__value)) {
-          // Value is an object - create the parent property with clearChildren flag
-          this.addProperty(renderer, groupPath, propName, 'string', null, false, properties, clearChildren);
+          // Value is an object - create the parent property with clear flag
+          this.addProperty(renderer, propName, 'string', null, false, properties, clear);
           
           // Then process the object properties as nested
-          this.processNestedObject(renderer, groupPath, propName, value.__value, properties);
+          this.processNestedObject(renderer, propName, value.__value, properties);
         } else {
-          // Simple scalar value - add with the clearChildren flag
-          this.addUntaggedProperty(renderer, groupPath, propName, value.__value, properties, clearChildren);
+          // Simple scalar value - add with the clear flag
+          this.addUntaggedProperty(renderer, propName, value.__value, properties, clear);
         }
       } else if (typeof value === 'object' && value !== null && !value.__tag) {
         // Further nested object
-        this.processNestedObject(renderer, groupPath, propName, value, properties);
+        this.processNestedObject(renderer, propName, value, properties);
       } else if (!this.hasTag(value, 'renderer')) {
         // Basic value (ignore renderer tags)
-        this.addUntaggedProperty(renderer, groupPath, propName, value, properties);
+        this.addUntaggedProperty(renderer, propName, value, properties);
       }
     });
   }
@@ -420,23 +418,21 @@ class DynamicPropertyYamlReader {
    * Creates a new DynamicProperty instance and adds it to the properties array.
    * 
    * @param {string} renderer - Renderer name
-   * @param {string} group - Group path
    * @param {string} namePath - Property name path
    * @param {string} dataType - Data type
    * @param {*} value - Property value
    * @param {boolean} isFlag - Whether this is a flag property
    * @param {Array} properties - Array to collect properties
-   * @param {boolean} clearChildren - Whether to clear child properties when this property is set
+   * @param {boolean} clear - Whether to clear child properties when this property is set
    */
-  static addProperty(renderer, group, namePath, dataType, value, isFlag, properties, clearChildren = false) {
+  static addProperty(renderer, namePath, dataType, value, isFlag, properties, clear = false) {
     properties.push(new DynamicProperty({
       renderer,
-      group,
       namePath,
       dataType,
       value,
       isFlag,
-      clearChildren
+      clear
     }));
   }
 
@@ -447,13 +443,12 @@ class DynamicPropertyYamlReader {
    * auto-detect the type based on JavaScript's typeof operator.
    * 
    * @param {string} renderer - Renderer name
-   * @param {string} group - Group path
    * @param {string} name - Property name
    * @param {*} value - Property value
    * @param {Array} properties - Array to collect properties
-   * @param {boolean} clearChildren - Whether to clear child properties when this property is set
+   * @param {boolean} clear - Whether to clear child properties when this property is set
    */
-  static addUntaggedProperty(renderer, group, name, value, properties, clearChildren = false) {
+  static addUntaggedProperty(renderer, name, value, properties, clear = false) {
     let dataType = 'string';
     let isFlag = false;
     
@@ -464,7 +459,7 @@ class DynamicPropertyYamlReader {
       dataType = 'boolean';
     }
     
-    this.addProperty(renderer, group, name, dataType, value, isFlag, properties, clearChildren);
+    this.addProperty(renderer, name, dataType, value, isFlag, properties, clear);
   }
 
   /**

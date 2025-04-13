@@ -39,6 +39,22 @@
         {
             "type": "node",
             "request": "launch",
+            "name": "Debug Auto Anchor Grid",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}\\src\\index.js",
+            "args": [
+                "-y", "./examples/auto-anchor-grid.yaml",
+                "-o", "./output/auto-anchor-grid",
+                "--trace-warnings"
+            ],
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen"
+        },
+        {
+            "type": "node",
+            "request": "launch",
             "name": "Run All Tests",
             "program": "${workspaceFolder}/node_modules/jest/bin/jest.js",
             "args": [

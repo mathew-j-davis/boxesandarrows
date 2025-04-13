@@ -54,7 +54,7 @@ When a scalar value is assigned to a property, all child properties are automati
 }
 ```
 
-This makes the `clearChildren` flag unnecessary for scalar values, as it's implied by the nature of the value.
+This makes the `clear` flag unnecessary for scalar values, as it's implied by the nature of the value.
 
 ### Rule 3: Adding child properties converts parent scalars to objects
 
@@ -214,7 +214,7 @@ static mergeProperties(dynamicProperties) {
     }
     
     // Handle explicit clearing (via !clear tag)
-    if (prop.clearChildren) {
+    if (prop.clear) {
       // For objects: Keep the property but clear children
       mergedProps = mergedProps.filter(p => {
         // Keep if not in the same group

@@ -69,12 +69,12 @@ testCases.forEach(testCase => {
         const parsed = DynamicPropertyParser.parsePropertyDescription(testCase);
         console.log('Parsed result:');
         console.log(`  renderer: ${parsed.renderer}`);
-        console.log(`  groupPath: ${parsed.groupPath}`);
-        console.log(`  groupPathArray: ${JSON.stringify(parsed.groupPathArray)}`);
-        console.log(`  groupPathTypes: ${JSON.stringify(parsed.groupPathTypes)}`);
-        if (parsed.groupPathTypes && parsed.groupPathTypes.length > 0) {
-            console.log(`  getGroupPathArrayWithIndices: ${JSON.stringify(parsed.getGroupPathArrayWithIndices())}`);
-        }
+        // console.log(`  groupPath: ${parsed.groupPath}`);
+        // console.log(`  groupPathArray: ${JSON.stringify(parsed.groupPathArray)}`);
+        // console.log(`  groupPathTypes: ${JSON.stringify(parsed.groupPathTypes)}`);
+        // if (parsed.groupPathTypes && parsed.groupPathTypes.length > 0) {
+        //     console.log(`  getGroupPathArrayWithIndices: ${JSON.stringify(parsed.getGroupPathArrayWithIndices())}`);
+        // }
         console.log(`  dataType: ${parsed.dataType}`);
         console.log(`  namePath: ${parsed.namePath}`);
         console.log(`  namePathArray: ${JSON.stringify(parsed.namePathArray)}`);
@@ -96,9 +96,9 @@ invalidTestCases.forEach(testCase => {
             const parsed = DynamicPropertyParser.parsePropertyDescription(testCase);
             console.log('Parsed result:');
             console.log(`  renderer: ${parsed.renderer}`);
-            console.log(`  groupPath: ${parsed.groupPath}`);
-            console.log(`  groupPathArray: ${JSON.stringify(parsed.groupPathArray)}`);
-            console.log(`  groupPathTypes: ${JSON.stringify(parsed.groupPathTypes)}`);
+            // console.log(`  groupPath: ${parsed.groupPath}`);
+            // console.log(`  groupPathArray: ${JSON.stringify(parsed.groupPathArray)}`);
+            // console.log(`  groupPathTypes: ${JSON.stringify(parsed.groupPathTypes)}`);
             console.log(`  dataType: ${parsed.dataType}`);
             console.log(`  namePath: ${parsed.namePath}`);
             console.log(`  namePathArray: ${JSON.stringify(parsed.namePathArray)}`);
@@ -153,9 +153,9 @@ completeTestCases.forEach(testCase => {
     const property = DynamicPropertyParser.parse(testCase.property, testCase.value);
     console.log(`${testCase.property} with value ${testCase.value}:`);
     console.log(`  renderer: ${property.renderer}`);
-    console.log(`  groupPath: ${property.groupPath}`);
-    console.log(`  groupPathArray: ${JSON.stringify(property.groupPathArray)}`);
-    console.log(`  groupPathTypes: ${JSON.stringify(property.groupPathTypes)}`);
+    // console.log(`  groupPath: ${property.groupPath}`);
+    // console.log(`  groupPathArray: ${JSON.stringify(property.groupPathArray)}`);
+    // console.log(`  groupPathTypes: ${JSON.stringify(property.groupPathTypes)}`);
     if (property.groupPathTypes && property.groupPathTypes.length > 0) {
         console.log(`  getGroupPathArrayWithIndices: ${JSON.stringify(property.getGroupPathArrayWithIndices())}`);
     }

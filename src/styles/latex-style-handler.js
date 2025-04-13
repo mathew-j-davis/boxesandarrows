@@ -1,3 +1,5 @@
+const ObjectUtils = require('../utils/object-utils');
+
 class LatexStyleHandler {
     constructor(options = {}) {
         this.verbose = options.verbose || false;
@@ -287,8 +289,8 @@ class LatexStyleHandler {
                 }
                 
                 // Deep merge the style data
-                this.stylesheet.style[styleName] = this.deepMergeObjects(
-                    this.stylesheet.style[styleName],
+                this.stylesheet.style[styleName] = ObjectUtils.deepMerge(
+                    this.stylesheet.style[styleName] || {},
                     styleData
                 );
             }
@@ -304,7 +306,7 @@ class LatexStyleHandler {
             }
             
             this.log('Before merge, page is:', JSON.stringify(this.stylesheet.page));
-            this.stylesheet.page = this.deepMergeObjects(
+            this.stylesheet.page = ObjectUtils.deepMerge(
                 this.stylesheet.page,
                 newStyles.page
             );
@@ -318,79 +320,39 @@ class LatexStyleHandler {
      * @returns {Array} - Collection of style records
      */
     processYamlDocuments(documents) {
-        if (!documents || !Array.isArray(documents) || documents.length === 0) {
+        if (!Array.isArray(documents)) {
+            this.log("processYamlDocuments expected an array, received:", documents);
             return [];
         }
-        
-        // Initialize result array to collect all style records
-        const result = [];
-        
-        // Process each document based on its type
+        let result = [];
+
         for (const doc of documents) {
-            if (!doc || !doc.type) continue;
-            
-            // Process page configuration
-            if (doc.type === 'page') {
-                // Create a page object that matches the expected structure
-                const pageConfig = {
-                    page: { 
-                        scale: doc.scale || {},
-                        margin: doc.margin || {}
-                    }
-                };
-                
-                // Add to result array
-                result.push(pageConfig);
+
+            if (!doc) {
+                this.log("Skipping null or undefined document in processYamlDocuments");
+                continue;
             }
-            
-            // Process style definitions
-            else if (doc.type === 'style') {
+
+            this.log('Processing document:', JSON.stringify(doc));
+
+            if (doc.type === 'page') {
+                this.log('Merging page document');
+                result.push({ page: doc });
+
+            } else if (doc.type === 'style') {
+                this.log('Merging style document:', doc.name || 'base');
                 const styleName = doc.name || 'base';
-                
-                // Create a style object that matches the expected structure
-                const styleData = { style: {} };
-                styleData.style[styleName] = {};
-                
-                // Copy all properties except type and name
-                for (const [key, value] of Object.entries(doc)) {
-                    if (key !== 'type' && key !== 'name') {
-                        styleData.style[styleName][key] = value;
-                    }
-                }
-                
-                // Add to result array
-                result.push(styleData);
+                const styleData = { ...doc };
+                delete styleData.type;
+                delete styleData.name;
+
+                result.push({ style: { [styleName]: styleData } });
+            } else {
+                this.log(`Unknown document type: ${doc.type}`);
             }
         }
-        
-        return result;
-    }
 
-    /**
-     * Deep merge of objects for style data
-     * @param {Object} target - Target object
-     * @param {Object} source - Source object
-     * @returns {Object} - Merged object
-     */
-    deepMergeObjects(target, source) {
-        if (!source) return target;
-        if (!target) return { ...source };
-        
-        const output = { ...target };
-        
-        Object.keys(source).forEach(key => {
-            if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
-                if (!target[key] || typeof target[key] !== 'object') {
-                    output[key] = { ...source[key] };
-                } else {
-                    output[key] = this.deepMergeObjects(target[key], source[key]);
-                }
-            } else {
-                output[key] = source[key];
-            }
-        });
-        
-        return output;
+        return result;
     }
 }
 

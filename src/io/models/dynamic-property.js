@@ -7,45 +7,45 @@ class DynamicProperty {
    * Create a new dynamic property
    * @param {Object} options - Configuration options
    * @param {string} [options.renderer='common'] - The renderer name
-   * @param {string} [options.groupPath=''] - The group path
+   * //@param {string} [options.groupPath=''] - The group path
    * @param {string} [options.namePath=''] - The property name path
    * @param {string} [options.dataType='string'] - The data type
    * @param {*} [options.value=null] - The property value
    * @param {boolean} [options.isFlag=false] - Whether this is a flag property
-   * @param {boolean} [options.clearChildren=false] - Whether to clear child properties when this property is set
+   * @param {boolean} [options.clear=false] - Whether to clear child properties when this property is set
    */
   constructor(options = {}) {
     const defaults = {
       renderer: 'common',
-      groupPath: '',
+      //groupPath: '',
       namePath: '',
       dataType: 'string',
       value: null,
       isFlag: false,
-      clearChildren: false
+      clear: false
     };
 
     const config = { ...defaults, ...options };
     
     this.renderer = config.renderer;
-    this.groupPath = config.groupPath;
+    //this.groupPath = config.groupPath;
     
     // Parse the groupPath to determine which parts are names and which are indices
-    this.groupPathArray = [];
-    this.groupPathTypes = []; // 'name' or 'index'
+    //this.groupPathArray = [];
+    //this.groupPathTypes = []; // 'name' or 'index'
     
-    if (config.groupPath) {
-      const parts = config.groupPath.split('.');
-      parts.forEach(part => {
-        this.groupPathArray.push(part);
-        // Check if the part is a numeric index
-        if (/^\d+$/.test(part)) {
-          this.groupPathTypes.push('index');
-        } else {
-          this.groupPathTypes.push('name');
-        }
-      });
-    }
+    // if (config.groupPath) {
+    //   const parts = config.groupPath.split('.');
+    //   parts.forEach(part => {
+    //     this.groupPathArray.push(part);
+    //     // Check if the part is a numeric index
+    //     if (/^\d+$/.test(part)) {
+    //       this.groupPathTypes.push('index');
+    //     } else {
+    //       this.groupPathTypes.push('name');
+    //     }
+    //   });
+    // }
     
     this.namePath = config.namePath;
     
@@ -69,7 +69,7 @@ class DynamicProperty {
     this.dataType = config.dataType;
     this.isFlag = config.isFlag;
     this.value = config.value;
-    this.clearChildren = config.clearChildren;
+    this.clear = config.clear;
     
     // Allow for any additional properties from options
     Object.keys(config).forEach(key => {
@@ -93,10 +93,11 @@ class DynamicProperty {
    * @returns {string} The fully qualified path
    */
   getFullPath() {
-    if (!this.groupPath) {
-      return this.namePath;
-    }
-    return `${this.groupPath}.${this.namePath}`;
+    //if (!this.groupPath) {
+    //  return this.namePath;
+    //}
+    //return `${this.groupPath}.${this.namePath}`;
+    return this.namePath;
   }
   
   /**
@@ -104,25 +105,25 @@ class DynamicProperty {
    * @param {number} position - The position in the groupPathArray to check
    * @returns {boolean} True if the part at the specified position is an index
    */
-  isGroupPathIndex(position) {
-    if (position < 0 || position >= this.groupPathTypes.length) {
-      return false;
-    }
-    return this.groupPathTypes[position] === 'index';
-  }
+  // isGroupPathIndex(position) {
+  //   if (position < 0 || position >= this.groupPathTypes.length) {
+  //     return false;
+  //   }
+  //   return this.groupPathTypes[position] === 'index';
+  // }
   
   /**
    * Get the groupPathArray with indices converted to numbers
    * @returns {Array} The groupPathArray with indices as numbers
    */
-  getGroupPathArrayWithIndices() {
-    return this.groupPathArray.map((part, index) => {
-      if (this.groupPathTypes[index] === 'index') {
-        return parseInt(part, 10);
-      }
-      return part;
-    });
-  }
+  // getGroupPathArrayWithIndices() {
+  //   return this.groupPathArray.map((part, index) => {
+  //     if (this.groupPathTypes[index] === 'index') {
+  //       return parseInt(part, 10);
+  //     }
+  //     return part;
+  //   });
+  // }
   
   /**
    * Check if a specific part of the namePath is an index

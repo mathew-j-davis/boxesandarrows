@@ -17,7 +17,7 @@ const clearTag = new yaml.Type('!clear', {
   kind: ['scalar', 'mapping'],
   // Constructor runs when the parser encounters !clear
   construct: function(data) {
-    // Extract the actual value while marking it with clearChildren flag
+    // Extract the actual value while marking it with clear flag
     let value = null;
     
     // Handle the mapping case with _value
@@ -32,7 +32,7 @@ const clearTag = new yaml.Type('!clear', {
     return {
       __tag: 'clear',
       value: value,
-      clearChildren: true
+      clear: true
     };
   }
 });
@@ -45,12 +45,12 @@ return yaml.DEFAULT_SCHEMA.extend([
 
 This implementation:
 - Recognizes both forms: `!clear null` and `!clear { _value: ... }`
-- Creates a standard intermediate object with a marker tag, value, and clearChildren flag
+- Creates a standard intermediate object with a marker tag, value, and clear flag
 - Integrates with the existing schema extension approach
 
 ### Step 2: Maintain Existing Method Signatures
 
-It's important to maintain the existing method signatures to avoid breaking changes. The `addProperty` and `addUntaggedProperty` methods already have the `clearChildren` parameter, so we don't need to modify their signatures:
+It's important to maintain the existing method signatures to avoid breaking changes. The `addProperty` and `addUntaggedProperty` methods already have the `clear` parameter, so we don't need to modify their signatures:
 
 ```javascript
 /**
@@ -62,9 +62,9 @@ It's important to maintain the existing method signatures to avoid breaking chan
  * @param {*} value - Property value
  * @param {boolean} isFlag - Whether this is a flag property
  * @param {Array} properties - Array to collect properties
- * @param {boolean} clearChildren - Whether to clear child properties when this property is set
+ * @param {boolean} clear - Whether to clear child properties when this property is set
  */
-static addProperty(renderer, group, name, dataType, value, isFlag, properties, clearChildren = false) {
+static addProperty(renderer, group, name, dataType, value, isFlag, properties, clear = false) {
   // Method implementation...
 }
 ```
@@ -73,8 +73,8 @@ static addProperty(renderer, group, name, dataType, value, isFlag, properties, c
 
 The core of the implementation is in the property processing methods. We need to:
 1. Check for the `!clear` tag
-2. Extract the value and clearChildren flag
-3. Pass the clearChildren flag when creating the property
+2. Extract the value and clear flag
+3. Pass the clear flag when creating the property
 
 Here's how to modify `processProperties`:
 
@@ -83,14 +83,14 @@ static processProperties(renderer, propsObj, groupPath, properties) {
   if (!propsObj || typeof propsObj !== 'object') return;
   
   Object.entries(propsObj).forEach(([key, value]) => {
-    // Initialize clearChildren to false by default
-    let clearChildren = false;
+    // Initialize clear to false by default
+    let clear = false;
     let processedValue = value;
     
     // Check if this value has our !clear tag
     if (this.hasTag(value, 'clear')) {
-      // If it does, extract the clearChildren flag (should be true)
-      clearChildren = true;
+      // If it does, extract the clear flag (should be true)
+      clear = true;
       // And get the underlying value for further processing
       processedValue = value.value;
     }
@@ -101,14 +101,14 @@ static processProperties(renderer, propsObj, groupPath, properties) {
       const childGroupPath = groupPath ? `${groupPath}.${key}` : key;
       this.processProperties(renderer, processedValue.data, childGroupPath, properties);
     } else if (this.hasTag(processedValue, 'flag')) {
-      // Flag property (pass clearChildren)
-      this.addProperty(renderer, groupPath, key, 'string', processedValue.value, true, properties, clearChildren);
+      // Flag property (pass clear)
+      this.addProperty(renderer, groupPath, key, 'string', processedValue.value, true, properties, clear);
     } else if (typeof processedValue === 'object' && processedValue !== null && !this.hasTag(processedValue, 'renderer')) {
-      // Nested object (don't pass clearChildren recursively)
+      // Nested object (don't pass clear recursively)
       this.processNestedObject(renderer, groupPath, key, processedValue, properties);
     } else if (!this.hasTag(processedValue, 'renderer')) {
-      // Basic value (pass clearChildren)
-      this.addUntaggedProperty(renderer, groupPath, key, processedValue, properties, clearChildren);
+      // Basic value (pass clear)
+      this.addUntaggedProperty(renderer, groupPath, key, processedValue, properties, clear);
     }
   });
 }
@@ -123,21 +123,21 @@ static processNestedObject(renderer, groupPath, baseName, obj, properties) {
     const propName = `${baseName}.${key}`;
     
     // Handle !clear tag same as in processProperties
-    let clearChildren = false;
+    let clear = false;
     let processedValue = value;
     
     if (this.hasTag(value, 'clear')) {
-      clearChildren = true;
+      clear = true;
       processedValue = value.value;
     }
     
-    // Process using processedValue with appropriate clearChildren flag
+    // Process using processedValue with appropriate clear flag
     if (this.hasTag(processedValue, 'flag')) {
-      this.addProperty(renderer, groupPath, propName, 'string', processedValue.value, true, properties, clearChildren);
+      this.addProperty(renderer, groupPath, propName, 'string', processedValue.value, true, properties, clear);
     } else if (typeof processedValue === 'object' && processedValue !== null && !processedValue.__tag) {
       this.processNestedObject(renderer, groupPath, propName, processedValue, properties);
     } else if (!this.hasTag(processedValue, 'renderer')) {
-      this.addUntaggedProperty(renderer, groupPath, propName, processedValue, properties, clearChildren);
+      this.addUntaggedProperty(renderer, groupPath, propName, processedValue, properties, clear);
     }
   });
 }
@@ -156,7 +156,7 @@ To ensure the implementation works correctly:
 2. Verify that:
    - The YAML parses without errors
    - The resulting DynamicProperty objects have the correct values
-   - The clearChildren flag is set to true only for properties with !clear
+   - The clear flag is set to true only for properties with !clear
    - The underlying value is correctly extracted from the tag
 
 3. Integration test with the property merger to verify child properties are only cleared when the flag is true
@@ -165,7 +165,7 @@ To ensure the implementation works correctly:
 
 ### YAML Schema Handling
 
-The js-yaml library requires that tag constructors return plain JavaScript objects. Our approach of returning an object with `__tag`, `value`, and `clearChildren` properties follows the pattern already established in the codebase for other custom tags.
+The js-yaml library requires that tag constructors return plain JavaScript objects. Our approach of returning an object with `__tag`, `value`, and `clear` properties follows the pattern already established in the codebase for other custom tags.
 
 ### Value Extraction
 
@@ -178,7 +178,7 @@ When processing tagged values, we need to remember to:
 
 This implementation is designed to maintain backward compatibility by:
 1. Not changing existing method signatures
-2. Defaulting clearChildren to false
+2. Defaulting clear to false
 3. Only setting it to true for values explicitly tagged with !clear
 
 ### Performance Impact

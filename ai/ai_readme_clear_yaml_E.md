@@ -78,21 +78,21 @@ static processProperties(renderer, propsObj, groupPath, properties) {
   Object.entries(propsObj).forEach(([key, value]) => {
     if (this.hasTag(value, 'clear')) {
       // This is a clear property
-      const clearChildren = value.__clear; // Should be true
+      const clear = value.__clear; // Should be true
 
       // Process the value based on its type
       if (value.__value === undefined || value.__value === null) {
-        // No value or null value - just add with the clearChildren flag
-        this.addProperty(renderer, groupPath, key, 'string', null, false, properties, clearChildren);
+        // No value or null value - just add with the clear flag
+        this.addProperty(renderer, groupPath, key, 'string', null, false, properties, clear);
       } else if (typeof value.__value === 'object' && !Array.isArray(value.__value)) {
-        // Value is an object - create the parent property with clearChildren flag
-        this.addProperty(renderer, groupPath, key, 'string', null, false, properties, clearChildren);
+        // Value is an object - create the parent property with clear flag
+        this.addProperty(renderer, groupPath, key, 'string', null, false, properties, clear);
         
         // Then process the object properties as nested
         this.processNestedObject(renderer, groupPath, key, value.__value, properties);
       } else {
-        // Simple scalar value - add with the clearChildren flag
-        this.addUntaggedProperty(renderer, groupPath, key, value.__value, properties, clearChildren);
+        // Simple scalar value - add with the clear flag
+        this.addUntaggedProperty(renderer, groupPath, key, value.__value, properties, clear);
       }
     } else if (this.hasTag(value, 'group')) {
       // Existing group handling
@@ -114,10 +114,10 @@ static processProperties(renderer, propsObj, groupPath, properties) {
 
 ### 3. Update the `addProperty` and `addUntaggedProperty` Methods
 
-Ensure these methods properly handle the `clearChildren` parameter:
+Ensure these methods properly handle the `clear` parameter:
 
 ```javascript
-static addProperty(renderer, group, name, dataType, value, isFlag, properties, clearChildren = false) {
+static addProperty(renderer, group, name, dataType, value, isFlag, properties, clear = false) {
   properties.push(new DynamicProperty({
     renderer,
     group,
@@ -125,11 +125,11 @@ static addProperty(renderer, group, name, dataType, value, isFlag, properties, c
     dataType,
     value,
     isFlag,
-    clearChildren
+    clear
   }));
 }
 
-static addUntaggedProperty(renderer, group, name, value, properties, clearChildren = false) {
+static addUntaggedProperty(renderer, group, name, value, properties, clear = false) {
   let dataType = 'string';
   let isFlag = false;
   
@@ -140,7 +140,7 @@ static addUntaggedProperty(renderer, group, name, value, properties, clearChildr
     dataType = 'boolean';
   }
   
-  this.addProperty(renderer, group, name, dataType, value, isFlag, properties, clearChildren);
+  this.addProperty(renderer, group, name, dataType, value, isFlag, properties, clear);
 }
 ```
 
@@ -153,8 +153,8 @@ a: !clear houseboat
 
 Processing:
 1. Tag constructor creates `{ __tag: 'clear', __value: 'houseboat', __clear: true }`
-2. `processProperties` sees tag, sets `clearChildren = true`
-3. Property `a` is created with value 'houseboat' and `clearChildren = true`
+2. `processProperties` sees tag, sets `clear = true`
+3. Property `a` is created with value 'houseboat' and `clear = true`
 
 ### Pattern 2: Mapping with __value
 ```yaml
@@ -164,8 +164,8 @@ a: !clear
 
 Processing:
 1. Tag constructor creates `{ __tag: 'clear', __value: null, __clear: true }`
-2. `processProperties` sees tag, sets `clearChildren = true`
-3. Property `a` is created with value `null` and `clearChildren = true`
+2. `processProperties` sees tag, sets `clear = true`
+3. Property `a` is created with value `null` and `clear = true`
 
 ### Pattern 3: Nested properties
 ```yaml
@@ -175,10 +175,10 @@ a: !clear
 
 Processing:
 1. Tag constructor creates `{ __tag: 'clear', __value: { b: 'value' }, __clear: true }`
-2. `processProperties` sees tag, sets `clearChildren = true`
-3. Property `a` is created with no value and `clearChildren = true`
+2. `processProperties` sees tag, sets `clear = true`
+3. Property `a` is created with no value and `clear = true`
 4. `processNestedObject` is called to handle `{ b: 'value' }`
-5. Property `a.b` is created with value 'value' and default `clearChildren = false`
+5. Property `a.b` is created with value 'value' and default `clear = false`
 
 ## Testing Strategies
 
@@ -190,10 +190,10 @@ Test all patterns to ensure they work correctly:
 4. Combinations with other tags (!group, !flag)
 
 Verify that:
-- Properties tagged with !clear have clearChildren = true
+- Properties tagged with !clear have clear = true
 - Values are extracted correctly
 - Nested properties are properly processed
-- The merger correctly handles the clearChildren flag
+- The merger correctly handles the clear flag
 
 ## Conclusion
 
@@ -201,6 +201,6 @@ This implementation preserves all the desired functionality:
 - The !clear tag works in all discussed patterns
 - Nested properties are correctly processed
 - The tag is handled consistently with the existing schema
-- The clearChildren flag is set appropriately
+- The clear flag is set appropriately
 
 The main improvement is the simplified intermediate representation that consistently uses `__value` for all value types, making the processing code more straightforward. 

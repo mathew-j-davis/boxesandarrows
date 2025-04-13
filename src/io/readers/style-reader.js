@@ -1,6 +1,7 @@
 const fs = require('fs');
 const yaml = require('js-yaml');
 const YamlReader = require('./yaml-reader');
+const DynamicPropertyYamlReader = require('./dynamic-property-yaml-reader');
 
 class StyleReader {
     /**
@@ -34,7 +35,12 @@ class StyleReader {
     static async readFromYaml(yamlFile) {
         try {
             // Use YamlReader to get documents with 'style' and 'page' types
-            const styles = await YamlReader.readFile(yamlFile, { 
+
+            // const styles = await YamlReader.readFile(yamlFile, { 
+            //     filter: doc => doc && (doc.type === 'style' || doc.type === 'page') 
+            // });
+
+            const styles = await DynamicPropertyYamlReader.readFile(yamlFile, { 
                 filter: doc => doc && (doc.type === 'style' || doc.type === 'page') 
             });
             

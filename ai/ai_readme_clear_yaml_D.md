@@ -9,7 +9,7 @@ const clearTag = new yaml.Type('!clear', {
     return {
       __tag: 'clear',
       value: data?._value ?? data,
-      clearChildren: true
+      clear: true
     };
   }
 });
@@ -54,10 +54,10 @@ Object.entries(obj).forEach(([key, val]) => {
 ## 3. Property Creation
 ```javascript
 // Updated addProperty signature
-static addProperty(renderer, group, name, dataType, value, isFlag, properties, clearChildren = false) {
+static addProperty(renderer, group, name, dataType, value, isFlag, properties, clear = false) {
   properties.push(new DynamicProperty({
     // ...existing params,
-    clearChildren
+    clear
   }));
 }
 ```
@@ -77,7 +77,7 @@ nested:
 ```
 
 ### Verification Points:
-1. clearChildren=true only when !clear used
+1. clear=true only when !clear used
 2. Values preserved correctly
 3. Existing tags (!group/!flag) work with !clear
 4. Multiple clear tags in single document
@@ -85,7 +85,7 @@ nested:
 ## 5. Merge Integration
 ```javascript
 // In merger logic
-if (currentProp.clearChildren) {
+if (currentProp.clear) {
   // Remove all children of this property
   deleteChildren(currentNode);
 }

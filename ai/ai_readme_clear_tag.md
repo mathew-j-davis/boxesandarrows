@@ -45,22 +45,22 @@ The " clear" suffix in the column name will indicate that the property should cl
 ### YAML Implementation
 
 1. Add the `!clear` tag to the schema
-2. Configure its constructor to set a `clearChildren: true` flag
+2. Configure its constructor to set a `clear: true` flag
 3. Handle nested `_value` structures appropriately
 4. Update merger to check for this flag when deciding whether to remove children
 
 ### CSV Implementation
 
 1. Update the parser to recognize the " clear" suffix in column names
-2. Add the `clearChildren` flag to properties with this suffix
+2. Add the `clear` flag to properties with this suffix
 
 ### Merger Updates
 
-The property merger would be modified to only remove children when the `clearChildren` flag is present:
+The property merger would be modified to only remove children when the `clear` flag is present:
 
 ```javascript
-if (propNameArray.length > p.namePathArray.length && prop.clearChildren) {
-    // Only remove children if clearChildren flag is set
+if (propNameArray.length > p.namePathArray.length && prop.clear) {
+    // Only remove children if clear flag is set
     // ...other conditions...
 }
 ```
