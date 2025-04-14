@@ -7,7 +7,7 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Launch Program",
+            "name": "Launch CSV and Grid",
             "skipFiles": [
                 "<node_internals>/**"
             ],
@@ -24,7 +24,7 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Launch Diagram",
+            "name": "Launch Yaml",
             "skipFiles": [
                 "<node_internals>/**"
             ],
@@ -39,101 +39,12 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Debug Auto Anchor Grid",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
-            "program": "${workspaceFolder}\\src\\index.js",
-            "args": [
-                "-y", "./examples/auto-anchor-grid.yaml",
-                "-o", "./output/auto-anchor-grid",
-                "--trace-warnings"
-            ],
-            "console": "integratedTerminal",
-            "internalConsoleOptions": "neverOpen"
-        },
-        {
-            "type": "node",
-            "request": "launch",
             "name": "Run All Tests",
             "program": "${workspaceFolder}/node_modules/jest/bin/jest.js",
             "args": [
                 "--runInBand",
                 "--testTimeout=10000",
                 "--verbose"
-            ],
-            "console": "integratedTerminal",
-            "internalConsoleOptions": "neverOpen"
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Debug Node Position Tests",
-            "program": "${workspaceFolder}/node_modules/jest/bin/jest.js",
-            "args": [
-                "--runInBand",
-                "--testTimeout=10000",
-                "--verbose",
-                "tests/io/models/node.calculatePositionAndScale.test.js",
-                "tests/io/models/node.positionRef.test.js"
-            ],
-            "console": "integratedTerminal",
-            "internalConsoleOptions": "neverOpen"
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Debug Node Relative Positioning Tests",
-            "program": "${workspaceFolder}/node_modules/jest/bin/jest.js",
-            "args": [
-                "--runInBand",
-                "--testTimeout=10000",
-                "--verbose",
-                "tests/integration/relative-positioning.test.js"
-            ],
-            "console": "integratedTerminal",
-            "internalConsoleOptions": "neverOpen"
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Debug Node Creation/Property Tests",
-            "program": "${workspaceFolder}/node_modules/jest/bin/jest.js",
-            "args": [
-                "--runInBand",
-                "--testTimeout=10000",
-                "--verbose",
-                "tests/io/models/node.test.js",
-                "tests/unit/io/node-reader.test.js"
-            ],
-            "console": "integratedTerminal",
-            "internalConsoleOptions": "neverOpen"
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Debug Rendering Tests",
-            "program": "${workspaceFolder}/node_modules/jest/bin/jest.js",
-            "args": [
-                "--runInBand",
-                "--testTimeout=10000",
-                "--verbose",
-                "tests/unit/renderers"
-            ],
-            "console": "integratedTerminal",
-            "internalConsoleOptions": "neverOpen"
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Debug Edge Connection Tests",
-            "program": "${workspaceFolder}/node_modules/jest/bin/jest.js",
-            "args": [
-                "--runInBand",
-                "--testTimeout=10000",
-                "--verbose",
-                "tests/unit/io/edge-reader.test.js",
-                "tests/unit/geometry/node-connection-point.test.js"
             ],
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen"
@@ -155,75 +66,16 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Debug Single Test File",
-            "program": "${workspaceFolder}/node_modules/jest/bin/jest.js",
-            "args": [
-                "--runInBand",
-                "--testTimeout=10000",
-                "--verbose",
-                "${file}"
-            ],
-            "console": "integratedTerminal",
-            "internalConsoleOptions": "neverOpen"
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Debug Error Case",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
-            "program": "${workspaceFolder}\\src\\index.js",
-            "args": [
-                "-y", "./examples/error/mixed.yaml",
-                "-m", "./examples/error/map.csv",
-                "-o", "./examples/error/error",
-                "--trace-warnings"
-            ],
-            "console": "integratedTerminal",
-            "internalConsoleOptions": "neverOpen"
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Debug Node Size Test",
-            "program": "${workspaceFolder}/node_modules/jest/bin/jest.js",
-            "args": [
-                "--runInBand",
-                "--testTimeout=10000",
-                "--verbose",
-                "tests/unit/io/models/node.test.js"
-            ],
-            "console": "integratedTerminal",
-            "internalConsoleOptions": "neverOpen"
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Debug Jest Tests",
-            "program": "${workspaceFolder}/node_modules/.bin/jest",
-            "args": [
-                "--runInBand",
-                "--forceExit",
-                "--detectOpenHandles"
-            ],
-            "console": "integratedTerminal",
-            "internalConsoleOptions": "neverOpen",
-            "disableOptimisticBPs": true,
-            "windows": {
-                "program": "${workspaceFolder}/node_modules/jest/bin/jest"
-            }
-        },
-        {
-            "type": "node",
-            "request": "launch",
             "name": "Debug Current Test File",
             "program": "${workspaceFolder}/node_modules/.bin/jest",
             "args": [
-                "${fileBasename}",
                 "--runInBand",
                 "--forceExit",
-                "--detectOpenHandles"
+                "--detectOpenHandles",
+                "--no-cache",
+                "--testMatch",
+                "**/{tests,workbench}/**/*.test.js",
+                "${file}"
             ],
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen",
@@ -231,6 +83,24 @@
             "windows": {
                 "program": "${workspaceFolder}/node_modules/jest/bin/jest"
             }
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Debug Dynamic Properties Transform Test",
+            "program": "${workspaceFolder}/node_modules/jest/bin/jest",
+            "args": [
+                "--runInBand",
+                "--forceExit",
+                "--detectOpenHandles",
+                "--no-cache",
+                "--testMatch",
+                "**/workbench/**/*.test.js",
+                "workbench/dynamic-properties-transformation.test.js"
+            ],
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen",
+            "disableOptimisticBPs": true
         },
         {
             "type": "node",

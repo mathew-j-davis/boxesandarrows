@@ -120,6 +120,12 @@ class DynamicPropertyMerger {
     /**
      * Converts merged dynamic properties to a hierarchical structure
      * 
+     * This method processes a flat array of dynamic properties and builds
+     * a tree structure based on their namePathArray values. It handles:
+     * - Regular properties with nested paths
+     * - Array indices in paths
+     * - Special handling for flag properties in a __flags container
+     * 
      * @param {Array} mergedProperties - Array of merged dynamic properties
      * @returns {Object} - Hierarchical object with properties organized by namePath
      */
@@ -127,25 +133,95 @@ class DynamicPropertyMerger {
         const hierarchy = {};
         
         for (const prop of mergedProperties) {
-            // Removed group path handling
-            // const groupArray = prop.group ? prop.group.split('.') : []; 
+            // Skip if no name path
+            if (!prop.namePathArray || prop.namePathArray.length === 0) continue;
+            
             let current = hierarchy;
             
-            // Navigate or create the path using only namePath
-            const namePathArray = prop.namePathArray || (prop.namePath ? prop.namePath.split('.') : []);
-            if (namePathArray.length === 0) continue; // Skip if no name path
-
-            // Navigate to the deepest level but one
-            for (let i = 0; i < namePathArray.length - 1; i++) {
-                const segment = namePathArray[i];
-                if (!current[segment] || typeof current[segment] !== 'object') {
-                    current[segment] = {}; // Create/overwrite if not an object
+            // Navigate through all segments except the last one to build the nested structure
+            // The last segment will be used as the key to store the property's value
+            for (let i = 0; i < prop.namePathArray.length - 1; i++) {
+                const segment = prop.namePathArray[i];
+                const isIndex = prop.isNamePathIndex(i);
+                
+                // Determine what type the next level should be based on the next segment
+                const nextSegment = prop.namePathArray[i + 1];
+                const nextIsIndex = prop.isNamePathIndex(i + 1);
+                
+                if (isIndex) {
+                    // Current segment is an index, so the parent should be an array
+                    const indexNum = parseInt(segment, 10);
+                    
+                    // Ensure current is an array if not already
+                    if (!Array.isArray(current)) {
+                        console.warn(`Expected array but found ${typeof current} for path ${prop.namePathArray.join('.')}`);
+                        break;
+                    }
+                    
+                    // Create or ensure the object at this index exists
+                    if (current[indexNum] === undefined) {
+                        current[indexNum] = nextIsIndex ? [] : {};
+                    } else if (nextIsIndex && !Array.isArray(current[indexNum])) {
+                        current[indexNum] = [];
+                    } else if (!nextIsIndex && typeof current[indexNum] !== 'object') {
+                        current[indexNum] = {};
+                    }
+                    
+                    current = current[indexNum];
+                } else {
+                    // Current segment is a name
+                    
+                    // Create the object for this segment if it doesn't exist,
+                    // or ensure it's the right type based on the next segment
+                    if (current[segment] === undefined) {
+                        current[segment] = nextIsIndex ? [] : {};
+                    } else if (nextIsIndex && !Array.isArray(current[segment])) {
+                        current[segment] = [];
+                    } else if (!nextIsIndex && typeof current[segment] !== 'object') {
+                        current[segment] = {};
+                    }
+                    
+                    current = current[segment];
                 }
-                current = current[segment];
             }
             
-            // Set the value at the final level
-            current[namePathArray[namePathArray.length - 1]] = prop.value;
+            // Now we're at the parent level where we need to add the property's value
+            // using the last segment of the path as the key (or index)
+            const lastSegment = prop.namePathArray[prop.namePathArray.length - 1];
+            const isLastIndex = prop.isNamePathIndex(prop.namePathArray.length - 1);
+            
+            // Special handling for flag properties
+            if (prop.isFlag) {
+                // Create the __flags container if it doesn't exist
+                if (typeof current.__flags !== 'object') {
+                    current.__flags = {};
+                }
+                
+                // Add flag to the __flags container
+                if (isLastIndex) {
+                    const indexNum = parseInt(lastSegment, 10);
+                    current.__flags[indexNum] = prop.value;
+                } else {
+                    current.__flags[lastSegment] = prop.value;
+                }
+            } else {
+                // Regular property (not a flag)
+                if (isLastIndex) {
+                    // Last segment is an index, so current should be an array
+                    const indexNum = parseInt(lastSegment, 10);
+                    
+                    if (!Array.isArray(current)) {
+                        console.warn(`Expected array but found ${typeof current} for path ${prop.namePathArray.join('.')}`);
+                        continue;
+                    }
+                    
+                    // Set the value at the specified index
+                    current[indexNum] = prop.value;
+                } else {
+                    // Last segment is a property name, use it as a key
+                    current[lastSegment] = prop.value;
+                }
+            }
         }
         
         return hierarchy;
@@ -153,22 +229,3 @@ class DynamicPropertyMerger {
 }
 
 module.exports = DynamicPropertyMerger;
-
-
-
-            // // Check if p's namePath starts with prop's namePath
-            // for (let i = 0; i < prop.namePathArray.length; i++){
-            //     if (p.namePathArray[i] !== prop.namePathArray[i]){
-            //         // Paths diverge, p is not a child or the same property
-            //         return true;
-            //     }
-            // }
-
-
-
-            // // Check for exact match (same namePath, same renderer)
-            // const exactMatch = mergedProps.find(
-            //     p => p.namePath === prop.namePath
-            // );
-
-  

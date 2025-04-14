@@ -1,8 +1,4 @@
----
-description: 
-globs: 
-alwaysApply: true
----
+
 
 # DEVELOPMENT PROCESS GUIDELINES
 -----------------------------
@@ -56,3 +52,21 @@ This prompt applies only to development-related discussions and code changes. It
 - Before implementing each significant change
 - After completing each implementation increment
 - Before finalizing the iteration
+
+## JOURNALING:
+- Document each iteration in a journal
+- The journal should be saved as a markdown file in:
+
+  /ai/{ISO 8601 date}/ai_readme_{incrementing integer from 0000}_{topic description}.md
+
+incrementing integer starts at 0000 each day and increments by 1 for each new journal entry
+
+eg.
+
+/ai/2025-04-14/ai_readme_0001_style_transformation_analysis.md
+
+- Include analysis, design, implementation, and review phases
+- Document any unexpected issues or challenges
+- Document any learnings from the iteration
+- include any proposed code changes
+

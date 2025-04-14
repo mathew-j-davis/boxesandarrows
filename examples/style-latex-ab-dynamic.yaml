@@ -81,8 +81,8 @@ edge:
 type: style
 name: bend_l_50
 _latex: !renderer
-  edge: !group
-    object: !group
-      tikz: !group
+  edge:
+    object:
+      tikz:
         bend left: "50"
 ---
