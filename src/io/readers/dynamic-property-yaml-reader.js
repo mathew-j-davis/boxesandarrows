@@ -92,15 +92,13 @@ class DynamicPropertyYamlReader {
      * !clear tag (scalar form): Marks a property to clear children during merging
      * Example: margin: !clear 5
      * 
-     * This creates: { __tag: 'clear', __value: 5, __clear: true }
+     * This creates: { __tag: 'clear' }
      */
     const clearScalarTag = new yaml.Type('!clear', {
       kind: 'scalar',
       construct: function(data) {
         return { 
-          __tag: 'clear', 
-          __value: data,
-          __clear: true
+          __tag: 'clear'
         };
       }
     });
@@ -108,41 +106,14 @@ class DynamicPropertyYamlReader {
     /**
      * !clear tag (mapping form): Same as scalar form but for mappings
      * Example: margin: !clear
-     *            __value: 5
-     *            unit: 'px'
      * 
-     * This creates: 
-     * - With __value: { __tag: 'clear', __value: 5, __clear: true }
-     * - With other properties: { __tag: 'clear', __value: { unit: 'px' }, __clear: true }
-     * 
-     * The __value is extracted if present, otherwise the whole object becomes the value
+     * This creates: { __tag: 'clear' }
      */
     const clearMappingTag = new yaml.Type('!clear', {
       kind: 'mapping',
       construct: function(data) {
-        // If there's no data or it's not an object, return a simple value
-        if (!data || typeof data !== 'object') {
-          return { 
-            __tag: 'clear', 
-            __value: data,
-            __clear: true 
-          };
-        }
-
-        // If __value is specified, extract it and don't include the rest
-        if ('__value' in data) {
-          return { 
-            __tag: 'clear', 
-            __value: data.__value,
-            __clear: true 
-          };
-        }
-        
-        // Otherwise use the whole object as the value
         return { 
-          __tag: 'clear', 
-          __value: data,
-          __clear: true 
+          __tag: 'clear'
         };
       }
     });
@@ -336,23 +307,8 @@ class DynamicPropertyYamlReader {
         // This is a flag property - groupPath is empty
         this.addProperty(renderer, key, 'string', value.__value, true, properties);
       } else if (this.hasTag(value, 'clear')) {
-        // This is a clear property - groupPath is empty
-        const clear = value.__clear; // Should be true
-
-        // Process the value based on its type
-        if (value.__value === undefined || value.__value === null) {
-          // No value or null value - add with clear flag
-          this.addProperty(renderer, key, 'string', null, false, properties, clear);
-        } else if (typeof value.__value === 'object' && !Array.isArray(value.__value)) {
-          // Value is an object - create the parent property with clear flag
-          this.addProperty(renderer, key, 'string', null, false, properties, clear);
-          
-          // Then process the object properties as nested
-          this.processNestedObject(renderer, key, value.__value, properties);
-        } else {
-          // Simple scalar value - add with clear flag
-          this.addUntaggedProperty(renderer, key, value.__value, properties, clear);
-        }
+        // This is a clear property - simply add with clear flag set to true
+        this.addProperty(renderer, key, 'string', null, false, properties, true);
       } else if (typeof value === 'object' && value !== null && !this.hasTag(value, 'renderer')) {
         // This is a nested object (no !group needed)
         // Process it to create dotted property names
@@ -385,23 +341,8 @@ class DynamicPropertyYamlReader {
         // Flag property
         this.addProperty(renderer, propName, 'string', value.__value, true, properties);
       } else if (this.hasTag(value, 'clear')) {
-        // This is a clear property
-        const clear = value.__clear; // Should be true
-
-        // Process the value based on its type
-        if (value.__value === undefined || value.__value === null) {
-          // No value or null value - just add with the clear flag
-          this.addProperty(renderer, propName, 'string', null, false, properties, clear);
-        } else if (typeof value.__value === 'object' && !Array.isArray(value.__value)) {
-          // Value is an object - create the parent property with clear flag
-          this.addProperty(renderer, propName, 'string', null, false, properties, clear);
-          
-          // Then process the object properties as nested
-          this.processNestedObject(renderer, propName, value.__value, properties);
-        } else {
-          // Simple scalar value - add with the clear flag
-          this.addUntaggedProperty(renderer, propName, value.__value, properties, clear);
-        }
+        // This is a clear property - simply add with clear flag set to true
+        this.addProperty(renderer, propName, 'string', null, false, properties, true);
       } else if (typeof value === 'object' && value !== null && !value.__tag) {
         // Further nested object
         this.processNestedObject(renderer, propName, value, properties);

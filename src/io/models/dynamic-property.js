@@ -28,25 +28,6 @@ class DynamicProperty {
     const config = { ...defaults, ...options };
     
     this.renderer = config.renderer;
-    //this.groupPath = config.groupPath;
-    
-    // Parse the groupPath to determine which parts are names and which are indices
-    //this.groupPathArray = [];
-    //this.groupPathTypes = []; // 'name' or 'index'
-    
-    // if (config.groupPath) {
-    //   const parts = config.groupPath.split('.');
-    //   parts.forEach(part => {
-    //     this.groupPathArray.push(part);
-    //     // Check if the part is a numeric index
-    //     if (/^\d+$/.test(part)) {
-    //       this.groupPathTypes.push('index');
-    //     } else {
-    //       this.groupPathTypes.push('name');
-    //     }
-    //   });
-    // }
-    
     this.namePath = config.namePath;
     
     // Parse the namePath to determine which parts are names and which are indices
@@ -93,10 +74,6 @@ class DynamicProperty {
    * @returns {string} The fully qualified path
    */
   getFullPath() {
-    //if (!this.groupPath) {
-    //  return this.namePath;
-    //}
-    //return `${this.groupPath}.${this.namePath}`;
     return this.namePath;
   }
   
@@ -105,26 +82,8 @@ class DynamicProperty {
    * @param {number} position - The position in the groupPathArray to check
    * @returns {boolean} True if the part at the specified position is an index
    */
-  // isGroupPathIndex(position) {
-  //   if (position < 0 || position >= this.groupPathTypes.length) {
-  //     return false;
-  //   }
-  //   return this.groupPathTypes[position] === 'index';
-  // }
-  
-  /**
-   * Get the groupPathArray with indices converted to numbers
-   * @returns {Array} The groupPathArray with indices as numbers
-   */
-  // getGroupPathArrayWithIndices() {
-  //   return this.groupPathArray.map((part, index) => {
-  //     if (this.groupPathTypes[index] === 'index') {
-  //       return parseInt(part, 10);
-  //     }
-  //     return part;
-  //   });
-  // }
-  
+
+
   /**
    * Check if a specific part of the namePath is an index
    * @param {number} position - The position in the namePathArray to check
