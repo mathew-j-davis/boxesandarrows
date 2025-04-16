@@ -11,6 +11,8 @@ const { getNodeConnectionPoint } = require('./geometry/node-connection-point');
 const EdgeReader = require('./io/readers/edge-reader');
 const { Position, PositionType } = require('./geometry/position');
 const Dimensions = require('./geometry/dimensions');
+//const StyleCollection = require('./io/style-collection');
+const DynamicProperty = require('./io/models/dynamic-property');
 
 class DiagramBuilder {
     constructor(options = {}) {

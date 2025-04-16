@@ -3,41 +3,31 @@ const DynamicProperty = require('../models/dynamic-property');
 
 class DynamicPropertyParser {
     static VALID_TYPES = ['string', 'float', 'number', 'integer', 'boolean', 'flag'];
+    
+    /**
+     * Dynamic property name pattern for validating and parsing
+     * 
+     * Pattern: _[renderer]:[type]:[namePath](:tags)?
+     * 
+     * Components:
+     * - renderer: Optional. Must start with a letter followed by letters or numbers.
+     * - type: Required. Must be only letters.
+     * - namePath: Required. Dot-separated segments where each segment is either:
+     *   - A name (starts with letter or underscore, can contain letters, digits, spaces, underscores)
+     *   - A pure numeric index
+     * - tags: Optional. Any additional information after a final colon.
+     * 
+     * Name segment rules:
+     * - Cannot start with a digit (except for pure numeric indices)
+     * - Can contain spaces, but not leading or trailing spaces
+     * - Can contain and start with underscores
+     * - Cannot be empty
+     */
+    static PROPERTY_PATTERN = /^_([a-zA-Z][a-zA-Z0-9]*)?:([a-zA-Z]+):(([_a-zA-Z][a-zA-Z\d\s_]*[a-zA-Z\d_]|[_a-zA-Z]|\d+)(?:\.([_a-zA-Z][a-zA-Z\d\s_]*[a-zA-Z\d_]|[_a-zA-Z]|\d+))*)(?::(.*))?$/;
 
     static isDynamicProperty(propertyString) {
         // Check if the name matches the dynamic property pattern
-        // Pattern: _[renderer]:[groupPath]:[type]:[name](:[tags])?
-        // Renderer, groupPath are optional. Tags are optional.
-        /**
-         * Regex breakdown:
-         * ^                      - Start of the string
-         * _                      - Literal underscore prefix
-         * ([a-zA-Z][a-zA-Z0-9]*)? - Optional Group 1: Renderer (starts with letter, then letters/numbers)
-         * :                      - Literal colon delimiter
-         * (                      - Group 2: Optional Group (for Group Path)
-         *   [a-zA-Z]             - Starts with a letter
-         *   (?:[_.]?            - Non-capturing group for optional delimiter (_ or .)
-         *     [a-zA-Z0-9]+       - Followed by one or more letters/numbers
-         *   )*                 - The delimiter + letters/numbers can repeat (for dotted/underscored segments)
-         * )?                     - Group 2 is optional (no group path provided)
-         * :                      - Literal colon delimiter
-         * ([a-zA-Z]+)            - Group 3: Type (one or more letters)
-         * :                      - Literal colon delimiter
-         * (                      - Group 4: Property Name
-         *   [a-zA-Z]             - Starts with a letter
-         *   (?:[_.]?            - Non-capturing group for optional delimiter (_ or .)
-         *     [a-zA-Z0-9]+       - Followed by one or more letters/numbers
-         *   )*                 - The delimiter + letters/numbers can repeat (for dotted/underscored segments)
-         * )                      - End of Group 4
-         * (?:                    - Optional Non-capturing group for tags
-         *   :                    - Literal colon delimiter before tags
-         *   (.*)                 - Group 5: Tags (capture everything after the colon)
-         * )?                     - The tags group is optional
-         * $                      - End of the string
-         */
-        //const pattern = /^_([a-zA-Z][a-zA-Z0-9]*)?:([a-zA-Z](?:[_.]?[a-zA-Z0-9]+)*)?:([a-zA-Z]+):([a-zA-Z](?:[_.]?[a-zA-Z0-9]+)*)(?::(.*))?$/;
-        const pattern = /^_([a-zA-Z][a-zA-Z0-9]*)?:([a-zA-Z]+):([a-zA-Z](?:[_.]?[a-zA-Z0-9]+)*)(?::(.*))?$/;
-        return pattern.test(propertyString);
+        return this.PROPERTY_PATTERN.test(propertyString);
     }
 
     static parsePropertyDescription(propertyString) {
@@ -45,44 +35,28 @@ class DynamicPropertyParser {
             throw new Error(`Invalid dynamic property name: ${propertyString}`);
         }
 
-        // Extract the components using the updated pattern
-        // Use the same regex as isDynamicProperty for consistency
-        /**
-         * Regex breakdown (same as in isDynamicProperty):
-         * ^                      - Start of the string
-         * _                      - Literal underscore prefix
-         * ([a-zA-Z][a-zA-Z0-9]*)? - Optional Group 1: Renderer
-         * :                      - Delimiter
-         * ([a-zA-Z](?:[_.]?[a-zA-Z0-9]+)*)? - Optional Group 2: Group Path
-         * :                      - Delimiter
-         * ([a-zA-Z]+)            - Group 3: Type
-         * :                      - Delimiter
-         * ([a-zA-Z](?:[_.]?[a-zA-Z0-9]+)*) - Group 4: Property Name
-         * (?:                    - Optional Non-capturing group for tags
-         *   :                    - Delimiter before tags
-         *   (.*)                 - Group 5: Tags string
-         * )?                     - The tags group is optional
-         * $                      - End of the string
-         *
-         * Match array indices (based on the current regex):
-         * match[1]: renderer (optional)
-         * match[2]: type
-         * match[3]: namePath
-         * match[4]: tagsString (optional)
-         */
-        //const pattern = /^_([a-zA-Z][a-zA-Z0-9]*)?:([a-zA-Z](?:[_.]?[a-zA-Z0-9]+)*)?:([a-zA-Z]+):([a-zA-Z](?:[_.]?[a-zA-Z0-9]+)*)(?::(.*))?$/;
-        const pattern = /^_([a-zA-Z][a-zA-Z0-9]*)?:([a-zA-Z]+):([a-zA-Z](?:[_.]?[a-zA-Z0-9]+)*)(?::(.*))?$/;
-        const match = propertyString.match(pattern);
+        // Extract the components using the pattern
+        const match = propertyString.match(this.PROPERTY_PATTERN);
         
         if (!match) {
             throw new Error(`Failed to parse dynamic property name: ${propertyString}`);
         }
 
-        // Extract the components from the match groups using corrected indices
+        /**
+         * Match array indices:
+         * match[1]: renderer (optional)
+         * match[2]: type
+         * match[3]: namePath
+         * match[4]: first path segment (part of namePath capture group)
+         * match[5]: last segment in path (only for multi-segment paths)
+         * match[6]: tagsString (optional)
+         */
+
+        // Extract the components from the match groups
         const renderer = match[1] || 'common';
-        const type = match[2]; // Correct index for type
-        const namePath = match[3]; // Correct index for name path
-        const tagsString = match[4] || ''; // Correct index for optional tags
+        const type = match[2];
+        const namePath = match[3];
+        const tagsString = match[6] || '';
 
         // Validate the type
         if (!this.VALID_TYPES.includes(type)) {
@@ -100,8 +74,8 @@ class DynamicPropertyParser {
             namePath: namePath,
             dataType: type === 'flag' ? 'string' : type,
             isFlag: type === 'flag',
-            clear: clear, // Set based on !clear tag
-            tags: tags // Store all tags if needed later
+            value: type === 'flag' ? true : null,
+            clear
         });
     }
 

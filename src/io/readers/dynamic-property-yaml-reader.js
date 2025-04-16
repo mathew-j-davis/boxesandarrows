@@ -170,8 +170,10 @@ class DynamicPropertyYamlReader {
    * This method:
    * 1. Identifies !renderer tags at the top level
    * 2. Processes them to extract dynamic properties
-   * 3. Collects these properties into a _dynamicProperties array
-   * 4. Keeps the rest of the document unchanged
+   * 3. Processes other properties as 'common' renderer properties
+   * 4. Collects these properties into a _dynamicProperties array
+   * 5. Preserves metadata like type, name, and page
+   * 6. Validates and preserves any existing _dynamicProperties from the input
    * 
    * @param {Object} doc - YAML document
    * @returns {Object} Transformed document
@@ -182,33 +184,72 @@ class DynamicPropertyYamlReader {
     const result = {};
     const allProperties = [];
     
+    // Process existing _dynamicProperties if present
+    if (Array.isArray(doc._dynamicProperties)) {
+      // Validate each existing property and add valid ones to our collection
+      doc._dynamicProperties.forEach(existingProp => {
+        try {
+          // Attempt to create a valid DynamicProperty instance to validate
+          const validatedProp = new DynamicProperty(existingProp);
+          if (validatedProp.renderer && validatedProp.namePath) {
+            allProperties.push(validatedProp);
+          }
+        } catch (error) {
+          console.warn(`Skipping invalid dynamic property: ${JSON.stringify(existingProp)}`);
+        }
+      });
+    }
+    
+    // Preserve metadata
+    if (doc.type) result.type = doc.type;
+    if (doc.name) result.name = doc.name;
+    if (doc.page) result.page = doc.page;
+    
     // Process each property in the document
     Object.entries(doc).forEach(([key, value]) => {
-      // Only process renderer tags at the top level
+      // Skip metadata properties
+      if (key === 'type' || key === 'name' || key === 'page' || key === '_dynamicProperties') {
+        return;
+      }
+      
+      // Process renderer tags
       if (this.hasTag(value, 'renderer')) {
+        // Extract renderer name (remove leading underscore if present)
+        const rendererName = key.startsWith('_') ? key.substring(1) : key;
+        
         // This is a renderer - transform it
         const properties = [];
-        this.processRenderer(key, value, properties);
+        this.processRenderer(rendererName, value, properties);
         
         // Add all properties to our collection
         if (properties.length > 0) {
           allProperties.push(...properties);
         }
       } else {
-        // For nested objects, recursively check and remove any renderer tags
+        // For non-renderer properties, process as 'common' renderer
         if (typeof value === 'object' && value !== null) {
-          result[key] = this.removeNestedRenderers(value);
-        } else {
-          // Not a renderer - keep as is
-          result[key] = value;
+          // Create a temporary object with this property
+          const properties = [];
+          this.processProperties('common', { [key]: value }, properties);
+          
+          // Add all properties to our collection
+          if (properties.length > 0) {
+            allProperties.push(...properties);
+          }
+        } else if (value !== undefined) {
+          // Simple value, add as a dynamic property
+          allProperties.push(new DynamicProperty({
+            renderer: 'common',
+            namePath: key,
+            namePathArray: [key],
+            value: value
+          }));
         }
       }
     });
     
-    // If we already have _dynamicProperties, append to it, otherwise create it
-    if (result._dynamicProperties && Array.isArray(result._dynamicProperties)) {
-      result._dynamicProperties.push(...allProperties);
-    } else {
+    // Add the collected properties to the result
+    if (allProperties.length > 0) {
       result._dynamicProperties = allProperties;
     }
     

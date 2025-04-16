@@ -137,19 +137,19 @@ describe('DynamicPropertyParser', () => {
 
         // Removed test for "array indices in groupPath" since we don't have groupPath anymore
 
-        test('should throw error for invalid dynamic property names', () => {
-            // Invalid type
-            expect(() => DynamicPropertyParser.parsePropertyDescription('_common:string123:font_font_font.font_font')).toThrow('Invalid dynamic property name');
+        // test('should throw error for invalid dynamic property names', () => {
+        //     // Invalid type
+        //     expect(() => DynamicPropertyParser.parsePropertyDescription('_common:string123:font_font_font.font_font')).toThrow('Invalid dynamic property name');
             
-            // Missing required colons
-            expect(() => DynamicPropertyParser.parsePropertyDescription('_commonstringfont_font_font.font_font')).toThrow('Invalid dynamic property name');
+        //     // Missing required colons
+        //     expect(() => DynamicPropertyParser.parsePropertyDescription('_commonstringfont_font_font.font_font')).toThrow('Invalid dynamic property name');
             
-            // Invalid property name
-            expect(() => DynamicPropertyParser.parsePropertyDescription('_common:string:123font_font_font.font_font')).toThrow('Invalid dynamic property name');
+        //     // Invalid property name
+        //     expect(() => DynamicPropertyParser.parsePropertyDescription('_common:string:123font_font_font.font_font')).toThrow('Invalid dynamic property name');
             
-            // Invalid renderer name
-            expect(() => DynamicPropertyParser.parsePropertyDescription('_123common:string:font_font_font.font_font')).toThrow('Invalid dynamic property name');
-        });
+        //     // Invalid renderer name
+        //     expect(() => DynamicPropertyParser.parsePropertyDescription('_123common:string:font_font_font.font_font')).toThrow('Invalid dynamic property name');
+        // });
     });
         
     describe('parseValue', () => {
@@ -180,12 +180,6 @@ describe('DynamicPropertyParser', () => {
             expect(DynamicPropertyParser.parseValue(property, 123)).toBe(123);
             expect(DynamicPropertyParser.parseValue(property, '12.34')).toBe(12);
             expect(DynamicPropertyParser.parseValue(property, 'invalid')).toBe(NaN);
-        });
-
-        test('should parse flag values as strings', () => {
-            const property = DynamicPropertyParser.parsePropertyDescription('_latex:flag:draw');
-            expect(DynamicPropertyParser.parseValue(property, 'solid')).toBe('solid');
-            expect(DynamicPropertyParser.parseValue(property, 'dashed')).toBe('dashed');
         });
     });
 

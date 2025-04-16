@@ -1,3 +1,5 @@
+const ValueParser = require('../readers/value-parser');
+
 /**
  * Class representing a dynamic property
  */
@@ -24,6 +26,8 @@ class DynamicProperty {
       isFlag: false,
       clear: false
     };
+
+    /*TODO validate properties on creation*/
 
     const config = { ...defaults, ...options };
     
@@ -58,6 +62,118 @@ class DynamicProperty {
         this[key] = config[key];
       }
     });
+  }
+
+  /**
+   * Create a validated DynamicProperty from options
+   * 
+   * This factory method validates input data before creating a DynamicProperty.
+   * It ensures proper typing, format validation, and constraint enforcement.
+   * 
+   * @param {Object} options - Property options
+   * @returns {Object} An object with { property, errors } where property is the DynamicProperty instance or null if validation failed
+   */
+  static createValidated(options = {}) {
+    const errors = [];
+    const validatedOptions = { ...options };
+    
+    // 1. Validate renderer
+    if (options.renderer === undefined || options.renderer === null) {
+      validatedOptions.renderer = 'common';
+    } else if (typeof options.renderer !== 'string') {
+      errors.push('Renderer must be a string');
+    }
+    
+    // 2. Validate namePath
+    if (!options.namePath) {
+      errors.push('namePath is required and cannot be empty');
+    } else if (typeof options.namePath !== 'string') {
+      errors.push('namePath must be a string');
+    } else {
+      // Check for namePath format issues
+      if (options.namePath.includes('..')) {
+        errors.push('namePath cannot contain double dots (..)');
+      }
+      
+      if (options.namePath.startsWith('.') || options.namePath.endsWith('.')) {
+        errors.push('namePath cannot start or end with a dot');
+      }
+      
+      // Validate each path segment
+      const segments = options.namePath.split('.');
+      for (let i = 0; i < segments.length; i++) {
+        const segment = segments[i];
+        if (segment === '') {
+          errors.push(`namePath segment at position ${i} cannot be empty`);
+        } else if (/^\s|\s$/.test(segment)) {
+          errors.push(`namePath segment "${segment}" at position ${i} cannot have leading or trailing spaces`);
+        } else if (/^\d+$/.test(segment)) {
+          // This is a valid index segment (only contains digits)
+        } else if (!/^[_a-zA-Z\d][a-zA-Z\d\s_]*$/.test(segment)) {
+          errors.push(`Invalid namePath segment "${segment}" at position ${i}. Names must start with a letter, underscore, or digit followed by letters, numbers, spaces, or underscores`);
+        }
+      }
+    }
+    
+    // 3. Special handling for clear properties
+    if (options.clear === true) {
+      // If clear is true, ignore value, isFlag and dataType
+      validatedOptions.value = null;
+      validatedOptions.isFlag = false;
+      validatedOptions.dataType = 'string';
+    } else {
+      // 4. Validate and process dataType
+      if (options.dataType && typeof options.dataType !== 'string') {
+        errors.push('dataType must be a string');
+      }
+      
+      // 5. Validate and process value
+      if (options.value === undefined) {
+        validatedOptions.value = undefined;
+        validatedOptions.dataType = 'undefined';
+      } else if (options.value === null) {
+        validatedOptions.value = null;
+        validatedOptions.dataType = 'null';
+      } else if (options.dataType) {
+        // Parse value according to specified dataType
+        try {
+          validatedOptions.value = ValueParser.parse(options.value, options.dataType);
+        } catch (error) {
+          errors.push(`Failed to parse value as ${options.dataType}: ${error.message}`);
+        }
+      } else {
+        // Infer dataType from value
+        const valueType = typeof options.value;
+        switch (valueType) {
+          case 'string':
+          case 'number':
+          case 'boolean':
+            validatedOptions.dataType = valueType;
+            break;
+          case 'object':
+            errors.push('Value cannot be an object');
+            break;
+          default:
+            errors.push(`Unsupported value type: ${valueType}`);
+        }
+      }
+      
+      // 6. Validate isFlag
+      if (options.isFlag !== undefined && typeof options.isFlag !== 'boolean') {
+        errors.push('isFlag must be a boolean');
+      }
+    }
+    
+    // Return early if validation failed
+    if (errors.length > 0) {
+      return { property: null, errors };
+    }
+    
+    // Create and return the property
+    return { 
+      property: new DynamicProperty(validatedOptions), 
+      errors: [] 
+    };
   }
 
   /**
