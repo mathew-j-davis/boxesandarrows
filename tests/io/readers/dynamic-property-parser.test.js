@@ -34,6 +34,19 @@ describe('DynamicPropertyParser', () => {
             expect(DynamicPropertyParser.isDynamicProperty('_:string:items.0')).toBe(true);
             expect(DynamicPropertyParser.isDynamicProperty('_:string:items.0.name')).toBe(true);
             expect(DynamicPropertyParser.isDynamicProperty('_:string:items.0.1.2')).toBe(true);
+            
+            // With spaces in property names
+            expect(DynamicPropertyParser.isDynamicProperty('_:string:button label')).toBe(true);
+            expect(DynamicPropertyParser.isDynamicProperty('_:string:items.0.product name')).toBe(true);
+            
+            // With underscores at start/end of segments
+            expect(DynamicPropertyParser.isDynamicProperty('_:string:_prefix')).toBe(true);
+            expect(DynamicPropertyParser.isDynamicProperty('_:string:suffix_')).toBe(true);
+            expect(DynamicPropertyParser.isDynamicProperty('_:string:_surrounded_')).toBe(true);
+            
+            // Mixed complex paths
+            expect(DynamicPropertyParser.isDynamicProperty('_:string:items.0._product name_.details')).toBe(true);
+            expect(DynamicPropertyParser.isDynamicProperty('_:string:_user.settings.display name')).toBe(true);
         });
 
         test('should reject invalid dynamic property patterns', () => {
@@ -51,6 +64,16 @@ describe('DynamicPropertyParser', () => {
             
             // Invalid renderer name (starts with number)
             expect(DynamicPropertyParser.isDynamicProperty('_123common:string:font_font_font.font_font')).toBe(false);
+            
+            // Leading/trailing spaces in segments
+            expect(DynamicPropertyParser.isDynamicProperty('_:string:button label ')).toBe(false); 
+            expect(DynamicPropertyParser.isDynamicProperty('_:string: leading space')).toBe(false);
+            expect(DynamicPropertyParser.isDynamicProperty('_:string:items.0. spacey')).toBe(false);
+            
+            // Empty segments
+            expect(DynamicPropertyParser.isDynamicProperty('_:string:items..name')).toBe(false);
+            expect(DynamicPropertyParser.isDynamicProperty('_:string:.name')).toBe(false);
+            expect(DynamicPropertyParser.isDynamicProperty('_:string:name.')).toBe(false);
         });
     });
 

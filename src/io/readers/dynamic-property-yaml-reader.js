@@ -189,13 +189,16 @@ class DynamicPropertyYamlReader {
       // Validate each existing property and add valid ones to our collection
       doc._dynamicProperties.forEach(existingProp => {
         try {
-          // Attempt to create a valid DynamicProperty instance to validate
-          const validatedProp = new DynamicProperty(existingProp);
-          if (validatedProp.renderer && validatedProp.namePath) {
-            allProperties.push(validatedProp);
+          // Validate the property using the createValidated factory method
+          const { property, errors } = DynamicProperty.createValidated(existingProp);
+          
+          if (property) {
+            allProperties.push(property);
+          } else {
+            console.warn(`Skipping invalid dynamic property: ${JSON.stringify(existingProp)}, Errors: ${errors.join(', ')}`);
           }
         } catch (error) {
-          console.warn(`Skipping invalid dynamic property: ${JSON.stringify(existingProp)}`);
+          console.warn(`Error processing dynamic property: ${JSON.stringify(existingProp)}, Error: ${error.message}`);
         }
       });
     }
