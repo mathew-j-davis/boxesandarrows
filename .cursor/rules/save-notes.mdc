@@ -5,13 +5,40 @@ alwaysApply: true
 ---
 # Save Notes Request Handler
 
-When a user asks to "save notes" or requests saving documentation, follow these steps:
+When a user asks to "save notes" or to journal or requests saving documentation, follow these steps:
 
 1. Create a new markdown file with the naming convention:
    - `ai_readme_[topic].md` for general documentation
    - `ai_readme_[component]_[aspect].md` for specific component documentation
    - Use descriptive, lowercase names with underscores
 
+   if the purpose or topic of the document is related to tracking development process, collaborating on analysis, design, testing, troubleshooting or implementation, we refer to these as journal entries
+   - Use the /ai/journal directory
+   
+   if the purpose is maintaining authoritative documentation of current state of the application:
+   - Use the /ai/current_state directory
+
+
+
+## JOURNALING:
+- Document each iteration in a journal
+- The journal should be saved as a markdown file in:
+
+  /ai/journal/{ISO 8601 date}/ai_readme_{incrementing integer from 0000}_{topic description}.md
+
+incrementing integer starts at 0000 each day and increments by 1 for each new journal entry
+
+eg.
+
+/ai/journal/2025-04-14/ai_readme_0001_style_transformation_analysis.md
+
+- Include analysis, design, implementation, and review phases
+- Document any unexpected issues or challenges
+- Document any learnings from the iteration
+- include any proposed code changes
+
+## ALL DOCUMENTATION AND JOURNALING MUST FOLLOW THESE GUIDELINES:
+   
 2. Structure the content with:
    - Clear headings using markdown syntax (# for main title, ## for sections)
    - Bullet points for lists

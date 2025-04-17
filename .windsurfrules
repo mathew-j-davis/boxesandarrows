@@ -57,16 +57,88 @@ This prompt applies only to development-related discussions and code changes. It
 - Document each iteration in a journal
 - The journal should be saved as a markdown file in:
 
-  /ai/{ISO 8601 date}/ai_readme_{incrementing integer from 0000}_{topic description}.md
+  /ai/journal/{ISO 8601 date}/ai_readme_{incrementing integer from 0000}_{topic description}.md
 
 incrementing integer starts at 0000 each day and increments by 1 for each new journal entry
 
 eg.
 
-/ai/2025-04-14/ai_readme_0001_style_transformation_analysis.md
+/ai/journal/2025-04-14/ai_readme_0001_style_transformation_analysis.md
 
 - Include analysis, design, implementation, and review phases
 - Document any unexpected issues or challenges
 - Document any learnings from the iteration
 - include any proposed code changes
 
+we'll use /ai/journal
+
+to journal our development process
+
+we'll use /ai/current_state
+exclusively for documentation about the current state of the application
+
+
+When a user asks to "save notes" or to journal or requests saving documentation, follow these steps:
+
+1. Create a new markdown file with the naming convention:
+   - `ai_readme_[topic].md` for general documentation
+   - `ai_readme_[component]_[aspect].md` for specific component documentation
+   - Use descriptive, lowercase names with underscores
+
+   if the purpose or topic of the document is related to tracking development process, collaborating on analysis, design, testing, troubleshooting or implementation, we refer to these as journal entries
+   - Use the /ai/journal directory
+   
+   if the purpose is maintaining authoritative documentation of current state of the application:
+   - Use the /ai/current_state directory
+
+
+
+## JOURNALING:
+- Document each iteration in a journal
+- The journal should be saved as a markdown file in:
+
+  /ai/journal/{ISO 8601 date}/ai_readme_{incrementing integer from 0000}_{topic description}.md
+
+incrementing integer starts at 0000 each day and increments by 1 for each new journal entry
+
+eg.
+
+/ai/journal/2025-04-14/ai_readme_0001_style_transformation_analysis.md
+
+- Include analysis, design, implementation, and review phases
+- Document any unexpected issues or challenges
+- Document any learnings from the iteration
+- include any proposed code changes
+
+## ALL DOCUMENTATION AND JOURNALING MUST FOLLOW THESE GUIDELINES:
+   
+2. Structure the content with:
+   - Clear headings using markdown syntax (# for main title, ## for sections)
+   - Bullet points for lists
+   - Code blocks for code examples
+   - Tables for structured data
+   - Links for references
+
+3. Include these sections when appropriate:
+   - Overview/Introduction
+   - Key Components
+   - Methods/Functions
+   - Usage Examples
+   - Configuration Options
+   - Dependencies
+   - Notes/Caveats
+
+4. Format the content to be:
+   - Clear and concise
+   - Well-organized
+   - Easy to read
+   - Searchable
+   - Maintainable
+
+5. After creating the file:
+   - Confirm the file creation
+   - Provide a brief summary of what was saved
+   - Ask if any additional information should be added
+
+Example response:
+"I've created a new file `ai_readme_[topic].md` with the documentation. The file includes [brief description of content]. Would you like me to add any additional information or make any changes to the documentation?"

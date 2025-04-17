@@ -203,6 +203,7 @@ class DynamicPropertyYamlReader {
       });
     }
     
+    
     // Preserve metadata
     if (doc.type) result.type = doc.type;
     if (doc.name) result.name = doc.name;

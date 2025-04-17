@@ -1,10 +1,11 @@
-const ObjectUtils = require('../utils/object-utils');
+const StyleHandler = require('./style-handler');
 
-class LatexStyleHandler {
+class LatexStyleHandler extends StyleHandler {
     constructor(options = {}) {
-        this.verbose = options.verbose || false;
-        this.log = this.verbose ? console.log.bind(console) : () => {};
-        this.stylesheet = this.getBlankStylesheet();
+        // Initialize the base StyleHandler
+        super(options);
+        
+        // LaTeX-specific properties
         this.colorDefinitions = new Map();  // Track color definitions
         this.reservedAttributes = new Set([
             'width', 'height', 'anchor',
@@ -13,112 +14,7 @@ class LatexStyleHandler {
         ]);
     }
 
-    // Get just the page configuration
-    getPage() {
-        return this.stylesheet.page;
-    }
-
-    // Get the scale configuration
-    getPageScale() {
-        return this.stylesheet.page.scale;
-    }
-
-    // Get the scale configuration
-    getPageMargin() {
-        return this.stylesheet.page.margin;
-    }
-
-    /**
-     * Get a blank stylesheet with default values
-     * @returns {Object} Blank stylesheet
-     */
-    getBlankStylesheet() {
-        const blank = { 
-            page: {},
-            style: {}
-        };
-
-        blank.page = this.getBlankPage();
-        blank.style = this.getBlankStyles();
-
-        return blank;
-    }
-
-    getBlankPage() {
-        return {
-            scale: {
-                position: { x: 1, y: 1 },
-                size: { w: 1, h: 1 }
-                },
-            margin:{
-                h: 1,
-                w: 1
-            }
-        };
-    }
-
-    getBlankStyles() {
-        return {
-            node: {},
-            edge: {}
-        };
-    }
-
-    /**
-     * Get a style attribute by cascading from the specified style to base
-     * @param {string} category - 'node', 'edge', etc.
-     * @param {string} styleName - name of the style, or null/undefined for default
-     * @param {string} attributePath - dot-separated path to the attribute (e.g., 'node.anchor')
-     * @param {any} [defaultValue=null] - value to return if attribute not found
-     */
-    getStyleAttribute(category, styleName, attributePath, defaultValue = null) {
-        // Split the attribute path into parts
-        const pathParts = attributePath.split('.');
-        
-        // Try the specified style first (or default if none specified)
-        const styleToUse = styleName || 'default';
-        let value = this.getValueFromPath(this.stylesheet.style?.[styleToUse]?.[category], pathParts);
-        
-        // If not found, cascade to base
-        if (value === undefined) {
-            value = this.getValueFromPath(this.stylesheet.style?.base?.[category], pathParts);
-        }
-        
-        return value ?? defaultValue;
-    }
-
-    /**
-     * Helper to safely traverse an object path
-     */
-    getValueFromPath(obj, pathParts) {
-        if (!obj) return undefined;
-        
-        return pathParts.reduce((current, part) => {
-            return current?.[part];
-        }, obj);
-    }
-
-    /**
-     * Get complete style object for a category/style, with base cascade
-     * @param {string} styleName - name of the style, or null/undefined for default
-     * @param {string} styleType - 'node', 'edge', etc.
-     * @param {string} generalCategory - 'object', 'label', 'head'
-     * @param {string} specificCategory - more refined category like 'label_start', 'head_end'
-     */
-    getCompleteStyle(styleName, styleType, generalCategory, specificCategory = null) {
-        const baseStyle = this.stylesheet?.style?.base?.[styleType]?.[generalCategory] || {};
-        const baseStyleSpecific = this.stylesheet?.style?.base?.[styleType]?.[specificCategory] || {};
-
-        const selectedStyle = this.stylesheet?.style?.[styleName || 'default']?.[styleType]?.[generalCategory] || {};
-        const selectedStyleSpecific = this.stylesheet?.style?.[styleName || 'default']?.[styleType]?.[specificCategory] || {};
-
-        return {
-            ...baseStyle,
-            ...baseStyleSpecific,
-            ...selectedStyle,
-            ...selectedStyleSpecific,
-        };
-    }
+    // LaTeX-specific methods
 
     applyLatexFormatting(text, style) {
         let result = text;
@@ -150,26 +46,16 @@ class LatexStyleHandler {
         const options = Object.entries(style.tikz)
             .map(([key, value]) => {
                 if (value === true) return key;
-                if (value === false) return null;
-                
-                // Process hex colors
-                if (typeof value === 'string' && value.startsWith('#')) {
-                    // Register and use the registered color name
-                    return `${key}=${this.registerColor(value)}`;
-                }
-                
                 return `${key}=${value}`;
-            })
-            .filter(Boolean)
-            .join(', ');
+            });
             
-        return options;
+        return options.join(', ');
     }
 
     /**
-     * Process raw TikZ attributes string into a style object
-     * @param {string} attributeStr - Raw TikZ attributes
-     * @returns {Object} Style object with processed attributes
+     * Process an attribute string into a style object
+     * @param {string} attributeStr - Attribute string (comma-separated list of attributes)
+     * @returns {Object} Style object with parsed attributes
      */
     processAttributes(attributeStr) {
         if (!attributeStr) return {};
@@ -227,7 +113,7 @@ class LatexStyleHandler {
      */
     getColorDefinitions() {
         const definitions = [];
-        for (const [name, hex] of this.colorDefinitions) {
+        for (const [name, hex] of this.colorDefinitions.entries()) {
             definitions.push(`\\definecolor{${name}}{HTML}{${hex}}`);
         }
         return definitions;
@@ -258,101 +144,83 @@ class LatexStyleHandler {
     }
 
     /**
-     * Merge new styles into the existing stylesheet
-     * @param {Object} newStyles - New styles to merge
+     * Generate node style definitions for the document
+     * @returns {Object} Node style definitions
      */
-    mergeStylesheet(newStyles) {
-        if (!newStyles) {
-            this.log('mergeStylesheet received null or undefined');
-            return;
-        }
-
-        this.log('mergeStylesheet received:', JSON.stringify(newStyles));
+    getNodeStyleDefs() {
+        const defs = {
+            base: {},
+        };
         
-        // Initialize stylesheet if needed
-        if (!this.stylesheet) {
-            this.stylesheet = this.getBlankStylesheet();
-        }
-        
-        // Process styles if present
-        if (newStyles.style) {
-            this.log('Processing style section');
+        // Process each style in the stylesheet
+        Object.entries(this.stylesheet.style || {}).forEach(([styleName, styleData]) => {
+            // Skip base (handled separately)
+            if (styleName === 'base') return;
             
-            if (!this.stylesheet.style) {
-                this.stylesheet.style = this.getBlankStyles();
+            // Initialize style in defs if needed
+            if (!defs[styleName]) {
+                defs[styleName] = {};
             }
             
-            // Merge styles at the style name level
-            for (const [styleName, styleData] of Object.entries(newStyles.style)) {
-                if (!this.stylesheet.style[styleName]) {
-                    this.stylesheet.style[styleName] = {};
-                }
-                
-                // Deep merge the style data
-                this.stylesheet.style[styleName] = ObjectUtils.deepMerge(
-                    this.stylesheet.style[styleName] || {},
-                    styleData
-                );
+            // Process node styles in this category
+            if (styleData.node) {
+                Object.entries(styleData.node).forEach(([nodeCategory, nodeCategoryData]) => {
+                    // Generate the style definition
+                    if (nodeCategory === 'object' && nodeCategoryData.tikz) {
+                        defs[styleName][nodeCategory] = this.tikzifyStyle(nodeCategoryData);
+                    }
+                });
             }
-        }
+        });
         
-        // Handle page configuration if present
-        if (newStyles.page) {
-            this.log('Processing page config in mergeStylesheet:', JSON.stringify(newStyles.page));
-            
-            if (!this.stylesheet.page) {
-                this.log('No existing page config, creating new');
-                this.stylesheet.page = this.getBlankPage();
-            }
-            
-            this.log('Before merge, page is:', JSON.stringify(this.stylesheet.page));
-            this.stylesheet.page = ObjectUtils.deepMerge(
-                this.stylesheet.page,
-                newStyles.page
-            );
-            this.log('After merge, page is:', JSON.stringify(this.stylesheet.page));
-        }
+        return defs;
     }
 
     /**
-     * Process YAML documents from the style YAML file
-     * @param {Array} documents - Array of YAML documents
-     * @returns {Array} - Collection of style records
+     * Generate edge style definitions for the document
+     * @returns {Object} Edge style definitions
      */
-    processYamlDocuments(documents) {
-        if (!Array.isArray(documents)) {
-            this.log("processYamlDocuments expected an array, received:", documents);
-            return [];
-        }
-        let result = [];
-
-        for (const doc of documents) {
-
-            if (!doc) {
-                this.log("Skipping null or undefined document in processYamlDocuments");
-                continue;
+    getEdgeStyleDefs() {
+        const defs = {
+            base: {},
+        };
+        
+        // Process each style in the stylesheet
+        Object.entries(this.stylesheet.style || {}).forEach(([styleName, styleData]) => {
+            // Skip base (handled separately)
+            if (styleName === 'base') return;
+            
+            // Initialize style in defs if needed
+            if (!defs[styleName]) {
+                defs[styleName] = {};
             }
-
-            this.log('Processing document:', JSON.stringify(doc));
-
-            if (doc.type === 'page') {
-                this.log('Merging page document');
-                result.push({ page: doc });
-
-            } else if (doc.type === 'style') {
-                this.log('Merging style document:', doc.name || 'base');
-                const styleName = doc.name || 'base';
-                const styleData = { ...doc };
-                delete styleData.type;
-                delete styleData.name;
-
-                result.push({ style: { [styleName]: styleData } });
-            } else {
-                this.log(`Unknown document type: ${doc.type}`);
+            
+            // Process edge styles in this category
+            if (styleData.edge) {
+                Object.entries(styleData.edge).forEach(([edgeCategory, edgeCategoryData]) => {
+                    // Generate the style definition
+                    if (edgeCategory === 'object' && edgeCategoryData.tikz) {
+                        defs[styleName][edgeCategory] = this.tikzifyStyle(edgeCategoryData);
+                    }
+                });
             }
-        }
+        });
+        
+        return defs;
+    }
 
-        return result;
+    /**
+     * Render the final style declarations for the document
+     * @returns {Object} Style declarations
+     */
+    renderStyleDeclarations() {
+        const declarations = {
+            colors: this.getColorDefinitions(),
+            nodes: this.getNodeStyleDefs(),
+            edges: this.getEdgeStyleDefs()
+        };
+        
+        return declarations;
     }
 }
 
