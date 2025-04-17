@@ -24,7 +24,7 @@ describe('DynamicPropertyMerger', () => {
             createProperty('latex', 'prop3', 'string', 'value3')
         ];
         
-        const merged = DynamicPropertyMerger.mergeProperties(properties, rendererCompatibility);
+        const merged = DynamicPropertyMerger.mergePropertiesWithRendererFilter(properties, rendererCompatibility);
         
         expect(merged.length).toBe(3);
         expect(merged[0].value).toBe('value1');
@@ -39,7 +39,7 @@ describe('DynamicPropertyMerger', () => {
             createProperty('latex',  'prop', 'string', 'latex value')
         ];
         
-        const merged = DynamicPropertyMerger.mergeProperties(properties, rendererCompatibility);
+        const merged = DynamicPropertyMerger.mergePropertiesWithRendererFilter(properties, rendererCompatibility);
         
         // Last one in the array wins
         expect(merged.length).toBe(1);
@@ -54,7 +54,7 @@ describe('DynamicPropertyMerger', () => {
             createProperty('common', 'prop', 'string', 'common value')
         ];
         
-        const merged = DynamicPropertyMerger.mergeProperties(properties, rendererCompatibility);
+        const merged = DynamicPropertyMerger.mergePropertiesWithRendererFilter(properties, rendererCompatibility);
         
         // Last one wins, regardless of renderer type
         expect(merged.length).toBe(1);
@@ -69,7 +69,7 @@ describe('DynamicPropertyMerger', () => {
             createProperty('vector', 'parent.child2', 'string', 'child2 value')
         ];
         
-        const merged = DynamicPropertyMerger.mergeProperties(properties, rendererCompatibility);
+        const merged = DynamicPropertyMerger.mergePropertiesWithRendererFilter(properties, rendererCompatibility);
         
         expect(merged.length).toBe(2);
         expect(merged[0].namePath).toBe('parent.child1');
@@ -83,7 +83,7 @@ describe('DynamicPropertyMerger', () => {
             createProperty('latex',  'parent.child2', 'string', 'child2 value')
         ];
         
-        const merged = DynamicPropertyMerger.mergeProperties(properties, rendererCompatibility);
+        const merged = DynamicPropertyMerger.mergePropertiesWithRendererFilter(properties, rendererCompatibility);
         
         expect(merged.length).toBe(2);
         expect(merged.find(p => p.namePath === 'parent')).toBeFalsy();
@@ -99,7 +99,7 @@ describe('DynamicPropertyMerger', () => {
             createProperty('vector', 'prop.child', 'string', 'child')
         ];
         
-        const merged = DynamicPropertyMerger.mergeProperties(properties, rendererCompatibility);
+        const merged = DynamicPropertyMerger.mergePropertiesWithRendererFilter(properties, rendererCompatibility);
         
         expect(merged.length).toBe(2);
         
@@ -118,7 +118,7 @@ describe('DynamicPropertyMerger', () => {
             createProperty('vector', 'a.b', 'string', '', false, true),
         ];
         
-        const merged = DynamicPropertyMerger.mergeProperties(properties, rendererCompatibility);
+        const merged = DynamicPropertyMerger.mergePropertiesWithRendererFilter(properties, rendererCompatibility);
         
 
         
@@ -132,7 +132,7 @@ describe('DynamicPropertyMerger', () => {
             createProperty('vector', 'thing.subthing.flavor', 'string', '', false, true)
         ];
         
-        const merged = DynamicPropertyMerger.mergeProperties(properties, rendererCompatibility);
+        const merged = DynamicPropertyMerger.mergePropertiesWithRendererFilter(properties, rendererCompatibility);
         
         // The vector renderer's thing.subthing property with clear=true
         // should remove all children
@@ -151,7 +151,7 @@ describe('DynamicPropertyMerger', () => {
             createProperty('vector', 'prop1', 'string', null, false, true)
         ];
         
-        const merged = DynamicPropertyMerger.mergeProperties(properties, rendererCompatibility);
+        const merged = DynamicPropertyMerger.mergePropertiesWithRendererFilter(properties, rendererCompatibility);
         
         // With clear=true, null value clears children
         expect(merged.length).toBe(0);
@@ -164,7 +164,7 @@ describe('DynamicPropertyMerger', () => {
             createProperty('vector', 'prop3', 'string', 'vector')
         ];
         
-        const merged = DynamicPropertyMerger.mergeProperties(properties, rendererCompatibility);
+        const merged = DynamicPropertyMerger.mergePropertiesWithRendererFilter(properties, rendererCompatibility);
         
         // Should exclude 'unknown' renderer
         expect(merged.length).toBe(2);
@@ -180,7 +180,7 @@ describe('DynamicPropertyMerger', () => {
             createProperty('latex', 'prop', 'string', 'latex value'),
         ];
         
-        const merged = DynamicPropertyMerger.mergeProperties(properties, rendererCompatibility);
+        const merged = DynamicPropertyMerger.mergePropertiesWithRendererFilter(properties, rendererCompatibility);
         
         // Last definition of 'prop' (latex) wins and has clear=true
         expect(merged.length).toBe(1);

@@ -1,4 +1,5 @@
 const ObjectUtils = require('../utils/object-utils');
+const DynamicPropertyMerger = require('../io/readers/dynamic-property-merger');
 
 /**
  * Base StyleHandler class for managing style properties across different renderers
@@ -187,23 +188,30 @@ class StyleHandler {
     }
 
     /**
-     * Merge dynamic properties from a style record
-     * @param {string} styleName - Name of the style
-     * @param {Array} properties - Array of dynamic properties
+     * Merge dynamic properties into a specific style
+     * @param {string} styleName - Name of the style to merge properties into
+     * @param {Array} properties - Dynamic properties to merge
      */
     mergeDynamicProperties(styleName, properties) {
         if (!properties || !Array.isArray(properties)) return;
         
         this.log(`Merging ${properties.length} dynamic properties for style "${styleName}"`);
         
-        // Get or create the array for this style
+        // Get compatible renderers from the current implementation
+        const compatibleRenderers = this.getCompatibleRenderers();
+        
+        // Get existing properties for this style
         const styleProperties = this.dynamicProperties.get(styleName) || [];
         
-        // Add all properties to the array
-        styleProperties.push(...properties);
+        // Filter and merge properties in a single step, passing existing properties
+        const mergedProperties = DynamicPropertyMerger.mergePropertiesWithRendererFilter(
+            properties,
+            compatibleRenderers,
+            styleProperties
+        );
         
-        // Update the map
-        this.dynamicProperties.set(styleName, styleProperties);
+        // Update the map with merged results
+        this.dynamicProperties.set(styleName, mergedProperties);
     }
 
     /**
@@ -287,10 +295,10 @@ class StyleHandler {
             this.log('Processing document:', JSON.stringify(doc));
 
             if (doc.type === 'page') {
-                this.log('Merging page document');
+                this.log('Processing page document');
                 result.push({ page: doc });
             } else if (doc.type === 'style') {
-                this.log('Merging style document:', doc.name || 'base');
+                this.log('Processing style document:', doc.name || 'base');
                 const styleName = doc.name || 'base';
                 const styleData = { ...doc };
                 delete styleData.type;

@@ -9,12 +9,13 @@ class DynamicPropertyMerger {
      * 
      * @param {Array} dynamicProperties - Array of parsed dynamic property objects
      * @param {Array} rendererCompatibility - Array of renderers that are compatible (provided by target renderer)
+     * @param {Array} [mergedAndFilteredProps=[]] - Optional pre-existing filtered properties to merge with
      * @returns {Array} - Array of merged properties
      */
-    static mergeProperties(dynamicProperties, rendererCompatibility) {
+    static mergePropertiesWithRendererFilter(dynamicProperties, rendererCompatibility, mergedAndFilteredProps = []) {
 
         if (!Array.isArray(dynamicProperties) || !Array.isArray(rendererCompatibility)) {
-            return [];
+            return mergedAndFilteredProps;
         }
 
         
@@ -23,33 +24,51 @@ class DynamicPropertyMerger {
             return rendererCompatibility.includes(prop.renderer);
         });
 
+        // Call the core merging function with filtered properties and existing filtered properties
+        return this.mergeProperties(validProps, mergedAndFilteredProps);
+    }
 
-        let mergedProps = [];
+    /**
+     * Core property merging logic without renderer filtering
+     * 
+     * @param {Array} properties - Array of parsed dynamic property objects
+     * @param {Array} [mergedProps=[]] - Optional pre-existing properties to merge with
+     * @returns {Array} - Array of merged properties
+     */
+    static mergeProperties(properties, mergedProps = []) {
+        if (!Array.isArray(properties)) {
+            return mergedProps;
+        }
 
-        for (const prop of validProps) {
+        // Use the provided mergedProps array or create a new one
+        let result = [...mergedProps];
+
+        for (const prop of properties) {
 
  
-            // clear children is set.
-            // Filter existing properties. Remove any property that is a child of the current prop 
-            // (i.e., its namePath starts with the current prop's namePath) or is the same property.
-            mergedProps = mergedProps.filter(p => {
 
-                // path length is less than prop's path length
-                // so it is either a parent or on a different branch
-                // it is not a child or the same property
+            // Filter existing properties. 
+            // Remove any property that is a child of the current prop 
+            // (i.e., its namePath starts with the current prop's namePath) or is the same property.
+            result = result.filter(p => {
+
+                // If path length is less than prop's path length
+                // it is either a parent or on a different branch
+                // => it is not a child or the same property
 
                 if (p.namePathArray.length < prop.namePathArray.length) {
 
-                    // we are removing the current property
-                    // so we will not need to remove any parents
+                    // if we are removing the current property
+                    // we will not need to remove any parents
 
                     if(prop.clear){
                         return true;
                     }
 
-                    // property is not being removed,
-                    // therefore any parent properties must be paths only
+                    // if property is not being removed,
+                    // then parent properties must be paths only
                     // they cannot have a simple value
+                    // therefore we need to remove any parent properties with a simple value
 
                     else{
 
@@ -92,30 +111,30 @@ class DynamicPropertyMerger {
 
             // if we are not clearing, we need to add the property
             if (!prop.clear){
-                mergedProps.push(prop);
+                result.push(prop);
             }
         }
 
-        return mergedProps;
+        return result;
     }
     
 
     
-    /**
-     * Process an array of dynamic properties and return merged results
-     * 
-     * @param {Array} dynamicProperties - Array of dynamic properties
-     * @param {Array} rendererPriorities - Array of renderers in increasing priority order
-     * @returns {Array} - Merged dynamic properties
-     */
-    static processDynamicProperties(dynamicProperties, rendererCompatibility) {
-        if (!Array.isArray(dynamicProperties)) {
-            return [];
-        }
+    // /**
+    //  * Process an array of dynamic properties and return merged results
+    //  * 
+    //  * @param {Array} dynamicProperties - Array of dynamic properties
+    //  * @param {Array} rendererPriorities - Array of renderers in increasing priority order
+    //  * @returns {Array} - Merged dynamic properties
+    //  */
+    // static processDynamicProperties(dynamicProperties, rendererCompatibility) {
+    //     if (!Array.isArray(dynamicProperties)) {
+    //         return [];
+    //     }
         
-        // Merge properties
-        return this.mergeProperties(dynamicProperties, rendererCompatibility);
-    }
+    //     // Merge properties
+    //     return this.mergePropertiesWithRendererFilter(dynamicProperties, rendererCompatibility);
+    // }
 
     /**
      * Converts merged dynamic properties to a hierarchical structure

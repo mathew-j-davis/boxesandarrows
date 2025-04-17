@@ -222,6 +222,15 @@ class LatexStyleHandler extends StyleHandler {
         
         return declarations;
     }
+
+    /**
+     * Get the list of compatible renderers for the LaTeX style handler
+     * @returns {Array} Array of compatible renderer names
+     */
+    getCompatibleRenderers() {
+        // LaTeX-specific implementation
+        return ['latex', 'vector', 'common'];
+    }
 }
 
 module.exports = LatexStyleHandler;
