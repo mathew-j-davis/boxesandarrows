@@ -193,25 +193,29 @@ class StyleHandler {
      * @param {Array} properties - Dynamic properties to merge
      */
     mergeDynamicProperties(styleName, properties) {
-        if (!properties || !Array.isArray(properties)) return;
+        if (!properties || !Array.isArray(properties) || properties.length === 0) return;
         
         this.log(`Merging ${properties.length} dynamic properties for style "${styleName}"`);
         
-        // Get compatible renderers from the current implementation
-        const compatibleRenderers = this.getCompatibleRenderers();
-        
+
         // Get existing properties for this style
         const styleProperties = this.dynamicProperties.get(styleName) || [];
-        
-        // Filter and merge properties in a single step, passing existing properties
-        const mergedProperties = DynamicPropertyMerger.mergePropertiesWithRendererFilter(
-            properties,
-            compatibleRenderers,
-            styleProperties
-        );
-        
+        const appendedProperties = [...styleProperties, ...properties];
+
+
         // Update the map with merged results
-        this.dynamicProperties.set(styleName, mergedProperties);
+        this.dynamicProperties.set(styleName, appendedProperties);
+
+        // DO NOT DELETE WE WILL USE THIS LATER
+        // Get compatible renderers from the current implementation
+        //const compatibleRenderers = this.getCompatibleRenderers(); 
+        // // Filter and merge properties in a single step, passing existing properties
+        // const mergedProperties = DynamicPropertyMerger.mergePropertiesWithRendererFilter(
+        //     properties,
+        //     compatibleRenderers,
+        //     styleProperties
+        // );
+        
     }
 
     /**

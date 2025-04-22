@@ -111,6 +111,21 @@
             "outFiles": [
                 "${workspaceFolder}/**/*.js"
             ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "style yaml",
+            "program": "${workspaceFolder}/src/index.js",
+            "args": [
+                "-n", "examples/nodes.csv",
+                "-e", "examples/edges.csv",
+                "-m", "examples/map.csv",
+                "-s", "examples/style-latex.yaml",
+                "-o", "output/diagram-from-csv-data-and-yaml-styles"
+            ],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal"
         }
     ]
 }

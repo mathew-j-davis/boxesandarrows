@@ -139,15 +139,20 @@ class DynamicPropertyYamlReader {
    * @param {string} yamlContent - YAML content to parse
    * @returns {Object} Parsed YAML with transformed renderer objects
    */
-  static loadFromYaml(yamlContent) {
+  static loadFromYaml(yamlContent, options = {}) {
     try {
       // Create our custom schema
       const schema = this.getSchema();
       
       // Parse the YAML with the schema
       // loadAll returns all documents in a multi-document YAML string (separated by ---)
-      const docs = yaml.loadAll(yamlContent, { schema });
+      let docs = yaml.loadAll(yamlContent, { schema });
       
+      // Apply filter if provided
+      if (options.filter && typeof options.filter === 'function') {
+        docs = docs.filter(options.filter);
+      }
+
       // Transform the documents
       const transformedDocs = docs.map(doc => this.transformDocument(doc));
       
@@ -477,17 +482,21 @@ class DynamicPropertyYamlReader {
       static async readFile(yamlFile, options = {}) {
         try {
             const content = await fs.promises.readFile(yamlFile, 'utf8');
-            const documents = yaml.loadAll(content);
+            //const documents = yaml.loadAll(content);
             
-            // Apply filter if provided
-            if (options.filter && typeof options.filter === 'function') {
-                return documents.filter(options.filter);
-            }
+            // // Apply filter if provided
+            // if (options.filter && typeof options.filter === 'function') {
+            //     return documents.filter(options.filter);
+            // }
             
-            return documents;
+            // return documents;
+
+          const documents = this.loadFromYaml(content, options);
+          return documents;
+          
         } catch (error) {
             console.error(`Error reading YAML file ${yamlFile}:`, error);
-            throw error;
+            return null; //throw error;
         }
     }
 
