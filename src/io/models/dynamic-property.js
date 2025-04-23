@@ -114,20 +114,21 @@ class DynamicProperty {
         }
       }
     }
-    
-    // 3. Special handling for clear properties
+
+
+    // 4. Special handling for clear properties
     if (options.clear === true) {
       // If clear is true, ignore value, isFlag and dataType
       validatedOptions.value = null;
       validatedOptions.isFlag = false;
       validatedOptions.dataType = 'string';
     } else {
-      // 4. Validate and process dataType
+      // 5. Validate and process dataType
       if (options.dataType && typeof options.dataType !== 'string') {
         errors.push('dataType must be a string');
       }
       
-      // 5. Validate and process value
+      // 6. Validate and process value
       if (options.value === undefined) {
         validatedOptions.value = undefined;
         validatedOptions.dataType = 'undefined';

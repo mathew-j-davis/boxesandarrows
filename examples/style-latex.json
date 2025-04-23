@@ -27,7 +27,7 @@
                         "minimum height": "0.5cm",
                         "rounded corners": "0.005cm",
                         "line width": "0.02cm",
-                        "text opacity": "1",
+                        "text opacity": 1,
                         "font": "\\footnotesize",
                         "inner sep": "0pt"
                     }
@@ -122,7 +122,7 @@
                     "tikz": {
                         "draw": "white!0",
                         "line width": "0.00cm",
-                        "text opacity": "1"
+                        "text opacity": 1
                     }
                 },
                 "text": {

@@ -43,9 +43,10 @@ class ReaderManager {
             // Process based on file extension
             try {
                 if (fileExtension === 'json') {
-                    let stylesheet = await StyleReader.readFromJson(file);
+                    let pageAndStyleDocuments = await StyleReader.readFromJson(file);
+                    const jsonStyles = styleHandler.processYamlDocuments(pageAndStyleDocuments);
                     // Add to result array
-                    result.push(stylesheet);
+                    result.push(...jsonStyles);
                 } else if (fileExtension === 'yaml' || fileExtension === 'yml') {
                     let styleDocuments = await StyleReader.readFromYaml(file);   
                     // Process the documents with the style handler

@@ -150,7 +150,7 @@ class DynamicPropertyMerger {
      */
     static toHierarchy(mergedProperties) {
         const hierarchy = {};
-        
+
         for (const prop of mergedProperties) {
             // Skip if no name path
             if (!prop.namePathArray || prop.namePathArray.length === 0) continue;
@@ -208,7 +208,7 @@ class DynamicPropertyMerger {
             // using the last segment of the path as the key (or index)
             const lastSegment = prop.namePathArray[prop.namePathArray.length - 1];
             const isLastIndex = prop.isNamePathIndex(prop.namePathArray.length - 1);
-            
+
             // Special handling for flag properties
             if (prop.isFlag) {
                 // Create the __flags container if it doesn't exist

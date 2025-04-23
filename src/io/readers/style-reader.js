@@ -13,15 +13,15 @@ class StyleReader {
     static async readFromJson(jsonFile) {
         try {
             const content = await fs.promises.readFile(jsonFile, 'utf8');
-            const styleData = JSON.parse(content);
+            let pageAndStyleData = JSON.parse(content);
             
-            // If the JSON is already properly structured, return it as is
-            if (styleData.style || styleData.page) {
-                return styleData;
+            // If the JSON is not properly structured, wrap it in the expected structure
+            if (!pageAndStyleData.style && !pageAndStyleData.page) {
+                pageAndStyleData = { style: pageAndStyleData };
             }
-            
-            // Otherwise, wrap it in the expected structure
-            return { style: styleData };
+
+            return DynamicPropertyYamlReader.transformJsonDocument(pageAndStyleData)
+
         } catch (error) {
             console.error(`Error reading JSON file ${jsonFile}:`, error);
             throw error;
@@ -35,16 +35,13 @@ class StyleReader {
     static async readFromYaml(yamlFile) {
         try {
             // Use YamlReader to get documents with 'style' and 'page' types
-
-            // const styles = await YamlReader.readFile(yamlFile, { 
-            //     filter: doc => doc && (doc.type === 'style' || doc.type === 'page') 
-            // });
-
-            const styles = await DynamicPropertyYamlReader.readFile(yamlFile, { 
-                filter: doc => doc && (doc.type === 'style' || doc.type === 'page') 
+            const pageAndStyles = await DynamicPropertyYamlReader.readFile(yamlFile, { 
+                filter: doc => doc && (doc.type === 'style' || doc.type === 'page')
             });
             
-            return styles;
+            // Transform the documents
+            return pageAndStyles.map(doc => DynamicPropertyYamlReader.transformDocument(doc));
+            
         } catch (error) {
             console.error(`Error reading YAML file ${yamlFile}:`, error);
             throw error;

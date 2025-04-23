@@ -153,16 +153,8 @@ class DynamicPropertyYamlReader {
         docs = docs.filter(options.filter);
       }
 
-      // Transform the documents
-      const transformedDocs = docs.map(doc => this.transformDocument(doc));
-      
-      // If only one document, return it directly
-      if (transformedDocs.length === 1) {
-        return transformedDocs[0];
-      }
-      
       // Otherwise return the array of documents
-      return transformedDocs;
+      return docs;
     } catch (error) {
       console.error('Error parsing YAML:', error);
       return null;
@@ -186,6 +178,66 @@ class DynamicPropertyYamlReader {
   static transformDocument(doc) {
     if (!doc || typeof doc !== 'object') return doc;
     
+    // Handle document in standard format (YAML-style with type & name)
+    return this._transformDocumentInternal(doc);
+  }
+  
+  /**
+   * Transform a JSON document with styles and page configuration
+   * 
+   * This method handles the JSON format where:
+   * 1. Page config is under the "page" key
+   * 2. Styles are under the "style" key with style names as sub-keys
+   * 
+   * It converts this format into separate documents in the format
+   * expected by the transformer (with type and name properties).
+   * 
+   * @param {Object} jsonDoc - The JSON document to transform
+   * @returns {Array} Array of transformed documents
+   */
+  static transformJsonDocument(jsonDoc) {
+    if (!jsonDoc || typeof jsonDoc !== 'object') return jsonDoc;
+    
+    const results = [];
+    
+    // Handle page configuration
+    if (jsonDoc.page && typeof jsonDoc.page === 'object') {
+      const pageDoc = {
+        type: 'page',
+        ...jsonDoc.page
+      };
+      results.push(this._transformDocumentInternal(pageDoc));
+    }
+    
+    // Handle styles
+    if (jsonDoc.style && typeof jsonDoc.style === 'object') {
+      // Process each style
+      Object.entries(jsonDoc.style).forEach(([styleName, styleData]) => {
+        const styleDoc = {
+          type: 'style',
+          name: styleName,
+          ...styleData
+        };
+        results.push(this._transformDocumentInternal(styleDoc));
+      });
+    }
+    
+    return results;
+  }
+  
+  /**
+   * Internal implementation of document transformation
+   * 
+   * This is the shared core method that handles the actual transformation
+   * logic for both YAML and JSON input formats.
+   * 
+   * @param {Object} doc - Document to transform
+   * @returns {Object} Transformed document
+   * @private
+   */
+  static _transformDocumentInternal(doc) {
+    if (!doc || typeof doc !== 'object') return doc;
+    
     const result = {};
     const allProperties = [];
     
@@ -207,7 +259,6 @@ class DynamicPropertyYamlReader {
         }
       });
     }
-    
     
     // Preserve metadata
     if (doc.type) result.type = doc.type;

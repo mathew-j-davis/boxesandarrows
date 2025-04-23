@@ -92,6 +92,16 @@ class DiagramBuilder {
                 this.renderer.styleHandler.mergeStylesheet(styleRecord);
             }
 
+
+            for (const rec of allStyleRecords) {
+              if (rec.style) {
+                for (const [name, data] of Object.entries(rec.style)) {
+                  const rawProps = data._dynamicProperties || data.dynamicProperties || [];
+                  this.renderer.styleHandler.addStyleProperties(rawProps, name);
+                }
+              }
+            }
+
             // Handle node files (CSV or YAML)
             const nodeFiles = Array.isArray(nodePaths) ? nodePaths : (nodePaths ? [nodePaths] : []);
 
