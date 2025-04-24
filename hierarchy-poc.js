@@ -22,48 +22,23 @@ async function main() {
   const handler = new StyleHandler();
   const readerManager = new ReaderManager();
 
-  // Determine if we're working with a YAML or JSON file
-  const fileExt = path.extname(filePath).toLowerCase();
-  let styleRecords = [];
+  const styleRecords = await readerManager.processStyleFiles([filePath], handler);
 
-  styleRecords = await readerManager.processStyleFiles([filePath], handler);
-
-  // if (fileExt === '.yaml' || fileExt === '.yml') {
-  //   // Load style records using ReaderManager and StyleHandler for YAML
-    
-  // } else if (fileExt === '.json') {
-  //   // For JSON, load the file directly and use transformJsonDocument
-  //   try {
-  //     const content = fs.readFileSync(jsonPath, 'utf8');
-  //     const jsonDoc = JSON.parse(content);
-      
-  //     // Transform JSON into the expected format
-  //     styleRecords = DynamicPropertyYamlReader.transformJsonDocument(jsonDoc);
-  //     console.log(`Transformed ${styleRecords.length} style records from JSON`);
-  //   } catch (err) {
-  //     console.error('Error reading or parsing JSON:', err);
-  //     process.exit(1);
+  // for (const rec of styleRecords) {
+  //   if (rec.style) {
+  //     for (const [name, data] of Object.entries(rec.style)) {
+  //       const rawProps = data._dynamicProperties || data.dynamicProperties || [];
+  //       handler.addStyleProperties(rawProps, name);
+  //     }
   //   }
-  // } else {
-  //   console.error(`Unsupported file type: ${fileExt}. Use .yaml, .yml, or .json`);
-  //   process.exit(1);
+
+  //   if (rec.page) {
+  //     for (const [name, data] of Object.entries(rec.page)) {
+  //       const rawProps = data._dynamicProperties || data.dynamicProperties || [];
+  //       handler.addPageProperties(rawProps, name);
+  //     }
+  //   }
   // }
-
-  for (const rec of styleRecords) {
-    if (rec.style) {
-      for (const [name, data] of Object.entries(rec.style)) {
-        const rawProps = data._dynamicProperties || data.dynamicProperties || [];
-        handler.addStyleProperties(rawProps, name);
-      }
-    }
-
-    if (rec.page) {
-      for (const [name, data] of Object.entries(rec.page)) {
-        const rawProps = data._dynamicProperties || data.dynamicProperties || [];
-        handler.addPageProperties(rawProps, name);
-      }
-    }
-  }
 
   // Output hierarchical styles for each defined style
   for (const name of handler.dynamicProperties_unmerged.keys()) {

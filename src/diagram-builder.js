@@ -93,14 +93,32 @@ class DiagramBuilder {
             }
 
 
-            for (const rec of allStyleRecords) {
-              if (rec.style) {
-                for (const [name, data] of Object.entries(rec.style)) {
-                  const rawProps = data._dynamicProperties || data.dynamicProperties || [];
-                  this.renderer.styleHandler.addStyleProperties(rawProps, name);
+            // for (const rec of allStyleRecords) {
+            //   if (rec.style) {
+            //     for (const [name, data] of Object.entries(rec.style)) {
+            //       const rawProps = data._dynamicProperties || data.dynamicProperties || [];
+            //       this.renderer.styleHandler.addStyleProperties(rawProps, name);
+            //     }
+            //   }
+            // }
+
+            for (const rec of styleRecords) {
+                if (rec.style) {
+                  for (const [name, data] of Object.entries(rec.style)) {
+                    const rawProps = data._dynamicProperties || data.dynamicProperties || [];
+                    handler.addStyleProperties(rawProps, name);
+                  }
                 }
-              }
+            
+                if (rec.page) {
+                  for (const [name, data] of Object.entries(rec.page)) {
+                    const rawProps = data._dynamicProperties || data.dynamicProperties || [];
+                    handler.addPageProperties(rawProps, name);
+                  }
+                }
             }
+
+
 
             // Handle node files (CSV or YAML)
             const nodeFiles = Array.isArray(nodePaths) ? nodePaths : (nodePaths ? [nodePaths] : []);

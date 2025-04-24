@@ -217,31 +217,44 @@ class StyleHandler {
 
     //!important
     /**
-     * Prepare a style for rendering, this may be a stacked style
-     * @param {Array} styleStack - Names of the styles to stack
+     * Prepares style properties by merging them in order
+     * @param {Array} styleStack - Stack of style names to merge
+     * @param {boolean} rebuildCache - Whether to rebuild the cache
      * @returns {Object} Merged properties for the style
      */
     prepareStyle(styleStack, rebuildCache = false) {  
-        let merged = [];
-
-        // styleStack must be an array of style names
-        if (!Array.isArray(styleStack)) {
-            return merged;
+        // Early return for empty stack
+        if (!Array.isArray(styleStack) || styleStack.length === 0) {
+            return [];
         }
-        // Incrementally merge per prefix, using cache if available
         
-        for (let i = 0; i < styleStack.length; i++) {
-            const prefix = styleStack.slice(0, i + 1);
-            const key = JSON.stringify(prefix);
-            if (!rebuildCache && this.dynamicProperties_merged_stacks.has(key)) {
-                merged = this.dynamicProperties_merged_stacks.get(key);
-            } else {
-                const name = styleStack[i];
-                const props = this.dynamicProperties_unmerged.get(name) || [];
-                merged = DynamicPropertyMerger.mergeProperties(props, merged);
-                this.dynamicProperties_merged_stacks.set(key, merged);
+        // Find the largest cached subset (if we're not rebuilding)
+        let startIndex = 0;
+        let merged = [];
+        
+        if (!rebuildCache) {
+            // Work downward to find the largest cached subset (including full stack)
+            for (let i = styleStack.length; i > 0; i--) {
+                const subStackKey = JSON.stringify(styleStack.slice(0, i));
+                if (this.dynamicProperties_merged_stacks.has(subStackKey)) {
+                    merged = this.dynamicProperties_merged_stacks.get(subStackKey);
+                    startIndex = i;
+                    break;
+                }
             }
         }
+        
+        // Build up from wherever we're starting (might be skipped entirely if full stack was found)
+        for (let i = startIndex; i < styleStack.length; i++) {
+            const name = styleStack[i];
+            const props = this.dynamicProperties_unmerged.get(name) || [];
+            merged = DynamicPropertyMerger.mergeProperties(props, merged);
+            
+            // Cache this intermediate result
+            const key = JSON.stringify(styleStack.slice(0, i + 1));
+            this.dynamicProperties_merged_stacks.set(key, [...merged]);
+        }
+        
         return merged;
     }
 
@@ -301,9 +314,69 @@ class StyleHandler {
         return this.getStyle(stack, rebuildCache);
     }
 
+    //!important
+    /**
+     * Apply custom property overrides to a prepared style stack
+     * @param {Array} styleStack - Stack of style names to use as the base
+     * @param {Array} properties - Custom properties to apply as overrides
+     * @param {boolean} rebuildCache - Whether to rebuild the cache for the base styles
+     * @returns {Array} - The merged properties (not cached)
+     */
+    customiseStyleProperties(styleStack, properties, rebuildCache = false) {
+        // Get the base style properties
+        const baseProperties = this.prepareStyle(styleStack, rebuildCache);
+        
+        // If no custom properties, return the base properties
+        if (!properties || !Array.isArray(properties) || properties.length === 0) {
+            return baseProperties;
+        }
+        
+        // Merge custom properties on top of the base properties
+        return DynamicPropertyMerger.mergeProperties(properties, baseProperties);
+    }
 
+    //!important
+    /**
+     * Apply custom property overrides to a style stack specified by a string
+     * @param {string} styleStackNamesString - Comma/pipe/ampersand separated style names
+     * @param {Array} properties - Custom properties to apply as overrides
+     * @param {boolean} rebuildCache - Whether to rebuild the cache for the base styles
+     * @returns {Array} - The merged properties (not cached)
+     */
+    customiseStylePropertiesWithNamesString(styleStackNamesString, properties, rebuildCache = false) {
+        // Normalize names string into style stack
+        const stack = this.normalizeStyleNames(styleStackNamesString);
+        return this.customiseStyleProperties(stack, properties, rebuildCache);
+    }
 
+    //!important
+    /**
+     * Apply custom property overrides to a prepared style stack
+     * @param {Array} styleStack - Stack of style names to use as the base
+     * @param {Array} properties - Custom properties to apply as overrides
+     * @param {boolean} rebuildCache - Whether to rebuild the cache for the base styles
+     * @returns {Object} - The customised style
+     */
+    getStyleAndModify(styleStack, properties, rebuildCache = false) {
+        // Get the base style properties
+        const customisedProperties = this.customiseStyleProperties(styleStack, properties, rebuildCache);
+        
+        return DynamicPropertyMerger.toHierarchy(customisedProperties);
+    }
 
+    //!important
+    /**
+     * Apply custom property overrides to a style stack specified by a string
+     * @param {string} styleStackNamesString - Comma/pipe/ampersand separated style names
+     * @param {Array} properties - Custom properties to apply as overrides
+     * @param {boolean} rebuildCache - Whether to rebuild the cache for the base styles
+     * @returns {Object} - The customised style as a hierarchical object
+     */
+    getStyleWithNamesStringAndModify(styleStackNamesString, properties, rebuildCache = false) {
+        // Normalize names string into style stack
+        const stack = this.normalizeStyleNames(styleStackNamesString);
+        return this.getStyleAndModify(stack, properties, rebuildCache);
+    }
 
 
     /**
@@ -374,7 +447,48 @@ class StyleHandler {
         }
     }
 
-    
+    /**
+     * Load styles from style records
+     * @param {Array} styleRecords - Array of style records from ReaderManager
+     */
+    loadPageAndStyles(styleRecords) {
+        for (const rec of styleRecords) {
+            if (rec.style) {
+                for (const [name, data] of Object.entries(rec.style)) {
+                    const rawProps = data._dynamicProperties || data.dynamicProperties || [];
+                    this.addStyleProperties(rawProps, name);
+                }
+            }
+        
+            if (rec.page) {
+                for (const [name, data] of Object.entries(rec.page)) {
+                    const rawProps = data._dynamicProperties || data.dynamicProperties || [];
+                    this.addPageProperties(rawProps, name);
+                }
+            }
+        }
+    }
+
+    /**
+     * Add page properties to the stylesheet
+     * @param {Array} properties - Array of dynamic properties
+     * @param {string} pageName - Name of the page
+     */
+    addPageProperties(properties, pageName = 'default') {
+        // If page doesn't exist in stylesheet, create it
+        if (!this.stylesheet.page) {
+            this.stylesheet.page = {};
+        }
+        
+        if (!this.stylesheet.page[pageName]) {
+            this.stylesheet.page[pageName] = {};
+        }
+        
+        // Add properties to the dynamic property map
+        const key = `page-${pageName}`;
+        this.dynamicProperties.set(key, properties);
+    }
+
     /**
      * Get a blank stylesheet with default values
      * @returns {Object} Blank stylesheet
@@ -556,25 +670,12 @@ class StyleHandler {
         const styleProperties = this.dynamicProperties.get(styleName) || [];
         const appendedProperties = [...styleProperties, ...properties];
 
-
         // Update the map with merged results
         this.dynamicProperties.set(styleName, appendedProperties);
-
-        // DO NOT DELETE WE WILL USE THIS LATER
-        // Get compatible renderers from the current implementation
-        //const compatibleRenderers = this.getCompatibleRenderers(); 
-        // // Filter and merge properties in a single step, passing existing properties
-        // const mergedProperties = DynamicPropertyMerger.mergePropertiesWithRendererFilter(
-        //     properties,
-        //     compatibleRenderers,
-        //     styleProperties
-        // );
         
     }
 
     prepareStyles() {
-        //DO NOT DELETE WE WILL USE THIS LATER
-        //Get compatible renderers from the current implementation
 
         const compatibleRenderers = this.getCompatibleRenderers(); 
 
@@ -600,16 +701,16 @@ class StyleHandler {
      * @param {Array} documents - Array of YAML documents
      * @returns {Array} - Collection of style records
      */
-    processYamlDocuments(documents) {
+    processPageAndStyleDocuments(documents) {
         if (!Array.isArray(documents)) {
-            this.log("processYamlDocuments expected an array, received:", documents);
+            this.log("processPageAndStyleDocuments expected an array, received:", documents);
             return [];
         }
         let result = [];
 
         for (const doc of documents) {
             if (!doc) {
-                this.log("Skipping null or undefined document in processYamlDocuments");
+                this.log("Skipping null or undefined document in processPageAndStyleDocuments");
                 continue;
             }
 
@@ -631,6 +732,8 @@ class StyleHandler {
             }
         }
 
+        this.loadPageAndStyles(result);
+        
         return result;
     }
 
@@ -660,6 +763,74 @@ class StyleHandler {
     }
     // ------ end StyleResolver inline ------
 
+    /**
+     * Parse a dot-notation path string into path segments and segment types
+     * @param {string|Array} path - The path as a string (e.g., 'node.0.name') or array
+     * @returns {Object} - Object containing segments array and types array
+     */
+    static parsePath(path) {
+        // Handle when path is already an array
+        if (Array.isArray(path)) {
+            const segments = [...path];
+            const types = segments.map(segment => {
+                return /^\d+$/.test(segment) ? 'index' : 'name';
+            });
+            return { segments, types };
+        }
+        
+        // Handle string path
+        const segments = path.split('.');
+        const types = segments.map(segment => {
+            return /^\d+$/.test(segment) ? 'index' : 'name';
+        });
+        
+        return { segments, types };
+    }
+
+    /**
+     * Get a specific branch of a style hierarchy with custom property modifications
+     * @param {string|Array} styleStack - Style name(s) as a string or array
+     * @param {Array|string} branchPath - Path to the branch (e.g., 'node.object' or ['node', 'object'])
+     * @param {Array} properties - Custom properties to apply as overrides (optional)
+     * @param {boolean} rebuildCache - Whether to rebuild the cache (optional)
+     * @returns {Object} - The specified branch of the style hierarchy with modifications
+     */
+    getStyleBranchAndModify(styleStack, branchPath, properties=[], rebuildCache=false) {
+        // Get the full style with customizations
+        let style;
+        
+        if (Array.isArray(styleStack)) {
+            // Direct style stack array
+            style = this.getStyleAndModify(styleStack, properties, rebuildCache);
+        } else {
+            // Names string
+            style = this.getStyleWithNamesStringAndModify(styleStack, properties, rebuildCache);
+        }
+        
+        // Parse the branch path
+        const { segments, types } = StyleHandler.parsePath(branchPath);
+        
+        // Navigate to the requested branch
+        let current = style;
+        for (let i = 0; i < segments.length; i++) {
+            if (!current || typeof current !== 'object') {
+                return {}; // Return empty object if path doesn't exist
+            }
+            
+            const segment = segments[i];
+            const type = types[i];
+            
+            if (type === 'index') {
+                // Use numeric index for arrays
+                current = Array.isArray(current) ? current[parseInt(segment, 10)] : undefined;
+            } else {
+                // Use property name for objects
+                current = current[segment];
+            }
+        }
+        
+        return current || {};
+    }
 }
 
 module.exports = StyleHandler;

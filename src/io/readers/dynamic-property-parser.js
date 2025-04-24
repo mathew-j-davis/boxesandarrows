@@ -23,7 +23,7 @@ class DynamicPropertyParser {
      * - Can contain and start with underscores
      * - Cannot be empty
      */
-    static PROPERTY_PATTERN = /^_([a-zA-Z][a-zA-Z0-9]*)?:([a-zA-Z]+):(([_a-zA-Z][a-zA-Z\d\s_]*[a-zA-Z\d_]|[_a-zA-Z]|\d+)(?:\.([_a-zA-Z][a-zA-Z\d\s_]*[a-zA-Z\d_]|[_a-zA-Z]|\d+))*)(?::(.*))?$/;
+    static PROPERTY_PATTERN = /^_([a-zA-Z][a-zA-Z0-9]*)?:([a-zA-Z]+):(([_a-zA-Z][a-zA-Z\d\s_\-]*[a-zA-Z\d_]|[_a-zA-Z]|\d+)(?:\.([_a-zA-Z][a-zA-Z\d\s_]*[a-zA-Z\d_]|[_a-zA-Z]|\d+))*)(?::(.*))?$/;
 
     static isDynamicProperty(propertyString) {
         // Check if the name matches the dynamic property pattern

@@ -70,19 +70,19 @@ class LatexRenderer extends Renderer {
         const safeNodes = Array.isArray(nodes) ? nodes : [];
         const safeEdges = Array.isArray(edges) ? edges : [];
 
-        // Initialize latex_output property on nodes and edges
+        // Initialize rendered_output property on nodes and edges
         safeNodes.forEach(node => {
-            node.render['latex'] = '';
+            node.rendered_output = '';
         });
         
         safeEdges.forEach(edge => {
-            edge.latex_output = '';
+            edge.rendered_output = '';
         });
 
-        // Render all nodes (store output in node.latex_output)
+        // Render all nodes (store output in node.rendered_output)
         safeNodes.forEach(node => this.renderNode(node));
 
-        // Render all edges (store output in edge.latex_output)
+        // Render all edges (store output in edge.rendered_output)
         safeEdges.forEach(edge => this.renderEdge(edge));
         
         // Collect rendered content from nodes and edges
@@ -310,8 +310,8 @@ class LatexRenderer extends Renderer {
             }
         }
         
-        // Store output in node.latex_output instead of pushing to this.content
-        node.render['latex'] = output;
+        // Store output in node.rendered_output instead of pushing to this.content
+        node.rendered_output = output;
     }
 
     renderEdge(edge) {
@@ -444,8 +444,8 @@ class LatexRenderer extends Renderer {
 
         drawCommand += ';';
         this.log('draw command', drawCommand);
-        // Store output in edge.latex_output instead of pushing to this.content
-        edge.latex_output = drawCommand;
+        // Store output in edge.rendered_output instead of pushing to this.content
+        edge.rendered_output = drawCommand;
     }
 
     generateTikzOptions(styleObj) {
@@ -990,15 +990,15 @@ ${libraries}
         
         // Add node outputs to content array
         for (const node of nodes) {
-            if (node?.render['latex']) {
-                this.content.push(node.render['latex']);
+            if (node?.rendered_output) {
+                this.content.push(node.rendered_output);
             }
         }
         
         // Add edge outputs to content array
         for (const edge of edges) {
-            if (edge.latex_output) {
-                this.content.push(edge.latex_output);
+            if (edge.rendered_output) {
+                this.content.push(edge.rendered_output);
             }
         }
     }

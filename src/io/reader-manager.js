@@ -44,13 +44,13 @@ class ReaderManager {
             try {
                 if (fileExtension === 'json') {
                     let pageAndStyleDocuments = await StyleReader.readFromJson(file);
-                    const jsonStyles = styleHandler.processYamlDocuments(pageAndStyleDocuments);
+                    const jsonStyles = styleHandler.processPageAndStyleDocuments(pageAndStyleDocuments);
                     // Add to result array
                     result.push(...jsonStyles);
                 } else if (fileExtension === 'yaml' || fileExtension === 'yml') {
                     let styleDocuments = await StyleReader.readFromYaml(file);   
                     // Process the documents with the style handler
-                    const yamlStyles = styleHandler.processYamlDocuments(styleDocuments);
+                    const yamlStyles = styleHandler.processPageAndStyleDocuments(styleDocuments);
                     // Add to result array
                     result.push(...yamlStyles);
                 } else {
@@ -63,6 +63,7 @@ class ReaderManager {
         }
         
         return result;
+
     }
     
     /**

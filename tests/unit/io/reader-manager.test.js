@@ -21,7 +21,7 @@ describe('ReaderManager', () => {
       processAttributes: jest.fn(),
       registerColor: jest.fn(),
       mergeStylesheet: jest.fn(),
-      processYamlDocuments: jest.fn(),
+      processPageAndStyleDocuments: jest.fn(),
       getPageScale: jest.fn().mockReturnValue({
         position: { x: 1, y: 1 },
         size: { w: 1, h: 1 }

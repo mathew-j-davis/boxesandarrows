@@ -1,0 +1,69 @@
+---
+# Page configuration
+type: page
+paper: a4paper
+orientation: portrait
+margin: 1cm
+
+---
+# Base style definition
+type: style
+name: base
+_renderer_common_group_property1: value1
+_renderer_common_group_property2: value2
+
+shape: rectangle
+fillcolor: "#FFFFFF"
+edge_color: "#000000"
+textcolor: "#000000"
+
+node:
+  object:
+    tikz:
+      draw: black
+      fill: white
+      line width: 1pt
+    dimensions:
+      padding: 5mm
+    arrays:
+      items:
+        - name: first
+          value: 1
+        - name: second
+          value: 2
+  text:
+    latex:
+      flags:
+        bold: true
+        italic: false
+      commands:
+        color:
+          args: ["black"]
+          enabled: true
+
+edge:
+  object:
+    tikz:
+      draw: black
+      line width: 1pt
+    arrow:
+      start: none
+      end: arrow
+
+---
+# Highlight style definition
+type: style
+name: highlight
+fillcolor: "#FFFF00"
+edge_color: "#FF0000"
+textcolor: "#FF0000"
+
+node:
+  object:
+    tikz:
+      fill: yellow
+      draw: red
+  text:
+    latex:
+      flags:
+        bold: true

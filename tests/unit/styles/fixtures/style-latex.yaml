@@ -1,0 +1,182 @@
+---
+# Page configuration
+type: page
+scale:
+  position:
+    x: 2
+    y: 2
+  size:
+    h: 2
+    w: 2
+margin:
+  h: 1
+  w: 1
+---
+# Base style
+type: style
+name: base
+node:
+  object:
+    tikz:
+      shape: rectangle
+      fill: "#ffffff"
+      draw: "#000000"
+      minimum width: 1cm
+      minimum height: 0.5cm
+      rounded corners: 0.005cm
+      line width: 0.02cm
+      text opacity: 1
+      font: \footnotesize
+      inner sep: 0pt
+  text:
+    adjustbox:
+      stack: l
+    latex:
+      flags:
+        font: \sffamily
+        size: \small
+edge:
+  object:
+    tikz:
+      draw: "#000000"
+      line width: 0.02cm
+      rounded corners: 0.05cm
+  arrow:
+    tikz:
+      default:
+        shape: Circle
+        width: 0.2cm
+        length: 0.2cm
+      start:
+        shape: Circle
+        width: 0.2cm
+        length: 0.2cm
+      end:
+        shape: Triangle
+        width: 0.2cm
+        length: 0.2cm
+  text:
+    tikz:
+      default:
+        pos: "0.5"
+      start:
+        pos: "0.1"
+      end:
+        pos: "0.9"
+    latex:
+      default:
+        flags:
+          font: \sffamily
+          size: \small
+      start:
+        flags:
+          font: \sffamily
+          size: \small
+      end:
+        flags:
+          font: \sffamily
+          size: \small
+---
+# Group style
+type: style
+name: group
+node:
+  object:
+    tikz:
+      draw: gray
+---
+# Label style
+type: style
+name: label
+node:
+  object:
+    tikz:
+      draw: "white!0"
+      line width: 0.00cm
+      text opacity: 1
+  text:
+    latex:
+      flags:
+        font: \sffamily
+        size: \normalsize
+---
+# Dashed edge style
+type: style
+name: dashed
+edge:
+  object:
+    tikz:
+      dashed: true
+---
+# Bend right 30 degrees style
+type: style
+name: bend_r_30
+edge:
+  object:
+    tikz:
+      bend right: "30"
+---
+# Bend right 40 degrees style
+type: style
+name: bend_r_40
+edge:
+  object:
+    tikz:
+      bend right: "40"
+---
+# Bend right 50 degrees style
+type: style
+name: bend_r_50
+edge:
+  object:
+    tikz:
+      bend right: "50"
+---
+# Bend left 30 degrees style
+type: style
+name: bend_l_30
+edge:
+  object:
+    tikz:
+      bend left: "30"
+---
+# Bend left 40 degrees style
+type: style
+name: bend_l_40
+edge:
+  object:
+    tikz:
+      bend left: "40"
+---
+# Bend left 50 degrees style
+type: style
+name: bend_l_50
+edge:
+  object:
+    tikz:
+      bend left: "50"
+---
+# Soft edge style
+type: style
+name: soft
+edge:
+  object:
+    tikz:
+      draw: red
+      line width: 0.01cm
+---
+# Bend right style
+type: style
+name: bend_right
+edge:
+  object:
+    tikz:
+      bend: right
+---
+# Thick edge style
+type: style
+name: thick
+edge:
+  object:
+    tikz:
+      line width: 0.04cm 

@@ -230,7 +230,7 @@ class EdgeReader {
                 label_justify: record.label_justify,
 
                 // Initialize output storage
-                latex_output: ''
+                rendered_output: ''
             };
 
             // Get style defaults if available

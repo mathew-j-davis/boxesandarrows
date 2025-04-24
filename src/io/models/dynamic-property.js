@@ -109,7 +109,7 @@ class DynamicProperty {
           errors.push(`namePath segment "${segment}" at position ${i} cannot have leading or trailing spaces`);
         } else if (/^\d+$/.test(segment)) {
           // This is a valid index segment (only contains digits)
-        } else if (!/^[_a-zA-Z][a-zA-Z\d\s_]*$/.test(segment)) {
+        } else if (!/^[_a-zA-Z][a-zA-Z\d\s_\-]*$/.test(segment)) {
           errors.push(`Invalid namePath segment "${segment}" at position ${i}. If a name segment is not only numbers, it must start with a letter or underscore followed by letters, numbers, spaces, or underscores`);
         }
       }
