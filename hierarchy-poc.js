@@ -24,31 +24,47 @@ async function main() {
 
   const styleRecords = await readerManager.processStyleFiles([filePath], handler);
 
-  // for (const rec of styleRecords) {
-  //   if (rec.style) {
-  //     for (const [name, data] of Object.entries(rec.style)) {
-  //       const rawProps = data._dynamicProperties || data.dynamicProperties || [];
-  //       handler.addStyleProperties(rawProps, name);
-  //     }
-  //   }
+  //for (const rec of styleRecords) {
 
-  //   if (rec.page) {
-  //     for (const [name, data] of Object.entries(rec.page)) {
-  //       const rawProps = data._dynamicProperties || data.dynamicProperties || [];
-  //       handler.addPageProperties(rawProps, name);
-  //     }
-  //   }
+    
+    // if (rec.style) {
+    //   console.log(`-STYLE-----------------------`);
+    //   console.log(`${JSON.stringify(rec.style)}`)
+    //   // for (const [name, data] of Object.entries(rec.style)) {
+    //   //   const rawProps = data._dynamicProperties || data.dynamicProperties || [];
+    //   //   handler.addStyleProperties(rawProps, name);
+    //   // }
+    // }
+    
+    // if (rec.page?._dynamicProperties) {
+    //   console.log(`-PAGE-----------------------`);
+    //   //console.log(`${JSON.stringify(rec.page)}`)
+      
+    //   if (Array.isArray(rec.page._dynamicProperties)) {
+    //     for (const prop of rec.page._dynamicProperties) {
+    //       console.log(`${JSON.stringify(prop)}`)
+    //     }
+    //   }
+
+    //   // for (const data of Object.entries(rec._dynamicProperties)) {
+    //   //   const name = data[0];
+    //   //   const rawProps = data._dynamicProperties || data.dynamicProperties || [];
+        
+    //   //   console.log(`NAME ${name}`)
+    //   //   console.log(`${JSON.stringify(rawProps)}`)
+    //   // }
+    // }
+ // }
+
+  // // Output hierarchical styles for each defined style
+  // for (const name of handler.dynamicProperties_unmerged.keys()) {
+  //   const hierarchy = handler.getStyle([name]);
+  //   console.log(`Style "${name}":`);
+  //   console.log(JSON.stringify(hierarchy, null, 2));
   // }
 
-  // Output hierarchical styles for each defined style
-  for (const name of handler.dynamicProperties_unmerged.keys()) {
-    const hierarchy = handler.getStyle([name]);
-    console.log(`Style "${name}":`);
-    console.log(JSON.stringify(hierarchy, null, 2));
-  }
-
   console.log(`Page :`);
-  console.log(JSON.stringify(handler.getPage_NEW(), null, 2));    
+  console.log(JSON.stringify(handler.getPage(), null, 2));    
 }
 
 main();

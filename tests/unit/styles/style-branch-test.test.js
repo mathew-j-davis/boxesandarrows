@@ -61,10 +61,15 @@ describe('StyleHandler.getStyleBranchAndModify', () => {
     
     describe('Style Resolution with String Paths', () => {
         test('should access node object properties with dot notation', () => {
-            const tikz = handler.getStyleBranchAndModify('base', 'node.object.tikz');
-            expect(tikz).toBeDefined();
-            expect(tikz.draw).toBeDefined();
-            expect(tikz.fill).toBeDefined();
+            const tikz_node = handler.getStyleBranchAndModify('base, soft', 'node.object.tikz');
+            expect(tikz_node).toBeDefined();
+            expect(tikz_node.draw).toEqual('#000000');
+            expect(tikz_node.fill).toEqual('#ffffff');
+
+            const tikz_edge = handler.getStyleBranchAndModify('base, soft', 'edge.object.tikz');
+            expect(tikz_edge).toBeDefined();
+            expect(tikz_edge.draw).toEqual('red');
+            expect(tikz_edge['line width']).toEqual('0.01cm');
         });
         
         test('should access text style properties with dot notation', () => {
@@ -138,7 +143,7 @@ describe('StyleHandler.getStyleBranchAndModify', () => {
             const result = handler.getStyleBranchAndModify('base', 'node.object', customProperties);
             expect(result).toBeDefined();
             // The result should include our custom properties
-            expect(result.tikz).toBeDefined();
+            expect(result.tikz['line-width']).toEqual('2pt');
         });
     });
 

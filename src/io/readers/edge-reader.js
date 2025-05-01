@@ -234,7 +234,7 @@ class EdgeReader {
             };
 
             // Get style defaults if available
-            const styleDefaults = styleHandler?.getCompleteStyle(record.style, 'edge', 'object') || {};
+            const styleDefaults = styleHandler?.getStyleBranchAndModify(record.style, 'edge.object') || {};
             
             // Process TikZ attributes if present
             let tikzAttributes = {};
@@ -292,8 +292,4 @@ class EdgeReader {
 
 }
 
-module.exports = EdgeReader; 
-
-
-
-
+module.exports = EdgeReader;

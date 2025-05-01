@@ -87,10 +87,12 @@ class DiagramBuilder {
                 allStyleRecords = [...allStyleRecords, ...mixedStyleRecords];
             }
             
-            // Apply all collected styles to the style handler
-            for (const styleRecord of allStyleRecords) {
-                this.renderer.styleHandler.mergeStylesheet(styleRecord);
-            }
+            this.renderer.styleHandler.loadPageAndStyles(allStyleRecords) 
+
+            // // Apply all collected styles to the style handler
+            // for (const styleRecord of allStyleRecords) {
+            //     this.renderer.styleHandler.mergeStylesheet(styleRecord);
+            // }
 
 
             // for (const rec of allStyleRecords) {
@@ -102,18 +104,18 @@ class DiagramBuilder {
             //   }
             // }
 
-            for (const rec of styleRecords) {
+            for (const rec of allStyleRecords) {
                 if (rec.style) {
                   for (const [name, data] of Object.entries(rec.style)) {
                     const rawProps = data._dynamicProperties || data.dynamicProperties || [];
-                    handler.addStyleProperties(rawProps, name);
+                    this.renderer.styleHandler.addStyleProperties(rawProps, name);
                   }
                 }
             
                 if (rec.page) {
                   for (const [name, data] of Object.entries(rec.page)) {
                     const rawProps = data._dynamicProperties || data.dynamicProperties || [];
-                    handler.addPageProperties(rawProps, name);
+                    this.renderer.styleHandler.addPageProperties(rawProps, name);
                   }
                 }
             }

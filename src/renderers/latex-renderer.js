@@ -155,7 +155,7 @@ class LatexRenderer extends Renderer {
         const tikzAttributes = {};
         
         // 1. Start with base style from style handler (if it exists)
-        const style = this.styleHandler.getCompleteStyle(node.style, 'node', 'object');
+        const style = this.styleHandler.getStyleBranchAndModify(node.style, 'node.object');
         if (style && style.tikz) {
             // Copy base style attributes
             Object.assign(tikzAttributes, style.tikz);
@@ -243,7 +243,7 @@ class LatexRenderer extends Renderer {
                 labelText = labelText.replace(/\\\\(\s*\\\\)+/g, '\\\\');
                 
                 // Get text style properties
-                const textStyle = this.styleHandler.getCompleteStyle(node.style, 'node', 'text');
+                const textStyle = this.styleHandler.getStyleBranchAndModify(node.style, 'node.text');
                 
                 // Apply LaTeX formatting
                 labelText = this.styleHandler.applyLatexFormatting(labelText, textStyle);
@@ -283,7 +283,7 @@ class LatexRenderer extends Renderer {
                 labelText = labelText.replace(/\\\\(\s*\\\\)+/g, '\\\\');
                 
                 // Get text style properties
-                const textStyle = this.styleHandler.getCompleteStyle(node.style, 'node', 'text');
+                const textStyle = this.styleHandler.getStyleBranchAndModify(node.style, 'node.text');
                 
                 // Apply LaTeX formatting
                 labelText = this.styleHandler.applyLatexFormatting(labelText, textStyle);
@@ -363,7 +363,7 @@ class LatexRenderer extends Renderer {
                 // When using 'to', node labels must be inside the 'to' operation
                 const labels = this.getLabelsForSegment(edge, 1, totalSegments);
                 if (labels.length > 0) {
-                    // For 'to' paths, add labels within the to operation
+                    // For 'to' paths, add labels within the 'to' operation
                     drawCommand += ` ${edge.from_name ? this.getPositionReferenceNotation(edge.from_name, edge.start_anchor, edge.startAdjusted, edge.start.x, edge.start.y) : ''} to`;
                     
                     // Add each label as a node within the 'to' operation
@@ -477,7 +477,7 @@ class LatexRenderer extends Renderer {
     // Document structure
     beforeRender() {
         // Get preamble settings from style system
-        const preambleStyle = this.styleHandler.getCompleteStyle(null, 'document', 'preamble') || {
+        const preambleStyle = this.styleHandler.getStyleBranchAndModify(null, 'document.preamble') || {
             documentClass: 'standalone',
             packages: [
                 'tikz',
@@ -525,8 +525,8 @@ ${libraries}
 
     getNodeStyle(node) {
         // Get object and text styles
-        const objectStyle = this.styleHandler.getCompleteStyle(node.style, 'node', 'object');
-        const labelStyle = this.styleHandler.getCompleteStyle(node.style, 'node', 'label');
+        const objectStyle = this.styleHandler.getStyleBranchAndModify(node.style, 'node.object');
+        const labelStyle = this.styleHandler.getStyleBranchAndModify(node.style, 'node.label');
         
         const style = { ...objectStyle || {} };
 
@@ -571,10 +571,11 @@ ${libraries}
         const colorDefinitions = this.styleHandler.getColorDefinitions().join('\n');
 
         // Calculate bounding box after all nodes and edges have been rendered
-        const boxMinX = this.bounds.minX - this.styleHandler.getPageMargin().w;
-        const boxMinY = this.bounds.minY - this.styleHandler.getPageMargin().h;
-        const boxMaxX = this.bounds.maxX + this.styleHandler.getPageMargin().w;
-        const boxMaxY = this.bounds.maxY + this.styleHandler.getPageMargin().h;
+        const page = this.styleHandler.getPage();
+        const boxMinX = this.safeAdd(this.bounds.minX, -page.margin.w);
+        const boxMinY = this.safeAdd(this.bounds.minY, -page.margin.h);
+        const boxMaxX = this.safeAdd(this.bounds.maxX, page.margin.w);
+        const boxMaxY = this.safeAdd(this.bounds.maxY, page.margin.h);
 
         // Replace placeholders in header template
         let header = this.headerTemplate
@@ -661,12 +662,13 @@ ${libraries}
             return Direction.getVector(node.anchor);
         }
 
-        // Get anchor from style system
-        const anchor = this.styleHandler.getStyleAttribute(
-            'node',
+        // Get anchor from style system using the new method
+        const anchor = this.styleHandler.getStyleValueWithNamesStringAndModifyWithDefault(
             node.style,
-            'object.anchor',
-            'center'  // default if not found in either style or base
+            'node.object.anchor',
+            [],
+            false,
+            'center'  // default if not found in any style
         );
 
         return Direction.getVector(anchor);
@@ -729,7 +731,7 @@ ${libraries}
             const position = calculatePosition(segmentIndex, edge.start_label_position ?? 0.1);
             
             if (position !== null) {
-                const labelStyle = this.styleHandler.getCompleteStyle(edge.style, 'edge', 'label_start');
+                const labelStyle = this.styleHandler.getStyleBranchAndModify(edge.style, 'edge.label_start');
                 
                 // Convert newlines to LaTeX line breaks (without leading space)
                 const processedLabel = edge.start_label.replace(/\n/g, '\\\\');
@@ -751,7 +753,7 @@ ${libraries}
             const position = calculatePosition(segmentIndex, edge.end_label_position ?? 0.9);
             
             if (position !== null) {
-                const labelStyle = this.styleHandler.getCompleteStyle(edge.style, 'edge', 'label_end');
+                const labelStyle = this.styleHandler.getStyleBranchAndModify(edge.style, 'edge.label_end');
                 
                 // Convert newlines to LaTeX line breaks (without leading space)
                 const processedLabel = edge.end_label.replace(/\n/g, '\\\\');
@@ -773,7 +775,7 @@ ${libraries}
             const segmentIndex = edge.label_segment ?? defaultSegment;
 
             let lp = 0.5;
-            const edgeLabelStyle = this.styleHandler.getCompleteStyle(edge.style, 'edge', 'label');
+            const edgeLabelStyle = this.styleHandler.getStyleBranchAndModify(edge.style, 'edge.label');
 
             // Check if we have a position value in the style
             if (totalSegments == 1 && edgeLabelStyle?.tikz?.pos) {
@@ -823,7 +825,7 @@ ${libraries}
 
     getEdgeStyle(edge) {
         // Get the complete edge style
-        const style = this.styleHandler.getCompleteStyle(edge.style, 'edge', 'object');
+        const style = this.styleHandler.getStyleBranchAndModify(edge.style, 'edge.object');
         
         // Process all hex colors in the tikz attributes
         if (style.tikz) {
@@ -939,7 +941,8 @@ ${libraries}
         if (!gridSpacing || gridSpacing <= 0) return;
 
         // Get scale config
-        const scale = this.styleHandler.getPageScale();
+        const page = this.styleHandler.getPage();
+        const scale = page.scale;
         
         // gridSpacing is in unscaled coordinates, so convert to scaled
         const scaledGridSpacingX = gridSpacing * scale.position.x;
@@ -1002,6 +1005,12 @@ ${libraries}
             }
         }
     }
+
+    safeAdd(value1, value2) {
+        const num1 = parseFloat(value1) || 0;
+        const num2 = parseFloat(value2) || 0;
+        return num1 + num2;
+    }
 }
 
-module.exports = LatexRenderer; 
+module.exports = LatexRenderer;

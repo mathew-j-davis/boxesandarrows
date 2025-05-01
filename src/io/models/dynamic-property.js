@@ -34,20 +34,13 @@ class DynamicProperty {
     this.renderer = config.renderer;
     this.namePath = config.namePath;
     
-    // Parse the namePath to determine which parts are names and which are indices
+    // Parse the namePath into an array of segments
     this.namePathArray = [];
-    this.namePathTypes = []; // 'name' or 'index'
     
     if (config.namePath) {
       const parts = config.namePath.split('.');
       parts.forEach(part => {
         this.namePathArray.push(part);
-        // Check if the part is a numeric index
-        if (/^\d+$/.test(part)) {
-          this.namePathTypes.push('index');
-        } else {
-          this.namePathTypes.push('name');
-        }
       });
     }
     
@@ -107,8 +100,6 @@ class DynamicProperty {
           errors.push(`namePath segment at position ${i} cannot be empty`);
         } else if (/^\s|\s$/.test(segment)) {
           errors.push(`namePath segment "${segment}" at position ${i} cannot have leading or trailing spaces`);
-        } else if (/^\d+$/.test(segment)) {
-          // This is a valid index segment (only contains digits)
         } else if (!/^[_a-zA-Z][a-zA-Z\d\s_\-]*$/.test(segment)) {
           errors.push(`Invalid namePath segment "${segment}" at position ${i}. If a name segment is not only numbers, it must start with a letter or underscore followed by letters, numbers, spaces, or underscores`);
         }
@@ -195,35 +186,63 @@ class DynamicProperty {
   }
   
   /**
-   * Check if a specific part of the groupPath is an index
-   * @param {number} position - The position in the groupPathArray to check
-   * @returns {boolean} True if the part at the specified position is an index
-   */
-
-
-  /**
-   * Check if a specific part of the namePath is an index
-   * @param {number} position - The position in the namePathArray to check
-   * @returns {boolean} True if the part at the specified position is an index
-   */
-  isNamePathIndex(position) {
-    if (position < 0 || position >= this.namePathTypes.length) {
-      return false;
-    }
-    return this.namePathTypes[position] === 'index';
-  }
-  
-  /**
    * Get the namePathArray with indices converted to numbers
    * @returns {Array} The namePathArray with indices as numbers
    */
   getNamePathArrayWithIndices() {
-    return this.namePathArray.map((part, index) => {
-      if (this.namePathTypes[index] === 'index') {
+    return this.namePathArray.map(part => {
+      if (/^\d+$/.test(part)) {
         return parseInt(part, 10);
       }
       return part;
     });
+  }
+
+    
+  /**
+   * Get the first property that matches the namesString
+   * @param {Array} properties - Array of DynamicProperty objects
+   * @param {string} namesString - The name to match against property name paths
+   * @param {Object|null|undefined} defaultProperty - Default property configuration to use if no match is found
+   * @returns {DynamicProperty|null} The matching property or a new validated property from defaultProperty
+   */
+  static getPropertyWithNamesStringWithDefault(properties, namesString, defaultProperty = undefined) {
+        
+    // validate search parameters
+    // if these are valid search,
+    // if nothing is found fall through to defaultProperty
+    if(
+      Array.isArray(properties) && 
+      properties.length > 0 &&
+      namesString !== undefined &&
+      namesString !== null &&
+      typeof namesString === 'string' &&
+      namesString !== ''){
+      // Find the first property with matching name string
+      const property = properties.find(prop => 
+        prop.namePath === namesString || 
+        prop.namePathArray.join('.') === namesString
+      );
+      if (property) {
+        return property;
+      }
+    }
+
+    // if match not found, return defaultProperty
+    // if defaultProperty is null or undefined, 
+    // return without attempting to create a valid property
+
+    if (defaultProperty === null || defaultProperty === undefined) {
+      return defaultProperty;
+    }
+
+    // if defaultProperty is not null or undefined, 
+    // attempt to create a validated property from it
+    const { property, errors } = DynamicProperty.createValidated(defaultProperty);
+    if (errors.length === 0 && property) {
+      return property;
+    }
+    return undefined;
   }
 }
 
