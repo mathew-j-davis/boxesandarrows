@@ -104,21 +104,21 @@ class DiagramBuilder {
             //   }
             // }
 
-            for (const rec of allStyleRecords) {
-                if (rec.style) {
-                  for (const [name, data] of Object.entries(rec.style)) {
-                    const rawProps = data._dynamicProperties || data.dynamicProperties || [];
-                    this.renderer.styleHandler.addStyleProperties(rawProps, name);
-                  }
-                }
+            // for (const rec of allStyleRecords) {
+            //     if (rec.style) {
+            //       for (const [name, data] of Object.entries(rec.style)) {
+            //         const rawProps = data._dynamicProperties || data.dynamicProperties || [];
+            //         this.renderer.styleHandler.addStyleProperties(rawProps, name);
+            //       }
+            //     }
             
-                if (rec.page) {
-                  for (const [name, data] of Object.entries(rec.page)) {
-                    const rawProps = data._dynamicProperties || data.dynamicProperties || [];
-                    this.renderer.styleHandler.addPageProperties(rawProps, name);
-                  }
-                }
-            }
+            //     if (rec.page) {
+            //       for (const [name, data] of Object.entries(rec.page)) {
+            //         const rawProps = data._dynamicProperties || data.dynamicProperties || [];
+            //         this.renderer.styleHandler.addPageProperties(rawProps, name);
+            //       }
+            //     }
+            // }
 
 
 

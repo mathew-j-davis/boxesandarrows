@@ -8,14 +8,12 @@ const LatexStyleHandler = require('../styles/latex-style-handler');
 const { BoundingBox } = require('../geometry/bounding-box');
 //const { canConvertPositionToCoordinates } = require('../io/readers/relative-node-processor');
 const { Position, PositionType } = require('../geometry/position');
-const LatexUtilities = require('./latex-utilities');
-const LatexFileUtilities = require('./latex-file-utilities');
 
 class LatexRenderer extends Renderer {
     constructor(options = {}) {
         super(options);
         
-        
+
         this.log = this.verbose ? console.log.bind(console) : () => {};
 
         // Initialize the style handler
@@ -68,8 +66,10 @@ class LatexRenderer extends Renderer {
             useColor: this.useColor 
         });
 
-        let content = this.draft(nodes, edges, options);
-        
+        let content = [];
+
+        content.push(this.draw(nodes, edges, options));
+
         // Generate the complete LaTeX content
         const latexContent = this.formatLatexContent(content);
 
@@ -79,14 +79,11 @@ class LatexRenderer extends Renderer {
         this.log(`LaTeX source saved to ${texFilePath}`);
 
         // Compile the .tex file to a .pdf file
-        await LatexFileUtilities.compileToPdf(texFilePath, options);
+        await this.compileToPdf(texFilePath, { verbose: this.verbose });
         this.log(`PDF generated at ${outputPath}.pdf`);
     }
-        
 
-    
-
-    draft(nodes, edges, options = {}) {
+    async draw(nodes, edges, options = {}) {
 
         let content = [];
 
@@ -104,14 +101,11 @@ class LatexRenderer extends Renderer {
         });
 
         // Render all nodes (store output in node.rendered_output)
-        safeNodes.forEach(node => this.draftNode(node));
+        safeNodes.forEach(node => this.preDrawNode(node));
 
         // Render all edges (store output in edge.rendered_output)
-        safeEdges.forEach(edge => this.draftEdge(edge));
+        safeEdges.forEach(edge => this.preDrawEdge(edge));
         
-        // Collect rendered content from nodes and edges
-        content.push(...this.draftAssembleNodesAndEdges(safeNodes, safeEdges)) ;
-
 
         // If no content, set default bounding box for an empty diagram
         if (safeNodes.length === 0 && safeEdges.length === 0) {
@@ -120,17 +114,19 @@ class LatexRenderer extends Renderer {
             this.updateBounds(10, 10);
         }
 
- 
+        // Collect rendered content from nodes and edges
+        content.push( this.drawNodesAndEdges(safeNodes, safeEdges)) ;
+
         // Draw grid if specified
         if (options.grid && typeof options.grid === 'number') {
             // Draw grid with specified spacing as overlay
             const gridContent = this.drawGrid(options.grid);
-            content.push(...gridContent); 
+            content.push(gridContent); 
         }
 
-        return content;
-    
+        return content
     }
+
 
     updateBounds(x, y) {
         this.bounds.minX = Math.min(this.bounds.minX, x);
@@ -140,7 +136,7 @@ class LatexRenderer extends Renderer {
     }
 
     // Core rendering methods
-    draftNode(node) {
+    preDrawNode(node) {
 
         // POSITION
         // calculate position
@@ -164,20 +160,19 @@ class LatexRenderer extends Renderer {
 
         
         // Initialize TikZ attributes object - this will hold all the styling
-        const node_tikz = {};      
-        const nodeProperties = node._dynamicProperties || [];        
-        // 1. Start with base style from style handler (if it exists)
-        let style = this.styleHandler.getStyleBranchAndModify(node.style, 'node.object', nodeProperties);
+        const node_tikz = {};
+        const nodeProperties = node._dynamicProperties || [];
         
-        //nodeProperties._dynamicProperties 
+        // 1. Start with base style from style handler (if it exists)
+        let object_style = this.styleHandler.getStyleBranchAndModify(node.style, 'node.object', nodeProperties);
 
         // 2. Apply mandatory node attributes (important: these override the base style)
         node_tikz['minimum width'] = `${node.dimensions.widthScaled}cm`;
         node_tikz['minimum height'] = `${node.dimensions.heightScaled}cm`;
         
-        if (style && style.tikz) {
+        if (object_style && object_style.tikz) {
             // Copy base style attributes
-            Object.assign(node_tikz, style.tikz);
+            Object.assign(node_tikz, object_style.tikz);
         }
         
         // 2. Apply mandatory node attributes (important: these override the base style)
@@ -332,7 +327,7 @@ class LatexRenderer extends Renderer {
         node.rendered_output = output;
     }
 
-    draftEdge(edge) {
+    preDrawEdge(edge) {
         
         // Track edge bounds
         this.updateBounds(edge.start.x, edge.start.y);
@@ -480,6 +475,55 @@ class LatexRenderer extends Renderer {
         return options.join(', ');
     }
 
+    // calculateControlPoint(node, direction, controlLength) {
+    //     if (!direction || !controlLength) {
+    //         return new Point2D(node.xScaled, node.yScaled);
+    //     }
+
+    //     const directionVector = Direction.getVector(direction);
+    //     return new Point2D(
+    //         node.xScaled + (directionVector.x * controlLength),
+    //         node.yScaled + (directionVector.y * controlLength)
+    //     );
+    // }
+
+    // Document structure
+    beforeRender() {
+        // Get preamble settings from style system
+        const preambleStyle = this.styleHandler.getStyleBranchAndModify(null, 'document.preamble') || {
+            documentClass: 'standalone',
+            packages: [
+                'tikz',
+                'adjustbox',
+                'helvet',
+                'sansmathfonts',
+                'xcolor'
+            ],
+            tikzlibraries: [
+                'arrows.meta',
+                'calc',
+                'decorations.pathmorphing',
+                'shapes.arrows'
+            ]
+        };
+
+        // Generate preamble from style
+        const packages = preambleStyle.packages
+            .map(pkg => `\\usepackage{${pkg}}`)
+            .join('\n');
+        
+        const libraries = preambleStyle.tikzlibraries
+            .map(lib => `\\usetikzlibrary{${lib}}`)
+            .join('\n');
+
+        return `
+\\documentclass{${preambleStyle.documentClass}}
+${packages}
+${libraries}
+\\renewcommand{\\familydefault}{\\sfdefault}
+`;
+    }
+
     // Helper methods
     escapeLaTeX(text) {
         if (!text) return '';
@@ -541,7 +585,6 @@ class LatexRenderer extends Renderer {
 
         // Calculate bounding box after all nodes and edges have been rendered
         const page = this.styleHandler.getPage();
-        //const scale = page.scale;
         const boxMinX = this.safeAdd(this.bounds.minX, -page.margin.w);
         const boxMinY = this.safeAdd(this.bounds.minY, -page.margin.h);
         const boxMaxX = this.safeAdd(this.bounds.maxX, page.margin.w);
@@ -577,13 +620,11 @@ class LatexRenderer extends Renderer {
     }
 
     async compileToPdf(texFilePath, options = {}) {
-
-        // Get verbose from options with default false
-        const verbose = options.verbose ?? false;
-        const log = verbose ? console.log.bind(console) : () => {};
-
         const texDir = path.dirname(texFilePath);
         const texFileName = path.basename(texFilePath);
+    
+        // Get verbose from options with default false
+        const verbose = options.verbose ?? false;
     
         // Add -quiet flag if not verbose
         const interactionMode = verbose ? 'nonstopmode' : 'batchmode';
@@ -592,7 +633,7 @@ class LatexRenderer extends Renderer {
         return new Promise((resolve, reject) => {
             exec(command, (error, stdout, stderr) => {
                 if (verbose) {
-                    log('LaTeX stdout:', stdout);
+                    this.log('LaTeX stdout:', stdout);
                     if (stderr) console.error('LaTeX stderr:', stderr);
                 }
     
@@ -601,7 +642,7 @@ class LatexRenderer extends Renderer {
                     reject(error);
                 } else {
                     if (verbose) {
-                        log('pdflatex output:', stdout);
+                        this.log('pdflatex output:', stdout);
                     }
                     resolve();
                 }
@@ -938,7 +979,7 @@ class LatexRenderer extends Renderer {
         return gridContent;
     }
 
-    draftAssembleNodesAndEdges(nodes, edges) {
+    drawNodesAndEdges(nodes, edges) {
         // Create content array
         const content = [];
         

@@ -484,75 +484,6 @@ class StyleHandler {
         return current !== undefined ? current : defaultValue;
     }
 
-
-    // /**
-    //  * Merge new styles into the existing stylesheet
-    //  * @param {Object} newStyles - New styles to merge
-    //  */
-    // mergeStylesheet(newStyles) {
-    //     if (!newStyles) {
-    //         this.log('mergeStylesheet received null or undefined');
-    //         return;
-    //     }
-
-    //     this.log('mergeStylesheet received:', JSON.stringify(newStyles));
-        
-    //     // Process dynamic properties if present
-    //     if (newStyles._dynamicProperties && Array.isArray(newStyles._dynamicProperties)) {
-    //         this.mergeDynamicProperties(newStyles.name || 'base', newStyles._dynamicProperties);
-
-
-    //         // transition method
-    //         // append all dynamic properties to the unmerged map
-    //         const styleName = newStyles.name || 'base';
-    //         const styleProperties = this.dynamicProperties_unmerged.get(styleName) || [];
-    //         const appendedProperties = [...styleProperties, ...newStyles._dynamicProperties];
-    //         this.dynamicProperties_unmerged.set(styleName, appendedProperties);
-    //     }
-        
-    //     // Initialize stylesheet if needed
-    //     if (!this.stylesheet) {
-    //         this.stylesheet = this.getBlankStylesheet();
-    //     }
-        
-    //     // Process styles if present
-    //     if (newStyles.style) {
-    //         this.log('Processing style section');
-            
-    //         if (!this.stylesheet.style) {
-    //             this.stylesheet.style = this.getBlankStyles();
-    //         }
-            
-    //         // Merge styles at the style name level
-    //         for (const [styleName, styleData] of Object.entries(newStyles.style)) {
-    //             if (!this.stylesheet.style[styleName]) {
-    //                 this.stylesheet.style[styleName] = {};
-    //             }
-                
-    //             // Deep merge the style data
-    //             this.stylesheet.style[styleName] = ObjectUtils.deepMerge(
-    //                 this.stylesheet.style[styleName] || {},
-    //                 styleData
-    //             );
-    //         }
-    //     }
-        
-    //     // Handle page configuration if present
-    //     if (newStyles.page) {
-    //         this.log('Processing page config in mergeStylesheet:', JSON.stringify(newStyles.page));
-            
-    //         if (!this.stylesheet.page) {
-    //             this.stylesheet.page = this.getBlankPage();
-    //         }
-            
-    //         // Merge page configuration
-    //         this.stylesheet.page = ObjectUtils.deepMerge(
-    //             this.stylesheet.page,
-    //             newStyles.page
-    //         );
-    //     }
-    // }
-
     /**
      * Load styles from style records
      * @param {Array} styleRecords - Array of style records from ReaderManager
@@ -566,9 +497,6 @@ class StyleHandler {
                 }
             }
         
-
-
-
             if (rec.page) {
                 if (Array.isArray(rec.page._dynamicProperties)) {
                     this.addPageProperties(rec.page._dynamicProperties);
@@ -577,119 +505,6 @@ class StyleHandler {
         }
     }
 
-    // /**
-    //  * Add page properties to the stylesheet
-    //  * @param {Array} properties - Array of dynamic properties
-    //  * @param {string} pageName - Name of the page
-    //  */
-    // addPageProperties(properties, pageName = 'default') {
-    //     // If page doesn't exist in stylesheet, create it
-    //     if (!this.stylesheet.page) {
-    //         this.stylesheet.page = {};
-    //     }
-        
-    //     if (!this.stylesheet.page[pageName]) {
-    //         this.stylesheet.page[pageName] = {};
-    //     }
-        
-    //     // Add properties to the dynamic property map
-    //     const key = `page-${pageName}`;
-    //     this.dynamicProperties.set(key, properties);
-    // }
-
-    // /**
-    //  * Get a blank stylesheet with default values
-    //  * @returns {Object} Blank stylesheet
-    //  */
-    // getBlankStylesheet() {
-    //     const blank = { 
-    //         page: {},
-    //         style: {}
-    //     };
-
-    //     blank.page = this.getBlankPage();
-    //     blank.style = this.getBlankStyles();
-
-    //     return blank;
-    // }
-
-    // /**
-    //  * Get blank page configuration
-    //  * @returns {Object} Default page configuration
-    //  */
-    // getBlankPage() {
-    //     return {
-    //         scale: {
-    //             position: { x: 1, y: 1 },
-    //             size: { w: 1, h: 1 }
-    //         },
-    //         margin: {
-    //             h: 1,
-    //             w: 1
-    //         }
-    //     };
-    // }
-
-    // /**
-    //  * Get blank styles structure
-    //  * @returns {Object} Default styles structure
-    //  */
-    // getBlankStyles() {
-    //     return {
-    //         node: {},
-    //         edge: {}
-    //     };
-    // }
-
-
-
-
-    // /**
-    //  * Get a style attribute by cascading from the specified style to base
-    //  * @param {string} category - 'node', 'edge', etc.
-    //  * @param {string} styleName - name of the style, or null/undefined for default
-    //  * @param {string} attributePath - dot-separated path to the attribute (e.g., 'node.anchor')
-    //  * @param {any} [defaultValue=null] - value to return if attribute not found
-    //  * @returns {*} The attribute value
-    //  */
-    // getStyleAttribute(category, styleName, attributePath, defaultValue = null) {
-    //     // Split the attribute path into parts
-    //     const pathParts = attributePath.split('.');
-        
-    //     // Try the specified style first (or default if none specified)
-    //     const styleToUse = styleName || 'default';
-    //     let value = this.getValueFromPath(this.stylesheet.style?.[styleToUse]?.[category], pathParts);
-        
-    //     // If not found, cascade to base
-    //     if (value === undefined) {
-    //         value = this.getValueFromPath(this.stylesheet.style?.base?.[category], pathParts);
-    //     }
-        
-    //     return value ?? defaultValue;
-    // }
-
-    // /**
-    //  * Get complete style object for a category/style, with base cascade
-    //  * @param {string} styleName - name of the style, or null/undefined for default
-    //  * @param {string} styleType - 'node', 'edge', etc.
-    //  * @param {string} generalCategory - 'object', 'label', 'head'
-    //  * @param {string} specificCategory - more refined category like 'label_start', 'head_end'
-    //  * @returns {Object} Complete cascaded style
-    //  */
-    // getCompleteStyle(styleName, styleType, generalCategory, specificCategory = null) {
-    //     const baseStyle = this.stylesheet?.style?.base?.[styleType]?.[generalCategory] || {};
-    //     const baseStyleSpecific = this.stylesheet?.style?.base?.[styleType]?.[specificCategory] || {};
-
-    //     const selectedStyle = this.stylesheet?.style?.[styleName || 'default']?.[styleType]?.[generalCategory] || {};
-    //     const selectedStyleSpecific = this.stylesheet?.style?.[styleName || 'default']?.[styleType]?.[specificCategory] || {};
-
-    //     return {
-    //         ...baseStyle,
-    //         ...baseStyleSpecific,
-    //         ...selectedStyle,
-    //         ...selectedStyleSpecific,
-    //     };
-    // }
 
     /**
      * Store a dynamic property in the property collection for a style

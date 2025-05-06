@@ -1,5 +1,9 @@
 # Boxes and Arrows - Diagram Generator
 
+**WARNING - This tool is in alpha and is not ready for production use.**
+**This is a hobby project that began as a two file script for producing graphviz diagrams. I am currently refactoring the code to enable more flexible diagraming and export as different file types. Though basic diagramming using latex is working, there is lots of broken code, broken tests and confusing structure as I experiment with different approaches, both to the code and how to use AI tools to accelerate development, without producing unmaintainable mess. Although this is already a very useful tool for me, it is months away from being ready to share.**
+
+
 A data driven diagram generation tool that creates diagrams from text inputs. This tool creates box-and-arrow diagrams with control over positioning, styling, and relationships.
 
 ## Features

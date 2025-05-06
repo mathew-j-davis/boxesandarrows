@@ -24,13 +24,13 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Launch Yaml",
+            "name": "Launch Current Yaml",
             "skipFiles": [
                 "<node_internals>/**"
             ],
             "program": "${workspaceFolder}\\src\\index.js",
             "args": [
-                "-y", "./examples/mixed.yaml ",
+                "-y", "${file}",
                 "-m", "./examples/map.csv",
                 "-o", "output/mixed-yaml",
                 "--trace-warnings"
