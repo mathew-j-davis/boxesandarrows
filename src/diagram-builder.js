@@ -44,7 +44,7 @@ class DiagramBuilder {
     }
 
     createRenderer(type, options) {
-        
+
         switch (type.toLowerCase()) {
 
             case 'text':
@@ -56,6 +56,10 @@ class DiagramBuilder {
 
             case 'latex':
                 return new LatexRenderer(options);
+
+            case 'svg':
+                const SvgRenderer = require('./renderers/svg-renderer');
+                return new SvgRenderer(options);
 
             default:
                 console.warn(`Unknown renderer type: ${type}, falling back to LaTeX`);

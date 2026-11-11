@@ -110,7 +110,7 @@ async function main() {
         console.log('  -o, --output     Output file path (default: output/diagram)');
         console.log('  -g, --grid       Grid spacing (optional)');
         console.log('  --verbose        Show verbose output');
-        console.log('  -r, --renderer   Output renderer type (latex, text) [default: latex]');
+        console.log('  -r, --renderer   Output renderer type (latex, svg, text) [default: latex]');
         console.log('  -h, --help       Show this help message');
     }
 
@@ -143,9 +143,12 @@ async function main() {
         const fs = require('fs');
         const texExists = fs.existsSync(`${outputPath}.tex`);
         const pdfExists = fs.existsSync(`${outputPath}.pdf`);
+        const svgExists = fs.existsSync(`${outputPath}.svg`);
 
         if (texExists && pdfExists) {
             console.log(`✅ Diagram rendered to ${outputPath}.pdf`);
+        } else if (svgExists) {
+            console.log(`✅ SVG diagram created: ${outputPath}.svg`);
         } else if (texExists) {
             console.log(`✅ LaTeX source created: ${outputPath}.tex`);
             console.log(`⚠️  PDF compilation failed - see error above`);

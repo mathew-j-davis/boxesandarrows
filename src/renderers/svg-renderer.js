@@ -40,11 +40,8 @@ class SvgRenderer extends RendererBase {
      * Called by RendererBase after layout is calculated
      */
     generateOutput() {
-        // Convert nodes Map to array
-        const nodesArray = Array.from(this.nodes.values());
-
-        // Generate SVG content
-        const svgContent = this.generateSvg(nodesArray, this.edges, this.renderOptions);
+        // Generate SVG content (keep nodes as Map for edge drawing)
+        const svgContent = this.generateSvg(this.nodes, this.edges, this.renderOptions);
 
         // Save SVG to file
         const svgFilePath = `${this.outputPath}.svg`;
@@ -58,8 +55,11 @@ class SvgRenderer extends RendererBase {
     generateSvg(nodes, edges, options = {}) {
         const grid = options.grid || null;
 
+        // Convert nodes to array if it's a Map
+        const nodesArray = nodes instanceof Map ? Array.from(nodes.values()) : nodes;
+
         // Calculate bounding box
-        const bbox = this.calculateBoundingBox(nodes);
+        const bbox = this.calculateBoundingBox(nodesArray);
 
         // Add margin
         const margin = 20;
@@ -90,7 +90,7 @@ class SvgRenderer extends RendererBase {
         });
 
         // Draw nodes
-        nodes.forEach(node => {
+        nodesArray.forEach(node => {
             svg += this.drawNode(node);
         });
 
