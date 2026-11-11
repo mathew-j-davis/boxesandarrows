@@ -128,13 +128,17 @@ describe('VectorLayoutEngine', () => {
             engine.calculateEdgeLayout(edges, nodes);
 
             // Should have calculated connection points
-            expect(edges[0].startPoint).toBeDefined();
-            expect(edges[0].startPoint.x).toBeDefined();
-            expect(edges[0].startPoint.y).toBeDefined();
+            expect(edges[0].start).toBeDefined();
+            expect(edges[0].start.x).toBeDefined();
+            expect(edges[0].start.y).toBeDefined();
 
-            expect(edges[0].endPoint).toBeDefined();
-            expect(edges[0].endPoint.x).toBeDefined();
-            expect(edges[0].endPoint.y).toBeDefined();
+            expect(edges[0].end).toBeDefined();
+            expect(edges[0].end.x).toBeDefined();
+            expect(edges[0].end.y).toBeDefined();
+
+            // Should also have startPoint/endPoint aliases
+            expect(edges[0].startPoint).toBe(edges[0].start);
+            expect(edges[0].endPoint).toBe(edges[0].end);
 
             expect(edges[0]._coordinateSystem).toBe('vector');
         });
@@ -164,8 +168,8 @@ describe('VectorLayoutEngine', () => {
             engine.calculateEdgeLayout(edges, nodes);
 
             // Should have auto-detected and calculated connection points
-            expect(edges[0].startPoint).toBeDefined();
-            expect(edges[0].endPoint).toBeDefined();
+            expect(edges[0].start).toBeDefined();
+            expect(edges[0].end).toBeDefined();
         });
 
         test('handles missing nodes gracefully', () => {
@@ -188,7 +192,7 @@ describe('VectorLayoutEngine', () => {
             }).not.toThrow();
 
             // Edge should not have connection points calculated
-            expect(edges[0].startPoint).toBeUndefined();
+            expect(edges[0].start).toBeUndefined();
         });
     });
 

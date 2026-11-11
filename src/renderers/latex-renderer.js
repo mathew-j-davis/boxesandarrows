@@ -1,4 +1,5 @@
-const Renderer = require('./renderer');
+const RendererBase = require('./renderer-base');
+const VectorLayoutEngine = require('../layout/vector-layout-engine');
 const { Point2D } = require('../geometry/basic-points');
 const { Direction } = require('../geometry/direction');
 const { exec } = require('child_process');
@@ -11,15 +12,18 @@ const { Position, PositionType } = require('../geometry/position');
 const LatexUtilities = require('./latex-utilities');
 const LatexFileUtilities = require('./latex-file-utilities');
 
-class LatexRenderer extends Renderer {
+class LatexRenderer extends RendererBase {
     constructor(options = {}) {
-        super(options);
-        
-        
-        this.log = this.verbose ? console.log.bind(console) : () => {};
+        // Initialize the style handler first (needed by layout engine)
+        const styleHandler = new LatexStyleHandler(options);
 
-        // Initialize the style handler
-        this.styleHandler = new LatexStyleHandler(options);
+        // Create vector layout engine
+        const layoutEngine = new VectorLayoutEngine(styleHandler, options);
+
+        // Call parent constructor with layout engine and style handler
+        super(layoutEngine, styleHandler, options);
+
+        this.log = this.verbose ? console.log.bind(console) : () => {};
         
         
         // Store document paths with correct paths
@@ -60,27 +64,48 @@ class LatexRenderer extends Renderer {
         };
     }
 
-    async render(nodes, edges, outputPath, options = {}) {
+    render(nodes, edges, outputPath, options = {}) {
+        // Store options for generateOutput()
+        this.renderOptions = options || {};
 
+        // Call parent render() which will:
+        // 1. Call layoutEngine.calculateLayout(nodes, edges)
+        // 2. Call this.generateOutput()
+        super.render(nodes, edges, outputPath);
+
+        // Compile to PDF if requested (async operation)
+        if (options.compilePdf !== false) {
+            this.compileToPdf(outputPath, options);
+        }
+    }
+
+    async compileToPdf(outputPath, options = {}) {
+        const texFilePath = `${outputPath}.tex`;
+        await LatexFileUtilities.compileToPdf(texFilePath, options);
+        this.log(`PDF generated at ${outputPath}.pdf`);
+    }
+
+    generateOutput() {
         // Reset all state to initial values
-        this.initializeState({ 
-            verbose: this.verbose, 
-            useColor: this.useColor 
+        this.initializeState({
+            verbose: this.verbose,
+            useColor: this.useColor
         });
 
-        let content = this.draft(nodes, edges, options);
-        
+        // Convert nodes Map to array for draft() method
+        // (nodes is a Map from layoutEngine, draft() expects array)
+        const nodesArray = Array.from(this.nodes.values());
+
+        // Draft the LaTeX content (nodes and edges already have layout from VectorLayoutEngine)
+        let content = this.draft(nodesArray, this.edges, this.renderOptions);
+
         // Generate the complete LaTeX content
         const latexContent = this.formatLatexContent(content);
 
         // Save the LaTeX content to a .tex file
-        const texFilePath = `${outputPath}.tex`;
+        const texFilePath = `${this.outputPath}.tex`;
         fs.writeFileSync(texFilePath, latexContent, 'utf8');
         this.log(`LaTeX source saved to ${texFilePath}`);
-
-        // Compile the .tex file to a .pdf file
-        await LatexFileUtilities.compileToPdf(texFilePath, options);
-        this.log(`PDF generated at ${outputPath}.pdf`);
     }
         
 
@@ -627,23 +652,13 @@ class LatexRenderer extends Renderer {
         }
     }
 
-    // Helper method to get node anchor point
+    /**
+     * Compatibility method for old DiagramBuilder flow
+     * Delegates to VectorLayoutEngine's anchor calculation
+     * TODO: Remove once DiagramBuilder is updated to use new architecture
+     */
     getNodeAnchor(node) {
-        // Check for anchor directly on node
-        if (node.anchor && typeof node.anchor === 'string') {
-            return Direction.getVector(node.anchor);
-        }
-
-        // Get anchor from style system using the new method
-        const anchor = this.styleHandler.getStyleValueWithNamesStringAndModifyWithDefault(
-            node.style,
-            'node.object.anchor',
-            [],
-            false,
-            'center'  // default if not found in any style
-        );
-
-        return Direction.getVector(anchor);
+        return this.layoutEngine.calculateAnchorVector(node);
     }
 
     // Helper method to build a curved path

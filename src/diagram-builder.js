@@ -15,21 +15,30 @@ const Dimensions = require('./geometry/dimensions');
 const DynamicProperty = require('./io/models/dynamic-property');
 
 class DiagramBuilder {
-    constructor(options = {}) {
-        this.verbose = options.verbose || false;
-        this.grid = options.grid || null;
-        this.rendererType = options.renderer;
-        this.log = this.verbose ? console.log.bind(console) : () => {};
-        
-        // Store all options
-        this.options = options;
+    constructor(rendererOrOptions = {}) {
+        // Support both old API (options object) and new API (renderer instance)
+        if (rendererOrOptions.render && typeof rendererOrOptions.render === 'function') {
+            // New API: renderer instance passed directly
+            this.renderer = rendererOrOptions;
+            this.options = {};
+            this.verbose = false;
+        } else {
+            // Old API: options object with renderer type
+            const options = rendererOrOptions;
+            this.verbose = options.verbose || false;
+            this.grid = options.grid || null;
+            this.rendererType = options.renderer;
+            this.options = options;
 
-        // Create renderer based on type and pass the configuration
-        this.renderer = this.createRenderer(this.rendererType, options);
+            // Create renderer based on type
+            this.renderer = this.createRenderer(this.rendererType, options);
+        }
+
+        this.log = this.verbose ? console.log.bind(console) : () => {};
 
         // Initialize the reader manager with style and page handlers
         this.readerManager = new ReaderManager();
-        
+
         this.nodePositions = new Map();
 
     }

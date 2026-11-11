@@ -108,17 +108,22 @@ class VectorLayoutEngine extends LayoutEngine {
             const anchors = this.autoDetectAnchors(fromNode, toNode, edge);
 
             // Calculate precise connection points
-            edge.startPoint = this.getConnectionPoint(
+            // Using edge.start and edge.end to match existing LatexRenderer expectations
+            edge.start = this.getConnectionPoint(
                 fromNode,
                 anchors.start,
                 this.scaleConfig
             );
 
-            edge.endPoint = this.getConnectionPoint(
+            edge.end = this.getConnectionPoint(
                 toNode,
                 anchors.end,
                 this.scaleConfig
             );
+
+            // Also set startPoint/endPoint for new code that expects these names
+            edge.startPoint = edge.start;
+            edge.endPoint = edge.end;
 
             edge._coordinateSystem = 'vector';
         }
