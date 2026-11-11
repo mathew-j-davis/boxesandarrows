@@ -155,9 +155,20 @@ class EdgeReader {
                 return null;
             }
 
-            const { startAnchor, endAnchor } = this.setConnectionDirections(
-                fromNode, toNode, record.start_anchor, record.end_anchor
-            );
+            // Auto-detect anchors only if nodes have positions (old flow)
+            // Otherwise, store raw values and let layout engine auto-detect
+            let startAnchor = record.start_anchor;
+            let endAnchor = record.end_anchor;
+
+            if (fromNode.position && toNode.position) {
+                // Old flow: nodes positioned, can auto-detect anchors now
+                const detected = this.setConnectionDirections(
+                    fromNode, toNode, record.start_anchor, record.end_anchor
+                );
+                startAnchor = detected.startAnchor;
+                endAnchor = detected.endAnchor;
+            }
+            // else: New flow - layout engine will auto-detect anchors
 
             // Get edge type, defaulting to 's' for simple if not specified
             const edgeType = record.type || 's';
@@ -179,39 +190,49 @@ class EdgeReader {
             const startAdjusted = Math.abs(startAdjust.x) > 0 || Math.abs(startAdjust.y) > 0;
             const endAdjusted = Math.abs(endAdjust.x) > 0 || Math.abs(endAdjust.y) > 0;
 
-            // Use the validated directions from the auto connection points calculation
-            let startPoint = getNodeConnectionPoint(
-                fromNode,
-                scale,
-                startAnchor,
-                startAdjust,
-            );
+            // Connection points will be calculated by layout engine during rendering
+            // Only calculate here if nodes already have positions (old flow compatibility)
+            let startPoint = null;
+            let endPoint = null;
+            let waypoints = [];
 
-            let endPoint = getNodeConnectionPoint(
-                toNode,
-                scale,
-                endAnchor,
-                endAdjust
-            );
+            if (fromNode.position && fromNode.dimensions && fromNode.anchorVector &&
+                toNode.position && toNode.dimensions && toNode.anchorVector) {
+                // Old flow: nodes already positioned, calculate connection points now
+                startPoint = getNodeConnectionPoint(
+                    fromNode,
+                    scale,
+                    startAnchor,
+                    startAdjust,
+                );
 
-            // Process waypoints for 'c' type edges only, ignore for 'r' type
-            const waypoints = (record.waypoints) ? 
-                parseWaypoints(
-                    record.waypoints, 
-                    startPoint,
-                    endPoint
-                )
-                .map(wp => this.scaleWaypoint(wp, scale)) : 
-                [];
+                endPoint = getNodeConnectionPoint(
+                    toNode,
+                    scale,
+                    endAnchor,
+                    endAdjust
+                );
 
-            //Scale the points
-            startPoint = this.scalePoint(startPoint, scale);
-            endPoint = this.scalePoint(endPoint, scale);
+                // Process waypoints for 'c' type edges only
+                waypoints = (record.waypoints) ?
+                    parseWaypoints(
+                        record.waypoints,
+                        startPoint,
+                        endPoint
+                    )
+                    .map(wp => this.scaleWaypoint(wp, scale)) :
+                    [];
+
+                //Scale the points
+                startPoint = this.scalePoint(startPoint, scale);
+                endPoint = this.scalePoint(endPoint, scale);
+            }
+            // else: New flow - layout engine will calculate connection points later
 
             // Create base edge object with required fields
             const edge = {
-                from: fromNode,
-                to: toNode,
+                from: record.from,      // Store node name, not node object
+                to: record.to,          // Store node name, not node object
                 style: record.style || 'default',
                 label: record.label,
                 start_label: record.start_label,

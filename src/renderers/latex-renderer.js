@@ -361,16 +361,18 @@ class LatexRenderer extends RendererBase {
     }
 
     draftEdge(edge) {
-        
-        // Track edge bounds
-        this.updateBounds(edge.start.x, edge.start.y);
-        this.updateBounds(edge.end.x, edge.end.y);
 
-        // Track waypoint bounds
-        if (edge.waypoints) {
-            edge.waypoints.forEach(wp => {
-                this.updateBounds(wp.x, wp.y);
-            });
+        // Track edge bounds (only if connection points exist)
+        if (edge.start && edge.end) {
+            this.updateBounds(edge.start.x, edge.start.y);
+            this.updateBounds(edge.end.x, edge.end.y);
+
+            // Track waypoint bounds
+            if (edge.waypoints) {
+                edge.waypoints.forEach(wp => {
+                    this.updateBounds(wp.x, wp.y);
+                });
+            }
         }
 
         // Get edge style options

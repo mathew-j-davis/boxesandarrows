@@ -160,9 +160,10 @@ class DiagramBuilder {
                 this.log('No position file specified; using positions from node files or default (0,0).');
             }
 
-            this.positionAndScaleAllNodes();
+            // NOTE: Positioning removed from here - now handled by renderer's layout engine
+            // this.positionAndScaleAllNodes();  // ← REMOVED: old flow
 
-            // Now that all nodes are loaded, positioned and scaled, process edges
+            // Process edges (connection points will be calculated by layout engine)
 
             // Handle edge files (CSV or YAML)
             const edgeFiles = Array.isArray(edgePaths) ? edgePaths : (edgePaths ? [edgePaths] : []);
