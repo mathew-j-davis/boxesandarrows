@@ -39,10 +39,19 @@ class VectorLayoutEngine extends LayoutEngine {
      */
     calculateNodeLayout(nodes) {
         for (const [nodeName, node] of nodes.entries()) {
+            // Skip if node already has position calculated (by old DiagramBuilder flow)
+            if (node.position && node.position.xScaled !== undefined && node.position.yScaled !== undefined) {
+                continue;
+            }
+
+            // Ensure x and y have defaults if not specified
+            const x = node.x !== undefined ? node.x : 0;
+            const y = node.y !== undefined ? node.y : 0;
+
             // Calculate vector position (floating point)
             node.position = Position.calculatePositionAndScale(
                 nodes,
-                node.x, node.y,
+                x, y,
                 node.at,
                 node.position_of,
                 node.x_of, node.y_of,
@@ -51,19 +60,25 @@ class VectorLayoutEngine extends LayoutEngine {
                 this.scaleConfig
             );
 
-            // Calculate vector dimensions (respects input, text will scale)
-            node.dimensions = Dimensions.calculateDimensionsAndScale(
-                nodes,
-                node.width, node.height,
-                node.w_of, node.h_of,
-                node.w_from, node.h_from,
-                node.w_to, node.h_to,
-                node.w_offset, node.h_offset,
-                this.scaleConfig
-            );
+            // Skip if dimensions already calculated
+            if (!node.dimensions || node.dimensions.widthScaled === undefined) {
+                // Calculate vector dimensions (respects input, text will scale)
+                node.dimensions = Dimensions.calculateDimensionsAndScale(
+                    nodes,
+                    node.width, node.height,
+                    node.w_of, node.h_of,
+                    node.w_from, node.h_from,
+                    node.w_to, node.h_to,
+                    node.w_offset, node.h_offset,
+                    this.scaleConfig
+                );
+            }
 
-            // Calculate anchor as vector (-1 to 1 range)
-            node.anchorVector = this.calculateAnchorVector(node);
+            // Skip if anchor already calculated
+            if (!node.anchorVector) {
+                // Calculate anchor as vector (-1 to 1 range)
+                node.anchorVector = this.calculateAnchorVector(node);
+            }
 
             // Mark coordinate system type for debugging
             node._coordinateSystem = 'vector';

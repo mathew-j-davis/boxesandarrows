@@ -178,9 +178,12 @@ class LatexRenderer extends RendererBase {
             if (node.position.positionType === PositionType.NAMED) {
                 pos = node.position.at;
                 hasPositionShift = (node?.position?.xAtNodeAnchorOffsetScaled || node?.position?.yAtNodeAnchorOffsetScaled);
-            } 
+            }
             else {
-                pos = `(${node.position.xScaled},${node.position.yScaled})`;
+                // Handle null/undefined coordinates - use defaults
+                const x = node.position.xScaled !== null && node.position.xScaled !== undefined ? node.position.xScaled : 0;
+                const y = node.position.yScaled !== null && node.position.yScaled !== undefined ? node.position.yScaled : 0;
+                pos = `(${x},${y})`;
             }
         } 
         
