@@ -64,7 +64,7 @@ class LatexRenderer extends RendererBase {
         };
     }
 
-    render(nodes, edges, outputPath, options = {}) {
+    async render(nodes, edges, outputPath, options = {}) {
         // Store options for generateOutput()
         this.renderOptions = options || {};
 
@@ -75,7 +75,15 @@ class LatexRenderer extends RendererBase {
 
         // Compile to PDF if requested (async operation)
         if (options.compilePdf !== false) {
-            this.compileToPdf(outputPath, options);
+            try {
+                await this.compileToPdf(outputPath, options);
+            } catch (error) {
+                // PDF compilation failed, but .tex file was created
+                console.error('\nLaTeX compilation error:', error.message || error);
+                console.error('\n💡 Tip: Install missing LaTeX packages with:');
+                console.error('   sudo tlmgr install standalone adjustbox xcolor collectbox\n');
+                // Don't throw - the .tex file is still useful
+            }
         }
     }
 
@@ -606,39 +614,6 @@ class LatexRenderer extends RendererBase {
         return `${header}\n${body}\n${footer}`;
     }
 
-    async compileToPdf(texFilePath, options = {}) {
-
-        // Get verbose from options with default false
-        const verbose = options.verbose ?? false;
-        const log = verbose ? console.log.bind(console) : () => {};
-
-        const texDir = path.dirname(texFilePath);
-        const texFileName = path.basename(texFilePath);
-    
-        // Add -quiet flag if not verbose
-        const interactionMode = verbose ? 'nonstopmode' : 'batchmode';
-        const command = `pdflatex -interaction=${interactionMode} -file-line-error -output-directory="${texDir}" "${texFileName}"`;
-    
-        return new Promise((resolve, reject) => {
-            exec(command, (error, stdout, stderr) => {
-                if (verbose) {
-                    log('LaTeX stdout:', stdout);
-                    if (stderr) console.error('LaTeX stderr:', stderr);
-                }
-    
-                if (error) {
-                    console.error('LaTeX compilation error:', error);
-                    reject(error);
-                } else {
-                    if (verbose) {
-                        log('pdflatex output:', stdout);
-                    }
-                    resolve();
-                }
-            });
-        });
-    }
-    
     defineHexColor(hexCode) {
         // Generate a color name by removing '#' and prefixing with 'color'
         const colorName = 'color' + hexCode.slice(1);

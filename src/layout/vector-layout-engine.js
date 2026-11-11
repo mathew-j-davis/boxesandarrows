@@ -34,14 +34,97 @@ class VectorLayoutEngine extends LayoutEngine {
     }
 
     /**
-     * Calculate layout for all nodes
-     * Dependencies are pre-sorted in input, so simple iteration works
+     * Extract node name from a reference (handles "nodeName" and "nodeName.anchor")
+     */
+    extractNodeName(reference) {
+        if (!reference || typeof reference !== 'string') return null;
+        return reference.split('.')[0];
+    }
+
+    /**
+     * Get all dependencies for a node
+     */
+    getNodeDependencies(node) {
+        const deps = new Set();
+
+        // Position dependencies
+        if (node.at) deps.add(this.extractNodeName(node.at));
+        if (node.position_of) deps.add(this.extractNodeName(node.position_of));
+        if (node.x_of) deps.add(this.extractNodeName(node.x_of));
+        if (node.y_of) deps.add(this.extractNodeName(node.y_of));
+
+        // Dimension dependencies
+        if (node.w_of) deps.add(this.extractNodeName(node.w_of));
+        if (node.h_of) deps.add(this.extractNodeName(node.h_of));
+        if (node.w_from) deps.add(this.extractNodeName(node.w_from));
+        if (node.w_to) deps.add(this.extractNodeName(node.w_to));
+        if (node.h_from) deps.add(this.extractNodeName(node.h_from));
+        if (node.h_to) deps.add(this.extractNodeName(node.h_to));
+
+        deps.delete(null);
+        return Array.from(deps);
+    }
+
+    /**
+     * Topologically sort nodes by dependencies
+     */
+    topologicalSort(nodes) {
+        const sorted = [];
+        const visited = new Set();
+        const visiting = new Set();
+
+        const visit = (nodeName) => {
+            if (visited.has(nodeName)) return;
+            if (visiting.has(nodeName)) {
+                console.warn(`Circular dependency detected involving node "${nodeName}"`);
+                return;
+            }
+
+            visiting.add(nodeName);
+            const node = nodes.get(nodeName);
+            if (node) {
+                const deps = this.getNodeDependencies(node);
+                for (const dep of deps) {
+                    if (nodes.has(dep)) {
+                        visit(dep);
+                    }
+                }
+            }
+            visiting.delete(nodeName);
+            visited.add(nodeName);
+            sorted.push(nodeName);
+        };
+
+        for (const nodeName of nodes.keys()) {
+            visit(nodeName);
+        }
+
+        return sorted;
+    }
+
+    /**
+     * Calculate layout for all nodes in dependency order
      */
     calculateNodeLayout(nodes) {
-        for (const [nodeName, node] of nodes.entries()) {
-            // Ensure x and y have defaults if not specified
-            const x = node.x !== undefined ? node.x : 0;
-            const y = node.y !== undefined ? node.y : 0;
+        // Sort nodes by dependencies
+        const sortedNodeNames = this.topologicalSort(nodes);
+
+        for (const nodeName of sortedNodeNames) {
+            const node = nodes.get(nodeName);
+            if (!node) continue;
+
+            // Only use explicit x/y values, don't default to 0 if using relative positioning
+            // If x_of or y_of is specified, we should let those calculate the position
+            let x = node.x;
+            let y = node.y;
+
+            // Only default to 0 if no relative positioning is being used
+            if (x === undefined && !node.x_of && !node.position_of && !node.at) {
+                x = 0;
+            }
+            if (y === undefined && !node.y_of && !node.position_of && !node.at) {
+                y = 0;
+            }
 
             // Calculate vector position (floating point)
             node.position = Position.calculatePositionAndScale(

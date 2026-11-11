@@ -11,7 +11,7 @@ class Dimensions {
     static calculateDimensionsAndScale(nodes, w, h, w_of, h_of, w_from, h_from, w_to, h_to, w_offset, h_offset, scaleConfig) {
         const defaultHeight = 1;
         const defaultWidth = 1;
-        
+
         let defaultScale = {
             size: {
                 w: 1,
@@ -42,8 +42,15 @@ class Dimensions {
             // Try to calculate width from w_of attribute
             if (w_of && nodes.has(w_of)) {
                 const referenceNode = nodes.get(w_of);
-                dimensions.widthUnscaled = referenceNode.widthUnscaled + (w_offset || 0);
-                dimensions.widthScaled = dimensions.widthUnscaled * scaleConfig.size.w;
+                // Reference node's dimensions should already be calculated due to topological sorting
+                if (referenceNode.dimensions && referenceNode.dimensions.widthUnscaled !== undefined) {
+                    dimensions.widthUnscaled = referenceNode.dimensions.widthUnscaled + (w_offset || 0);
+                    dimensions.widthScaled = dimensions.widthUnscaled * scaleConfig.size.w;
+                } else {
+                    console.warn(`Node "${w_of}" referenced by w_of does not have dimensions yet`);
+                    dimensions.widthUnscaled = defaultWidth;
+                    dimensions.widthScaled = defaultWidth * scaleConfig.size.w;
+                }
             }
             // If no width yet and both w_from and w_to are specified
             else if (w_from && w_to) {
@@ -76,8 +83,15 @@ class Dimensions {
             // Try to calculate height from h_of attribute
             if (h_of && nodes.has(h_of)) {
                 const referenceNode = nodes.get(h_of);
-                dimensions.heightUnscaled = referenceNode.heightUnscaled + (h_offset || 0);
-                dimensions.heightScaled = dimensions.heightUnscaled * scaleConfig.size.h;
+                // Reference node's dimensions should already be calculated due to topological sorting
+                if (referenceNode.dimensions && referenceNode.dimensions.heightUnscaled !== undefined) {
+                    dimensions.heightUnscaled = referenceNode.dimensions.heightUnscaled + (h_offset || 0);
+                    dimensions.heightScaled = dimensions.heightUnscaled * scaleConfig.size.h;
+                } else {
+                    console.warn(`Node "${h_of}" referenced by h_of does not have dimensions yet`);
+                    dimensions.heightUnscaled = defaultHeight;
+                    dimensions.heightScaled = defaultHeight * scaleConfig.size.h;
+                }
             }
             // If no height yet and both h_from and h_to are specified
             else if (h_from && h_to) {

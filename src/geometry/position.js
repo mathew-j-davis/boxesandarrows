@@ -56,7 +56,7 @@ class Position {
         const parts = position_of.split('.');
         const referenceNodeName = parts[0];
         const referenceNode = allNodes.get(referenceNodeName);
-        
+
         if (!referenceNode) {
             position.message = `Reference node '${referenceNodeName}' not found`;
             return position;
@@ -174,11 +174,11 @@ class Position {
         // Step 1: Get the center point of the reference node by adjusting for its own anchor
         const refNodeCenterX = referenceNode.position.xScaled - (referenceNodeOwnAnchorVector.x * referenceNode.dimensions.widthScaled/2);
         const refNodeCenterY = referenceNode.position.yScaled - (referenceNodeOwnAnchorVector.y * referenceNode.dimensions.heightScaled/2);
-        
+
         // Step 2: Find the position of the specific anchor point on the reference node
         const refAnchorPointX = refNodeCenterX + (referenceNodeAtAnchorVector.x * referenceNode.dimensions.widthScaled/2);
         const refAnchorPointY = refNodeCenterY + (referenceNodeAtAnchorVector.y * referenceNode.dimensions.heightScaled/2);
-        
+
         // Step 3: Apply offsets if specified
         const finalXScaled = refAnchorPointX + x_offset_safe_scaled;
         const finalYScaled = refAnchorPointY + y_offset_safe_scaled;

@@ -55,6 +55,12 @@ describe('EdgeReader', () => {
           'draw': 'black'
         }
       }),
+      getStyleBranchAndModify: jest.fn().mockReturnValue({
+        tikz: {
+          'line width': '1pt',
+          'draw': 'black'
+        }
+      }),
       processAttributes: jest.fn().mockReturnValue({
         tikz: {
           'draw': 'red',
@@ -215,9 +221,10 @@ describe('EdgeReader', () => {
       };
       
       const edge = EdgeReader.processEdgeRecord(record, mockNodes, mockScale, mockStyleHandler);
-      
-      expect(edge.from).toBe(mockNodes.get('node1'));
-      expect(edge.to).toBe(mockNodes.get('node2'));
+
+      // EdgeReader now stores node names (strings) instead of node objects
+      expect(edge.from).toBe('node1');
+      expect(edge.to).toBe('node2');
       expect(edge.label).toBe('Edge 1-2');
       expect(edge.tikz_object_attributes).toBe('draw=red, dashed');
       
@@ -287,18 +294,19 @@ describe('EdgeReader', () => {
         style: 'custom',
         tikz_object_attributes: 'draw=green, dotted'
       };
-      
-      mockStyleHandler.getCompleteStyle.mockReturnValue({
+
+      mockStyleHandler.getStyleBranchAndModify.mockReturnValue({
         tikz: { 'line width': '2pt', draw: 'black' }
       });
-      
+
       mockStyleHandler.processAttributes.mockReturnValue({
         tikz: { draw: 'green', dotted: true }
       });
       
       const edge = EdgeReader.processEdgeRecord(record, mockNodes, mockScale, mockStyleHandler);
-      
-      expect(mockStyleHandler.getCompleteStyle).toHaveBeenCalledWith('custom', 'edge', 'object');
+
+      // EdgeReader now calls getStyleBranchAndModify instead of getCompleteStyle
+      expect(mockStyleHandler.getStyleBranchAndModify).toHaveBeenCalledWith('custom', 'edge.object');
       expect(mockStyleHandler.processAttributes).toHaveBeenCalledWith('draw=green, dotted');
       
       expect(edge.mergedStyle.tikz['line width']).toBe('2pt');

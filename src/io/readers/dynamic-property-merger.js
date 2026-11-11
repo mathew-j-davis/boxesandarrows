@@ -154,25 +154,33 @@ class DynamicPropertyMerger {
         for (const prop of mergedProperties) {
             // Skip if no name path
             if (!prop.namePathArray || prop.namePathArray.length === 0) continue;
-            
+
             let current = hierarchy;
-            
+
             // Navigate through all segments except the last one to build the nested structure
             // The last segment will be used as the key to store the property's value
             for (let i = 0; i < prop.namePathArray.length - 1; i++) {
                 const segment = prop.namePathArray[i];
                 const nextSegment = prop.namePathArray[i + 1];
-                
-                // Create the object for this segment if it doesn't exist
+
+                // Check if next segment is an array index
+                const nextIsIndex = prop.namePathTypes && prop.namePathTypes[i + 1] === 'index';
+
+                // Create the appropriate structure for this segment if it doesn't exist
                 if (current[segment] === undefined) {
-                    current[segment] = {};
-                } else if (typeof current[segment] !== 'object') {
+                    // Create array if next segment is an index, otherwise create object
+                    current[segment] = nextIsIndex ? [] : {};
+                } else if (nextIsIndex && !Array.isArray(current[segment])) {
+                    // Convert to array if needed
+                    current[segment] = [];
+                } else if (!nextIsIndex && typeof current[segment] !== 'object') {
+                    // Convert to object if needed
                     current[segment] = {};
                 }
-                
+
                 current = current[segment];
             }
-            
+
             // Now we're at the parent level where we need to add the property's value
             // using the last segment of the path as the key
             const lastSegment = prop.namePathArray[prop.namePathArray.length - 1];
@@ -183,15 +191,19 @@ class DynamicPropertyMerger {
                 if (typeof current.__flags !== 'object') {
                     current.__flags = {};
                 }
-                
+
                 // Add flag to the __flags container
                 current.__flags[lastSegment] = prop.value;
             } else {
                 // Regular property (not a flag)
-                current[lastSegment] = prop.value;
+                // Convert lastSegment to number if it's an index
+                const key = prop.namePathTypes && prop.namePathTypes[prop.namePathArray.length - 1] === 'index'
+                    ? parseInt(lastSegment, 10)
+                    : lastSegment;
+                current[key] = prop.value;
             }
         }
-        
+
         return hierarchy;
     }
 }

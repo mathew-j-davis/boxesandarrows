@@ -36,11 +36,15 @@ class DynamicProperty {
     
     // Parse the namePath into an array of segments
     this.namePathArray = [];
-    
+    this.namePathTypes = [];
+
     if (config.namePath) {
       const parts = config.namePath.split('.');
       parts.forEach(part => {
         this.namePathArray.push(part);
+        // Determine if this segment is an index or a name
+        const isIndex = /^\d+$/.test(part);
+        this.namePathTypes.push(isIndex ? 'index' : 'name');
       });
     }
     
@@ -186,6 +190,18 @@ class DynamicProperty {
   }
   
   /**
+   * Check if a specific segment in the namePathArray is an index
+   * @param {number} index - The index in namePathArray to check
+   * @returns {boolean} True if the segment is an index, false otherwise
+   */
+  isNamePathIndex(index) {
+    if (index < 0 || index >= this.namePathTypes.length) {
+      return false;
+    }
+    return this.namePathTypes[index] === 'index';
+  }
+
+  /**
    * Get the namePathArray with indices converted to numbers
    * @returns {Array} The namePathArray with indices as numbers
    */
@@ -198,7 +214,7 @@ class DynamicProperty {
     });
   }
 
-    
+
   /**
    * Get the first property that matches the namesString
    * @param {Array} properties - Array of DynamicProperty objects

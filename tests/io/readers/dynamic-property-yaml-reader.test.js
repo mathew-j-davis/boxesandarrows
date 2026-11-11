@@ -64,8 +64,10 @@ math: !renderer
     
     beforeAll(() => {
       // Process the YAML using the new transformation logic
-      transformedYaml = DynamicPropertyYamlReader.loadFromYaml(exampleYaml);
-      
+      const docs = DynamicPropertyYamlReader.loadFromYaml(exampleYaml);
+      // Transform the first document
+      transformedYaml = docs && docs.length > 0 ? DynamicPropertyYamlReader.transformDocument(docs[0]) : null;
+
       // Get original properties for comparison
       originalProperties = DynamicPropertyYamlReader.loadDynamicProperties(exampleYaml);
     });

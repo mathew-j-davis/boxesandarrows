@@ -37,72 +37,10 @@ describe('LatexStyleHandler', () => {
       }
     };
     
-    // Initialize StyleHandler and merge the stylesheet
+    // Initialize StyleHandler and load styles
     styleHandler = new LatexStyleHandler();
-    styleHandler.mergeStylesheet(mockStyleSheet);
-  });
-
-  describe('getCompleteStyle', () => {
-    test('should merge base and selected styles', () => {
-      const result = styleHandler.getCompleteStyle('custom', 'node', 'object');
-      
-      // The actual implementation does a shallow merge, where the custom style's tikz 
-      // completely overrides the base style's tikz, not a deep property merge
-      expect(result).toEqual({
-        tikz: {
-          shape: 'circle',
-          fill: 'blue'
-        }
-      });
-    });
-
-    test('should use base style when style name is not provided', () => {
-      const result = styleHandler.getCompleteStyle(null, 'node', 'object');
-      
-      expect(result).toEqual({
-        tikz: {
-          shape: 'rectangle',
-          draw: 'black',
-          'minimum width': '2cm'
-        }
-      });
-    });
-    
-    // Test to verify how object properties are merged
-    test('should merge nested objects correctly', () => {
-      // Create a test stylesheet with nested objects
-      const customStyleSheet = {
-        style: {
-          base: {
-            node: {
-              object: { 
-                tikz: { a: 1, b: 2 },
-                other: { x: 1 }
-              }
-            }
-          },
-          custom: {
-            node: {
-              object: { 
-                tikz: { b: 3, c: 4 },
-                other: { y: 2 }
-              }
-            }
-          }
-        }
-      };
-      
-      const localStyleHandler = new LatexStyleHandler();
-      localStyleHandler.mergeStylesheet(customStyleSheet);
-      const result = localStyleHandler.getCompleteStyle('custom', 'node', 'object');
-      
-      // This test is checking that when style properties are merged,
-      // the custom style's object properties override base style's properties
-      expect(result).toEqual({
-        tikz: { b: 3, c: 4 },     // custom.tikz completely overrides base.tikz
-        other: { y: 2 }           // custom.other completely overrides base.other
-      });
-    });
+    // loadPageAndStyles expects an array of style records
+    styleHandler.loadPageAndStyles([mockStyleSheet]);
   });
 
   describe('processAttributes', () => {

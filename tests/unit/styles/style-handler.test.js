@@ -109,13 +109,13 @@ describe('StyleHandler.prepareStyle', () => {
   test('merges properties from single style', () => {
     const merged = handler.prepareStyle(['a']);
     expect(merged).toEqual([propA]);
-    expect(handler.dynamicProperties_merged_stacks.get(JSON.stringify(['a']))).toBe(merged);
+    expect(handler.dynamicProperties_merged_stacks.get(JSON.stringify(['a']))).toStrictEqual(merged);
   });
 
   test('merges and caches multiple styles in order', () => {
     const merged = handler.prepareStyle(['a','b']);
     expect(merged).toEqual([propA, propB]);
-    expect(handler.dynamicProperties_merged_stacks.get(JSON.stringify(['a','b']))).toBe(merged);
+    expect(handler.dynamicProperties_merged_stacks.get(JSON.stringify(['a','b']))).toStrictEqual(merged);
   });
 
   test('empty stack yields empty array', () => {

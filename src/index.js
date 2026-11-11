@@ -138,7 +138,21 @@ async function main() {
 
         const outputPath = options.outputFile || 'output/diagram';
         await diagramBuilder.renderDiagram(outputPath);
-        console.log(`Diagram rendered to ${outputPath}.pdf`);
+
+        // Check what actually got created
+        const fs = require('fs');
+        const texExists = fs.existsSync(`${outputPath}.tex`);
+        const pdfExists = fs.existsSync(`${outputPath}.pdf`);
+
+        if (texExists && pdfExists) {
+            console.log(`✅ Diagram rendered to ${outputPath}.pdf`);
+        } else if (texExists) {
+            console.log(`✅ LaTeX source created: ${outputPath}.tex`);
+            console.log(`⚠️  PDF compilation failed - see error above`);
+            console.log(`   You can still use the .tex file with Overleaf or compile manually`);
+        } else {
+            console.log(`❌ Failed to create output files`);
+        }
     } catch (error) {
         console.error('Failed to build diagram:', error);
         process.exit(1);

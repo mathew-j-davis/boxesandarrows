@@ -29,7 +29,7 @@ class LatexFileUtilities {
 
     // Add -quiet flag if not verbose
     const interactionMode = verbose ? 'nonstopmode' : 'batchmode';
-    const command = `pdflatex -interaction=${interactionMode} -file-line-error -output-directory="${texDir}" "${texFileName}"`;
+    const command = `pdflatex -interaction=${interactionMode} -file-line-error -output-directory="${texDir}" "${texFilePath}"`;
 
     return new Promise((resolve, reject) => {
         exec(command, (error, stdout, stderr) => {

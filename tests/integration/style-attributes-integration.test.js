@@ -36,9 +36,9 @@ describe('Style and Attribute Integration', () => {
       }
     };
     
-    // Initialize StyleHandler and merge the stylesheet
+    // Initialize StyleHandler and load styles
     styleHandler = new LatexStyleHandler();
-    styleHandler.mergeStylesheet(mockStyleSheet);
+    styleHandler.loadPageAndStyles([mockStyleSheet]);
     
     // Create a mock renderer with the style handler
     mockRenderer = {
@@ -65,8 +65,8 @@ describe('Style and Attribute Integration', () => {
       size: { w: 1, h: 1 }
     };
     
-    // Mock the getCompleteStyle to return styles with tikz nested correctly
-    jest.spyOn(styleHandler, 'getCompleteStyle').mockReturnValue({
+    // Mock getStyleBranchAndModify to return styles with tikz nested correctly
+    jest.spyOn(styleHandler, 'getStyleBranchAndModify').mockReturnValue({
       tikz: {
         shape: 'circle',
         fill: 'blue',
@@ -127,8 +127,8 @@ describe('Style and Attribute Integration', () => {
       size: { w: 1, h: 1 }
     };
     
-    // Mock the getCompleteStyle to return base styles
-    jest.spyOn(styleHandler, 'getCompleteStyle').mockReturnValue({
+    // Mock the getStyleBranchAndModify to return base styles
+    jest.spyOn(styleHandler, 'getStyleBranchAndModify').mockReturnValue({
       tikz: {
         shape: 'rectangle',
         draw: 'black',
@@ -182,8 +182,8 @@ describe('Style and Attribute Integration', () => {
       y: '20'
     };
     
-    // Mock the getCompleteStyle to return styles with tikz nested correctly
-    jest.spyOn(styleHandler, 'getCompleteStyle').mockReturnValue({
+    // Mock the getStyleBranchAndModify to return styles with tikz nested correctly
+    jest.spyOn(styleHandler, 'getStyleBranchAndModify').mockReturnValue({
       tikz: {
         shape: 'circle',
         fill: 'blue',
