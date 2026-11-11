@@ -68,16 +68,20 @@ class SvgRenderer extends RendererBase {
         const viewBoxX = bbox.minX - margin;
         const viewBoxY = bbox.minY - margin;
 
+        // Calculate font size based on scale (approximately 5% of scale factor)
+        const scale = this.layoutEngine.scaleConfig || { position: { x: 1 } };
+        const baseFontSize = Math.max(8, scale.position.x * 0.4);
+
         // SVG header
         let svg = `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg xmlns="http://www.w3.org/2000/svg"
      xmlns:xlink="http://www.w3.org/1999/xlink"
-     width="${width}cm"
-     height="${height}cm"
+     width="${width}"
+     height="${height}"
      viewBox="${viewBoxX} ${viewBoxY} ${width} ${height}">
   <defs>
     <style type="text/css">
-      text { font-family: sans-serif; font-size: 12px; }
+      text { font-family: sans-serif; font-size: ${baseFontSize}px; }
       .node-text { text-anchor: middle; dominant-baseline: middle; }
     </style>
   </defs>
@@ -118,7 +122,10 @@ class SvgRenderer extends RendererBase {
         // Get node style
         const fill = node.fill_color || '#ffffff';
         const stroke = node.edge_color || '#000000';
-        const strokeWidth = 0.02;
+        // Get stroke width from style or default to 0.02
+        const scale = this.layoutEngine.scaleConfig || { position: { x: 1 } };
+        const baseStrokeWidth = node.stroke_width || node['stroke-width'] || 0.02;
+        const strokeWidth = scale.position.x * baseStrokeWidth;
         const shape = node.shape || 'rectangle';
 
         let shapeSvg = '';
@@ -177,13 +184,19 @@ class SvgRenderer extends RendererBase {
             return '';
         }
 
-        const x1 = edge.start.x;
-        const y1 = -edge.start.y; // Invert Y axis
-        const x2 = edge.end.x;
-        const y2 = -edge.end.y;   // Invert Y axis
+        // Get scale for proper coordinate scaling
+        const scale = this.layoutEngine.scaleConfig || { position: { x: 1, y: 1 } };
+
+        // Edge start/end are in unscaled coordinates, need to scale them
+        const x1 = edge.start.x * scale.position.x;
+        const y1 = -(edge.start.y * scale.position.y); // Invert Y axis
+        const x2 = edge.end.x * scale.position.x;
+        const y2 = -(edge.end.y * scale.position.y);   // Invert Y axis
 
         const stroke = edge.color || '#000000';
-        const strokeWidth = 0.02;
+        // Get stroke width from edge style or default to 0.02
+        const baseStrokeWidth = edge.stroke_width || edge['stroke-width'] || 0.02;
+        const strokeWidth = scale.position.x * baseStrokeWidth;
 
         let pathSvg = `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"
             stroke="${stroke}" stroke-width="${strokeWidth}" />`;
