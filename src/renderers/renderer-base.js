@@ -19,17 +19,29 @@ class RendererBase {
     /**
      * Main entry point for rendering
      *
-     * @param {Map<string, Node>} nodes - Map of node name to node object
+     * @param {Map<string, Node>|Array<Node>} nodes - Map of node name to node object, or array of nodes
      * @param {Array<Edge>} edges - Array of edge objects
      * @param {string} outputPath - Path to write output file
      */
     render(nodes, edges, outputPath) {
-        this.nodes = nodes;
+        // Convert array to Map if needed (for backward compatibility with old DiagramBuilder)
+        if (Array.isArray(nodes)) {
+            const nodesMap = new Map();
+            nodes.forEach(node => {
+                if (node.name) {
+                    nodesMap.set(node.name, node);
+                }
+            });
+            this.nodes = nodesMap;
+        } else {
+            this.nodes = nodes;
+        }
+
         this.edges = edges;
         this.outputPath = outputPath;
 
         // Phase 1: Calculate layout using injected engine
-        this.layoutEngine.calculateLayout(nodes, edges);
+        this.layoutEngine.calculateLayout(this.nodes, edges);
 
         // Phase 2: Generate output (subclass-specific)
         this.generateOutput();
