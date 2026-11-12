@@ -107,10 +107,14 @@ class NodeReader {
             hide_label: ValueParser.parse(record.hide_label, 'boolean'),
             label_above: ValueParser.parse(record.label_above, 'string'),
             label_below: ValueParser.parse(record.label_below, 'string'),
-            position_of: ValueParser.parse(record.position_of, 'string'),
-            anchor: ValueParser.parse(record.anchor, 'string'),
+            // Treat empty strings as undefined for positioning reference fields (CSV may have empty cells)
+            position_of: record.position_of !== undefined && record.position_of !== '' ?
+                ValueParser.parse(record.position_of, 'string') : undefined,
+            anchor: record.anchor !== undefined && record.anchor !== '' ?
+                ValueParser.parse(record.anchor, 'string') : undefined,
             anchorVector: null,
-            at: ValueParser.parse(record.at, 'string'),
+            at: record.at !== undefined && record.at !== '' ?
+                ValueParser.parse(record.at, 'string') : undefined,
             shape: ValueParser.parse(record.shape, 'string'),
             x,
             y,
@@ -122,20 +126,28 @@ class NodeReader {
             fillcolor: ValueParser.parse(record.fillcolor, 'string'),
             textcolor: ValueParser.parse(record.textcolor, 'string'),
 
-            // Add relative sizing fields
-            h_of: ValueParser.parse(record.h_of, 'string'),
-            h_from: ValueParser.parse(record.h_from, 'string'),
-            h_to: ValueParser.parse(record.h_to, 'string'),
+            // Add relative sizing fields (treat empty strings as undefined)
+            h_of: record.h_of !== undefined && record.h_of !== '' ?
+                ValueParser.parse(record.h_of, 'string') : undefined,
+            h_from: record.h_from !== undefined && record.h_from !== '' ?
+                ValueParser.parse(record.h_from, 'string') : undefined,
+            h_to: record.h_to !== undefined && record.h_to !== '' ?
+                ValueParser.parse(record.h_to, 'string') : undefined,
             h_offset: h_offset,
 
-            w_of: ValueParser.parse(record.w_of, 'string'),
-            w_from: ValueParser.parse(record.w_from, 'string'),     
-            w_to: ValueParser.parse(record.w_to, 'string'),
+            w_of: record.w_of !== undefined && record.w_of !== '' ?
+                ValueParser.parse(record.w_of, 'string') : undefined,
+            w_from: record.w_from !== undefined && record.w_from !== '' ?
+                ValueParser.parse(record.w_from, 'string') : undefined,
+            w_to: record.w_to !== undefined && record.w_to !== '' ?
+                ValueParser.parse(record.w_to, 'string') : undefined,
             w_offset: w_offset,
 
-            // Add new relative positioning fields
-            x_of: ValueParser.parse(record.x_of, 'string'),
-            y_of: ValueParser.parse(record.y_of, 'string'),
+            // Add new relative positioning fields (treat empty strings as undefined)
+            x_of: record.x_of !== undefined && record.x_of !== '' ?
+                ValueParser.parse(record.x_of, 'string') : undefined,
+            y_of: record.y_of !== undefined && record.y_of !== '' ?
+                ValueParser.parse(record.y_of, 'string') : undefined,
             x_offset: x_offset,
             y_offset: y_offset,
             

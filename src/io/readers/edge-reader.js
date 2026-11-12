@@ -141,8 +141,14 @@ class EdgeReader {
     
     static processEdgeRecord(record, nodes, scale, styleHandler) {
         // Skip empty rows
-        const values = Object.values(record).map(val => val?.trim() || '');
-        if (values.every(val => val === '')) {
+        const values = Object.values(record).map(val => {
+            if (typeof val === 'string') {
+                return val.trim();
+            }
+            return val;
+        }).filter(val => val !== '' && val !== null && val !== undefined);
+
+        if (values.length === 0) {
             return null;
         }
 
@@ -226,8 +232,21 @@ class EdgeReader {
                 //Scale the points
                 startPoint = this.scalePoint(startPoint, scale);
                 endPoint = this.scalePoint(endPoint, scale);
+            } else {
+                // New flow - layout engine will calculate connection points later
+                // Pass through raw waypoint data if provided
+                waypoints = record.waypoints || [];
+
+                // If waypoints is a string (JSON from CSV), parse it
+                if (typeof waypoints === 'string' && waypoints.trim() !== '') {
+                    try {
+                        waypoints = JSON.parse(waypoints);
+                    } catch (e) {
+                        console.warn(`Failed to parse waypoints JSON: ${waypoints}`);
+                        waypoints = [];
+                    }
+                }
             }
-            // else: New flow - layout engine will calculate connection points later
 
             // Create base edge object with required fields
             const edge = {

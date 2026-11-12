@@ -29,8 +29,25 @@ class DynamicPropertyMerger {
     }
 
     /**
+     * Properties that should accumulate (concatenate) rather than replace
+     * when multiple style files are loaded
+     */
+    static ACCUMULATING_PROPERTIES = ['svg_definitions', 'svg_styles'];
+
+    /**
+     * Check if a property is an accumulating property (should concatenate, not replace)
+     * @param {Object} prop - Dynamic property to check
+     * @returns {boolean} True if this property should accumulate
+     */
+    static isAccumulatingProperty(prop) {
+        return prop.namePathArray &&
+               prop.namePathArray.length === 1 &&
+               this.ACCUMULATING_PROPERTIES.includes(prop.namePathArray[0]);
+    }
+
+    /**
      * Core property merging logic without renderer filtering
-     * 
+     *
      * @param {Array} properties - Array of parsed dynamic property objects
      * @param {Array} [mergedProps=[]] - Optional pre-existing properties to merge with
      * @returns {Array} - Array of merged properties
@@ -45,10 +62,17 @@ class DynamicPropertyMerger {
 
         for (const prop of properties) {
 
- 
+            // Special handling for accumulating properties - they don't remove previous values
+            if (this.isAccumulatingProperty(prop)) {
+                // Just append the property without filtering out previous occurrences
+                if (!prop.clear) {
+                    result.push(prop);
+                }
+                continue;
+            }
 
-            // Filter existing properties. 
-            // Remove any property that is a child of the current prop 
+            // Filter existing properties.
+            // Remove any property that is a child of the current prop
             // (i.e., its namePath starts with the current prop's namePath) or is the same property.
             result = result.filter(p => {
 

@@ -172,9 +172,39 @@ class StyleHandler {
      */
     getPage() {
         // Convert to hierarchical object
-        return DynamicPropertyMerger.toHierarchy(
+        const page = DynamicPropertyMerger.toHierarchy(
             this.getPageProperties()
         );
+
+        // Special handling for layered properties that should concatenate
+        // rather than replace when multiple style files are loaded
+        page.svg_definitions = this._getConcatenatedProperty('svg_definitions');
+        page.svg_styles = this._getConcatenatedProperty('svg_styles');
+
+        return page;
+    }
+
+    /**
+     * Get a concatenated property value from all occurrences in page properties
+     * This allows style layering where later files add to (rather than replace) certain properties
+     * @param {string} propertyName - Name of the property to concatenate
+     * @returns {string} Concatenated value with newlines between entries
+     * @private
+     */
+    _getConcatenatedProperty(propertyName) {
+        const props = this.pageProperties.filter(p =>
+            p.namePathArray &&
+            p.namePathArray.length === 1 &&
+            p.namePathArray[0] === propertyName &&
+            p.value !== undefined &&
+            p.value !== null
+        );
+
+        if (props.length === 0) return '';
+        if (props.length === 1) return props[0].value;
+
+        // Concatenate all values with newlines
+        return props.map(p => p.value).join('\n');
     }
 
     
@@ -608,8 +638,9 @@ class StyleHandler {
             }
         }
 
-        this.loadPageAndStyles(result);
-        
+        // Note: Do NOT call loadPageAndStyles here - it will be called by diagram-builder
+        // after all style files are collected to avoid duplicate loading
+
         return result;
     }
 

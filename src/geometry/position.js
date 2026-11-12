@@ -172,12 +172,15 @@ class Position {
 
         // Complex case: Transform anchors to calculate coordinates
         // Step 1: Get the center point of the reference node by adjusting for its own anchor
+        // Note: Direction vectors use mathematical Y-axis (up=+1)
+        // Apply yAxisDirection coefficient: +1 for math Y (LaTeX), -1 for screen Y (SVG)
+        const yDir = scaleConfig?.yAxisDirection || 1;
         const refNodeCenterX = referenceNode.position.xScaled - (referenceNodeOwnAnchorVector.x * referenceNode.dimensions.widthScaled/2);
-        const refNodeCenterY = referenceNode.position.yScaled - (referenceNodeOwnAnchorVector.y * referenceNode.dimensions.heightScaled/2);
+        const refNodeCenterY = referenceNode.position.yScaled - (referenceNodeOwnAnchorVector.y * yDir * referenceNode.dimensions.heightScaled/2);
 
         // Step 2: Find the position of the specific anchor point on the reference node
         const refAnchorPointX = refNodeCenterX + (referenceNodeAtAnchorVector.x * referenceNode.dimensions.widthScaled/2);
-        const refAnchorPointY = refNodeCenterY + (referenceNodeAtAnchorVector.y * referenceNode.dimensions.heightScaled/2);
+        const refAnchorPointY = refNodeCenterY + (referenceNodeAtAnchorVector.y * yDir * referenceNode.dimensions.heightScaled/2);
 
         // Step 3: Apply offsets if specified
         const finalXScaled = refAnchorPointX + x_offset_safe_scaled;
@@ -235,7 +238,9 @@ class Position {
         // Get scale factors
         const xScale = scaleConfig?.position?.x || 1;
         const yScale = scaleConfig?.position?.y || 1;
-        
+
+        // Preserve yAxisDirection when normalizing scaleConfig
+        const yAxisDirection = scaleConfig?.yAxisDirection;
         scaleConfig = {
             position: {
                 x: scaleConfig?.position?.x || 1.0,
@@ -245,6 +250,9 @@ class Position {
                 w: scaleConfig?.size?.w || 1.0,
                 h: scaleConfig?.size?.h || 1.0
             }
+        };
+        if (yAxisDirection !== undefined) {
+            scaleConfig.yAxisDirection = yAxisDirection;
         }
         
         let x_safe = parseFloat(x) || 0;

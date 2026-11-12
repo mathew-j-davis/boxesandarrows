@@ -79,17 +79,27 @@ class StyleDocumentHandler {
    */
   static extractDocumentsFromJson(jsonDoc) {
     if (!jsonDoc || typeof jsonDoc !== 'object') return [];
-    
+
     const results = [];
-    
+
     // Extract page configuration
     if (jsonDoc.page && typeof jsonDoc.page === 'object') {
-      results.push({
+      const pageDoc = {
         type: 'page',
         ...jsonDoc.page
-      });
+      };
+
+      // Include svg_definitions and svg_styles if present at root level
+      if (jsonDoc.svg_definitions !== undefined) {
+        pageDoc.svg_definitions = jsonDoc.svg_definitions;
+      }
+      if (jsonDoc.svg_styles !== undefined) {
+        pageDoc.svg_styles = jsonDoc.svg_styles;
+      }
+
+      results.push(pageDoc);
     }
-    
+
     // Extract styles
     if (jsonDoc.style && typeof jsonDoc.style === 'object') {
       Object.entries(jsonDoc.style).forEach(([styleName, styleData]) => {
@@ -100,7 +110,7 @@ class StyleDocumentHandler {
         });
       });
     }
-    
+
     return results;
   }
   
